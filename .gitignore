@@ -1,0 +1,25 @@
+﻿# Dependencies
+node_modules/
+*/node_modules/
+
+# Production & Build outputs
+.next/
+*/.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Archives & Temporary files
+*.tar.gz
+_to_delete/
+Claude outputs/
+ANUMATI_BACKEND_ARCHITECTURE.md
+ANUMATI_FRONTEND_ARCHITECTURE_1.md
+
+# Environment variables
+.env*.local
+.env
+
+# System files
+.DS_Store
+Thumbs.db

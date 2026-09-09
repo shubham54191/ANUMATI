@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+
+  --bg:            #FAFAF9;
+  --surface:       #FFFFFF;
+  --surface-sunk:  #F4F4F2;
+  --border:        #E4E4E2;
+  --border-strong: #D4D4D0;
+
+  --text:          #1A1A18;
+  --text-muted:    #55554F;
+  --text-faint:    #6F6F68;
+  --border-control: #949490;
+
+  --accent:           #1E3A5F;
+  --accent-hover:     #162B47;
+  --accent-ink:       #FFFFFF;
+  --accent-muted:     #EAF0F7;
+  --accent-ring:      rgba(30, 58, 95, 0.22);
+  --link:             #1E4D7A;
+
+  --accent-secondary: #B45309;
+
+  --state-pending:   #94A3B8;
+  --state-active:    #2563EB;
+  --state-done:      #16A34A;
+  --state-blocked:   #DC2626;
+  --state-deemed:    #D97706;
+
+  --state-deemed-ink: #B55C06;
+  --state-done-ink:   #16873C;
+
+  --edge-statutory:   #1E293B;
+  --edge-documentary: #2563EB;
+  --edge-physical:    #7C3AED;
+  --edge-practice:    #94A3B8;
+
+  --critical:      #DC2626;
+  --critical-glow: rgba(220, 38, 38, 0.15);
+
+  --font-sans:  "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono:  "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --stroke-statutory:   2.2;
+  --stroke-documentary: 1.6;
+  --stroke-physical:    1.6;
+  --stroke-practice:    1.4;
+  --stroke-critical:    2.5;
+
+  color-scheme: light;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.font-num { font-variant-numeric: tabular-nums; }
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-collapse: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 140ms;
+  --t-base: 240ms;
+  --t-slow: 700ms;
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes node-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes panel-in {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes band-draw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.anim-rise { animation: rise-in var(--t-base) var(--ease-out-expo) both; }
+.anim-node { animation: node-in 320ms var(--ease-out-expo) both; }
+.anim-panel { animation: panel-in var(--t-base) var(--ease-out-expo) both; }
+
+.react-flow__attribution { display: none; }
+.react-flow__node { cursor: pointer; }
+.react-flow__handle { opacity: 0; pointer-events: none; }
+.react-flow__edge-path {
+  transition: stroke var(--t-fast) ease, stroke-width var(--t-fast) ease,
+              opacity var(--t-base) ease;
+}
+.react-flow__node-approvalNode { transition: opacity var(--t-base) ease; }
+
+@keyframes draw-critical {
+  from { stroke-dashoffset: 1400; }
+  to   { stroke-dashoffset: 0; }
+}
+.edge-critical .react-flow__edge-path {
+  stroke-dasharray: 1400;
+  animation: draw-critical 900ms var(--ease-out-expo) 700ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 14mm 12mm;
+}
+
+@media print {
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+html, body {
+    background: #FFFFFF;
+    font-size: 10.5pt;
+    line-height: 1.4;
+  }
+  header[data-chrome], aside, .print\:hidden { display: none !important; }
+
+  .print-flow, .print-flow * {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  section { break-inside: auto; }
+  [role="row"] { break-inside: avoid; page-break-inside: avoid; }
+
+  [role="row"][data-approval]::before {
+    content: "";
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin-right: 8px;
+    margin-top: 3px;
+    border: 1px solid #1A1A18;
+    flex: none;
+  }
+
+  a[href]::after { content: ""; }
+}
