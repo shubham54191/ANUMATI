@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 export type ViewMode = "applicant" | "department";
 
-export type Pane = "graph" | "register" | "documents";
+export type Pane = "graph" | "register" | "documents" | "track";
 
 interface RoadmapState {
   selectedApprovalId: string | null;
@@ -12,6 +12,9 @@ interface RoadmapState {
   conditions: Record<string, boolean>;
   employees: number;
   heightM: number;
+  /** "Which department am I logged in as" — only meaningful in the department
+   *  view. Gates write actions in the Workflow pane (read all, write your own). */
+  activeDepartmentId: string | null;
   select: (id: string | null) => void;
   hover: (id: string | null) => void;
   setViewMode: (m: ViewMode) => void;
@@ -19,6 +22,7 @@ interface RoadmapState {
   toggleCondition: (key: string) => void;
   setEmployees: (n: number) => void;
   setHeight: (n: number) => void;
+  setActiveDepartmentId: (id: string | null) => void;
   hydrateFromSetup: (patch: { employees?: number; heightM?: number; on?: Record<string, boolean> }) => void;
 }
 
@@ -43,6 +47,7 @@ export const useRoadmapStore = create<RoadmapState>((set) => ({
   },
   employees: 72,
   heightM: 11,
+  activeDepartmentId: null,
   select: (id) => set({ selectedApprovalId: id }),
   hover: (id) => set({ hoveredApprovalId: id }),
   setViewMode: (viewMode) => set({ viewMode, pane: LANDING_PANE[viewMode] }),
@@ -61,6 +66,7 @@ export const useRoadmapStore = create<RoadmapState>((set) => ({
     })),
   setHeight: (heightM) =>
     set((s) => ({ heightM, conditions: { ...s.conditions, height: heightM > 15 } })),
+  setActiveDepartmentId: (activeDepartmentId) => set({ activeDepartmentId }),
 
   hydrateFromSetup: ({ employees, heightM, on }) =>
     set((s) => {

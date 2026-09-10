@@ -13,6 +13,7 @@ import { ApprovalDetailPanel } from "@/components/roadmap/ApprovalDetailPanel";
 import { RoadmapGraph } from "@/components/graph/RoadmapGraph";
 import { ApprovalRegister } from "@/components/register/ApprovalRegister";
 import { DocumentLedger } from "@/components/documents/DocumentLedger";
+import { WorkflowTrack } from "@/components/track/WorkflowTrack";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { getRoadmapSync } from "@/lib/api/roadmap";
 import { DEFAULT_REQUEST } from "@/lib/data/engine";
@@ -44,7 +45,7 @@ function ApplySetupChoices() {
     }
 
     const paneParam = searchParams.get("pane");
-    if (paneParam === "register" || paneParam === "documents" || paneParam === "graph") {
+    if (paneParam === "register" || paneParam === "documents" || paneParam === "graph" || paneParam === "track") {
       useRoadmapStore.getState().setPane(paneParam);
     }
     const roleParam = searchParams.get("role");
@@ -138,6 +139,7 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
         {pane === "graph" ? <RoadmapGraph roadmap={roadmap} /> : null}
         {pane === "register" ? <ApprovalRegister roadmap={roadmap} /> : null}
         {pane === "documents" ? <DocumentLedger roadmap={roadmap} /> : null}
+        {pane === "track" ? <WorkflowTrack roadmap={roadmap} /> : null}
         <ApprovalDetailPanel roadmap={roadmap} />
       </main>
     </AppShell>
