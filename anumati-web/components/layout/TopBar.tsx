@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Meta } from "@/types/api";
 import { ViewToggle } from "./ViewToggle";
 import { VersionBanner } from "./VersionBanner";
+import { SessionChip } from "./SessionChip";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -66,6 +67,7 @@ export function TopBar({ active, meta }: { active?: string; meta?: Meta }) {
       <div className="flex-1" />
       <ViewToggle />
       {meta ? <VersionBanner meta={meta} /> : null}
+      <SessionChip />
     </header>
   );
 }

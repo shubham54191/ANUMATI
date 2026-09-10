@@ -75,6 +75,25 @@ An automated audit measuring the administrative burden across government counter
 
 ---
 
+### 7. Matrix 2.0: Officer Clearance Console (sign in as `OFFICER` / `ADMIN`)
+
+The officer half of the product, behind a role sign-in and deliberately free of applicant-side material — no approval catalogue, no sequential-vs-parallel arithmetic, no reform simulator on the screen of the person actually processing the file.
+
+- **Concurrent dispatch** — one file pushed to every stakeholder department at the same moment, each lane running its own SLA clock from day 0.
+- **Conflict Resolution Protocol** — when Finance approves at the same instant IT rejects, the track splits green/red, a banner drops across the file, the phase bar turns amber and *Finalise approval* is disabled. A side-by-side screen shows the rejection reason against the row of the **Pre-Defined Decision Matrix** that settles it, with its statutory citation. Three rules ship: **veto / hard block**, **escalation to a tie-breaker panel**, and **weighted consolidated score**.
+- **SLA auto-escalation and deemed approval** — a statutory desk that breaches its window is lifted a tier; a non-critical one is deemed approved under the Right to Public Services Act, 2015.
+- **Shared data matrix** — records fetched from the ministry of record instead of asked for as certificates, each naming what it replaces.
+- **Cross-departmental clarification thread** — with *Resolve & re-evaluate*, letting the objecting department withdraw its own rejection.
+
+Full protocol, demo script and internals: [`../docs/MATRIX_2.0.md`](../docs/MATRIX_2.0.md).
+
+| User id | Password | Opens |
+|---|---|---|
+| `OFFICER` | `ADMIN` | Matrix 2.0 clearance console |
+| `APPLICANT` | `DEMO` | Applicant roadmap (or **Continue as an applicant**) |
+
+---
+
 ## Key Innovations & Core Architecture
 
 ### 1. Four-Tier Typed Dependency Evidence Matrix

@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, Info } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
+import { AuthGate } from "@/components/auth/AuthGate";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Label } from "@/components/ui/Card";
@@ -29,6 +30,7 @@ export default function NewRoadmapPage() {
   const [on, setOn] = useState<Record<string, boolean>>({ boiler: true });
 
   return (
+    <AuthGate allow="applicant">
     <AppShell active="roadmap" meta={meta}>
       <main className="flex flex-1 justify-center overflow-y-auto pt-16">
         <div className="flex w-[960px] gap-8 pb-16">
@@ -182,5 +184,6 @@ export default function NewRoadmapPage() {
         </div>
       </main>
     </AppShell>
+    </AuthGate>
   );
 }
