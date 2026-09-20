@@ -7,6 +7,7 @@ import { useMatrixStore } from "@/store/useMatrixStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Card";
+import { AuthorityLine } from "./AuthorityLine";
 
 /**
  * Scenario B, the panel's own screen.
@@ -61,9 +62,9 @@ export function TieBreakerScreen({
               {panel?.panel ?? "Steering committee review"}
             </h2>
             <p className="mt-0.5 text-[12px] text-muted">
-              {app.id} · {app.project} — escalated under {app.rule.id}, {app.rule.authority}{" "}
-              <span className="font-mono">{app.rule.authority_section}</span>
+              {app.id} · {app.project} — escalated under {app.rule.id}
             </p>
+            <AuthorityLine rule={app.rule} className="mt-1.5" />
           </div>
           <span className="flex-none rounded-sm border border-state-deemed/50 bg-state-deemed/[0.1] px-2 py-0.5 font-mono text-[10px] font-medium tracking-[0.05em] text-state-deemed-ink">
             {panel?.sla_days ?? 7} D WINDOW

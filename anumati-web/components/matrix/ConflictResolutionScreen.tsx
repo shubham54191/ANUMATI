@@ -1,6 +1,5 @@
 "use client";
 import {
-  BookMarked,
   CheckCircle2,
   Gavel,
   MessageSquare,
@@ -16,6 +15,7 @@ import { RULE_OUTCOME_LABEL } from "@/lib/matrix/rules";
 import { useMatrixStore } from "@/store/useMatrixStore";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Card";
+import { AuthorityLine } from "./AuthorityLine";
 import { WeightedScoreCard } from "./WeightedScoreCard";
 import { cn } from "@/lib/utils";
 
@@ -162,12 +162,7 @@ export function ConflictResolutionScreen({
 
             <p className="mt-2 text-[13px] leading-relaxed text-ink">{app.rule.summary}</p>
 
-            <div className="mt-3 flex items-start gap-2 border-t border-accent/20 pt-2.5">
-              <BookMarked className="mt-0.5 h-3 w-3 flex-none text-muted" strokeWidth={1.6} />
-              <span className="text-[11.5px] leading-snug text-muted">
-                {app.rule.authority} — <span className="font-mono">{app.rule.authority_section}</span>
-              </span>
-            </div>
+            <AuthorityLine rule={app.rule} className="mt-3 border-t border-accent/20 pt-2.5" />
           </div>
 
           <div className="mt-3 rounded border border-line bg-bg px-3.5 py-3">

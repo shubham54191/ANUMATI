@@ -169,9 +169,23 @@ Each file carries a `MatrixRule`. Three rows ship in `lib/matrix/rules.ts`:
 
 | Row | Kind | What it decides | Cited to |
 |---|---|---|---|
-| `MX-VETO-TECH` | `veto` | A rejection by a designated technical or statutory authority hard-blocks the phase | Maharashtra Single Window Clearance Rules, r. 14(2) |
-| `MX-ESCALATE-EQUAL` | `escalation` | Equal weight → District Steering Committee, 7-day window | GR IND-2024/CR-118/INDUSTRIES-2, para 6 |
-| `MX-WEIGHTED-PROC` | `weighted` | Consolidated weighted average must reach 75 | Maharashtra Public Procurement Policy 2023, cl. 22 |
+| `MX-VETO-TECH` | `veto` | A rejection by a designated technical or statutory authority hard-blocks the phase | Draft Single Window Conflict Rules (pilot), cl. 14(2) — **not notified** |
+| `MX-ESCALATE-EQUAL` | `escalation` | Equal weight → District Steering Committee, 7-day window | Draft Steering Committee Escalation Rules (pilot), cl. 6 — **not notified** |
+| `MX-WEIGHTED-PROC` | `weighted` | Consolidated weighted average must reach 75 | Draft Multi-Department Evaluation Rules (pilot), cl. 22 — **not notified** |
+
+Each row carries an `authority_status` of `enacted` or `draft`, and every screen
+that shows a row shows that status beside it. All three rows shipped here are
+**draft**: they were written for the district pilot, modelled on practice the
+departments already follow, and no Government Resolution has notified them yet.
+
+This matters more than it looks. The roadmap's own rule base cites real
+instruments — MLRC 1966 s. 44, Companies Act 2013 s. 7, the Right to Public
+Services Act 2015 — and a drafted pilot clause sitting next to those without a
+label would quietly borrow their authority. A citation that cannot be checked is
+worse than no citation, because it teaches the reader to stop checking. The
+distinction is the same one the dependency graph already draws between what an
+Act requires and what a department merely does: a draft row still decides the
+file in front of the officer, it just says out loud what it is.
 
 A state that tie-breaks differently edits a row; it does not edit the console. This is
 the same discipline the rule store behind the applicant roadmap already follows — a

@@ -94,7 +94,7 @@ When Finance clicks **Approve** at the same instant IT clicks **Reject**, the pi
 
 ![Conflict resolution screen](screenshots/09-conflict-resolution.png)
 
-Three governance rules ship, and the UI adapts to whichever one the file carries:
+Three governance rules ship, and the UI adapts to whichever one the file carries. Every rule declares whether its instrument is **in force** or **drafted for the pilot and not yet notified**, and the screen says which — a drafted clause must never borrow the authority of a real one:
 
 | Rule | Behaviour on a clash | Resolution path |
 |---|---|---|

@@ -17,8 +17,11 @@ export const MATRIX_RULES: Record<string, MatrixRule> = {
     label: "Technical veto — hard block",
     summary:
       "A rejection by a designated technical or statutory authority blocks the phase outright. No other department's approval can override it; the file goes back to the applicant for correction.",
-    authority: "Maharashtra Single Window Clearance Rules",
-    authority_section: "r. 14(2) — technical objections",
+    authority: "Draft Single Window Conflict Rules (pilot)",
+    authority_section: "cl. 14(2) — technical objections",
+    authority_status: "draft",
+    authority_note:
+      "Drafted for the district pilot, modelled on the technical-objection practice already followed by MPCB and the Fire Service. Not yet notified.",
     veto_departments: ["dit-mh", "legal-mh", "mpcb", "mfs", "dish", "ceig-mh"],
   },
   "MX-ESCALATE-EQUAL": {
@@ -27,8 +30,11 @@ export const MATRIX_RULES: Record<string, MatrixRule> = {
     label: "Equal weight — escalate to tie-breaker",
     summary:
       "Where both departments carry equal weight and neither may override the other, the file is routed to a standing tie-breaker panel, which may either overrule the rejection or sustain it.",
-    authority: "GR IND-2024/CR-118/INDUSTRIES-2",
-    authority_section: "para 6 — inter-departmental disagreement",
+    authority: "Draft Steering Committee Escalation Rules (pilot)",
+    authority_section: "cl. 6 — inter-departmental disagreement",
+    authority_status: "draft",
+    authority_note:
+      "Drafted for the district pilot. The escalation tier it names is the standing District Steering Committee; the rule itself awaits a Government Resolution.",
     tie_breaker: {
       panel: "District Steering Committee",
       chair: "Cabinet Secretary (Industries)",
@@ -47,8 +53,11 @@ export const MATRIX_RULES: Record<string, MatrixRule> = {
     label: "Weighted score — consolidated threshold",
     summary:
       "Departments score the proposal instead of voting yes or no. The consolidated weighted average must reach the passing score for the phase to clear; below it the phase fails and the project manager is notified.",
-    authority: "Maharashtra Public Procurement Policy, 2023",
-    authority_section: "cl. 22 — multi-department technical evaluation",
+    authority: "Draft Multi-Department Evaluation Rules (pilot)",
+    authority_section: "cl. 22 — weighted technical evaluation",
+    authority_status: "draft",
+    authority_note:
+      "Drafted for the district pilot, modelled on standard two-envelope tender evaluation. The passing score is a pilot parameter, not a notified threshold.",
     passing_score: 75,
   },
 };

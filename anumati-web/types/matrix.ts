@@ -29,6 +29,19 @@ export interface MatrixRule {
   /** The clause the rule is drawn from — no rule without a citation. */
   authority: string;
   authority_section: string;
+  /**
+   * Whether the instrument behind this row is actually in force.
+   *
+   * The rule store behind the applicant roadmap already refuses to hold a rule
+   * that cannot say where it comes from. The same discipline has to apply to
+   * the rows that decide who wins a conflict — and an honest answer for a
+   * pilot is sometimes "drafted for this pilot, not yet notified". Saying so
+   * on screen is the difference between a cited system and one that merely
+   * looks cited.
+   */
+  authority_status: "enacted" | "draft";
+  /** Shown wherever a draft row is displayed, so nobody mistakes it for law. */
+  authority_note?: string;
   /** veto: departments whose rejection hard-blocks the phase. */
   veto_departments?: string[];
   /** escalation: who breaks the tie, and how long they have. */
