@@ -15,6 +15,10 @@ import { ApprovalRegister } from "@/components/register/ApprovalRegister";
 import { DocumentLedger } from "@/components/documents/DocumentLedger";
 import { WorkflowTrack } from "@/components/track/WorkflowTrack";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { useReportsStore } from "@/store/useReportsStore";
+import { daysUnder, evidenceIndex } from "@/lib/data/observed";
+import { APPROVALS } from "@/lib/data/maharashtraFood";
+import { SEEDED_REPORTS } from "@/lib/data/fieldReports";
 import { getRoadmapSync } from "@/lib/api/roadmap";
 import { DEFAULT_REQUEST } from "@/lib/data/engine";
 import { SECTORS, SIZE_BANDS, STAGES } from "@/lib/constants/sectors";
@@ -72,9 +76,24 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
   const setPane = useRoadmapStore((s) => s.setPane);
   const employees = useRoadmapStore((s) => s.employees);
 
+  const clockBasis = useRoadmapStore((s) => s.clockBasis);
+  const filed = useReportsStore((s) => s.filed);
+  const hydrateReports = useReportsStore((s) => s.hydrate);
+  useEffect(() => hydrateReports(), [hydrateReports]);
+
+  // Reports filed in this session sit alongside the seeded ones, so filing a
+  // delay visibly moves the median it feeds — that is the loop, not a form.
+  const evidence = useMemo(
+    () => evidenceIndex(APPROVALS, [...filed, ...SEEDED_REPORTS]),
+    [filed],
+  );
+
   const { data: roadmap, meta } = useMemo(
-    () => getRoadmapSync({ ...DEFAULT_REQUEST, conditions }),
-    [conditions],
+    () =>
+      getRoadmapSync({ ...DEFAULT_REQUEST, conditions }, (a) =>
+        daysUnder(a, clockBasis, evidence),
+      ),
+    [conditions, clockBasis, evidence],
   );
 
   const req = DEFAULT_REQUEST;
@@ -131,16 +150,16 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
       </div>
 
       <div className="print:hidden">
-        <RoadmapHeader roadmap={roadmap} />
+        <RoadmapHeader roadmap={roadmap} evidence={evidence} />
         <ConditionalControls engineVersion={meta.engine_version} />
       </div>
 
       <main className="relative flex-1 overflow-hidden">
         {pane === "graph" ? <RoadmapGraph roadmap={roadmap} /> : null}
-        {pane === "register" ? <ApprovalRegister roadmap={roadmap} /> : null}
+        {pane === "register" ? <ApprovalRegister roadmap={roadmap} evidence={evidence} /> : null}
         {pane === "documents" ? <DocumentLedger roadmap={roadmap} /> : null}
         {pane === "track" ? <WorkflowTrack roadmap={roadmap} /> : null}
-        <ApprovalDetailPanel roadmap={roadmap} />
+        <ApprovalDetailPanel roadmap={roadmap} evidence={evidence} />
       </main>
     </AppShell>
   );

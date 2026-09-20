@@ -76,6 +76,10 @@ export function useGraphLayout(
             },
             data: {
               approval: byId.get(id)!,
+              // What the graph actually planned this node with. Under the
+              // observed clock it is the reported median, so the number on the
+              // card and the lane it sits in can never disagree.
+              planningDays: (roadmap.earliest_finish[id] ?? 0) - batch.day,
               onCriticalPath,
               selected: selectedId === id,
               related: Boolean(focus) && related.has(id) && id !== focus,

@@ -1,12 +1,24 @@
+"use client";
 import type { Roadmap } from "@/types/roadmap";
+import type { ApprovalEvidence } from "@/types/report";
+import { useRoadmapStore } from "@/store/useRoadmapStore";
+import { ClockToggle } from "./ClockToggle";
 import { pct } from "@/lib/format/days";
 import { StatTile } from "./StatTile";
 import { EdgeTypeBreakdown } from "./EdgeTypeBreakdown";
 import { TimeCollapse } from "./TimeCollapse";
 
-export function RoadmapHeader({ roadmap }: { roadmap: Roadmap }) {
+export function RoadmapHeader({
+  roadmap,
+  evidence,
+}: {
+  roadmap: Roadmap;
+  evidence: Record<string, ApprovalEvidence>;
+}) {
   const saved = roadmap.sequential_days - roadmap.optimised_days;
   const departments = new Set(roadmap.approvals.map((a) => a.department_id)).size;
+  const basis = useRoadmapStore((s) => s.clockBasis);
+  const observed = basis === "observed";
 
   return (
     <div className="flex-none border-b border-line bg-surface">
@@ -22,7 +34,7 @@ export function RoadmapHeader({ roadmap }: { roadmap: Roadmap }) {
         <div className="my-[22px] w-px bg-line" />
         <div className="px-9">
           <StatTile
-            label="If done sequentially"
+            label={observed ? "Sequentially · observed" : "If done sequentially"}
             value={roadmap.sequential_days}
             unit="days"
             tone="muted"
@@ -32,7 +44,7 @@ export function RoadmapHeader({ roadmap }: { roadmap: Roadmap }) {
         <div className="my-[22px] w-px bg-line" />
         <div className="px-9">
           <StatTile
-            label="Optimised · critical path"
+            label={observed ? "Critical path · observed" : "Optimised · critical path"}
             value={roadmap.optimised_days}
             unit="days"
             tone="emphasis"
@@ -51,7 +63,10 @@ export function RoadmapHeader({ roadmap }: { roadmap: Roadmap }) {
           />
         </div>
         <div className="flex-1" />
-        <EdgeTypeBreakdown dependencies={roadmap.dependencies} />
+        <div className="flex items-center gap-6 self-center">
+          <ClockToggle evidence={evidence} />
+          <EdgeTypeBreakdown dependencies={roadmap.dependencies} />
+        </div>
       </div>
 
       <TimeCollapse

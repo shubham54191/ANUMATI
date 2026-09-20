@@ -39,9 +39,17 @@ function topoSort(ids: string[], edges: Dependency[]): string[] {
   return order;
 }
 
+/**
+ * How long to plan for a single approval. Defaults to the statutory window;
+ * the observed clock passes its own resolver so the same CPM runs over what
+ * applicants actually waited.
+ */
+export type DaysResolver = (a: Approval) => number;
+
 export function buildRoadmap(
   request: RoadmapRequest,
   id = "RM-4F2A81",
+  daysFor: DaysResolver = (a) => a.statutory_days,
 ): Roadmap {
   const approvals = APPROVALS.filter(
     (a) => applicable(a, request.conditions) && a.review_status === "published",
@@ -70,7 +78,7 @@ export function buildRoadmap(
       );
     }
     earliestStart[nodeId] = start;
-    earliestFinish[nodeId] = start + byId.get(nodeId)!.statutory_days;
+    earliestFinish[nodeId] = start + daysFor(byId.get(nodeId)!);
   }
 
   const optimised = Math.max(...Object.values(earliestFinish));
@@ -105,7 +113,7 @@ export function buildRoadmap(
       }),
     }));
 
-  const sequential = approvals.reduce((s, a) => s + a.statutory_days, 0);
+  const sequential = approvals.reduce((s, a) => s + daysFor(a), 0);
 
   return {
     id,

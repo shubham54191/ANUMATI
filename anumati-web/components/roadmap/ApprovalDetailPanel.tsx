@@ -2,14 +2,22 @@
 import { useState } from "react";
 import { X, TriangleAlert } from "lucide-react";
 import type { Roadmap } from "@/types/roadmap";
+import type { ApprovalEvidence } from "@/types/report";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { Badge, ConfidenceBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Card";
+import { EvidenceBlock } from "./EvidenceBlock";
 import { ProvenanceBlock } from "./ProvenanceBlock";
 import { ReportRejectionDialog } from "./ReportRejectionDialog";
 
-export function ApprovalDetailPanel({ roadmap }: { roadmap: Roadmap }) {
+export function ApprovalDetailPanel({
+  roadmap,
+  evidence,
+}: {
+  roadmap: Roadmap;
+  evidence: Record<string, ApprovalEvidence>;
+}) {
   const selectedId = useRoadmapStore((s) => s.selectedApprovalId);
   const select = useRoadmapStore((s) => s.select);
   const [reporting, setReporting] = useState(false);
@@ -148,6 +156,8 @@ export function ApprovalDetailPanel({ roadmap }: { roadmap: Roadmap }) {
           ))}
         </div>
       </div>
+
+      {evidence[approval.id] ? <EvidenceBlock evidence={evidence[approval.id]} /> : null}
 
       <ProvenanceBlock approval={approval} />
 

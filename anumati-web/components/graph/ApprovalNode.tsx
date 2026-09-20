@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 
 export interface ApprovalNodeData extends Record<string, unknown> {
   approval: Approval;
+  /** Days the graph laid this node out with — statutory or observed. */
+  planningDays: number;
   onCriticalPath: boolean;
   selected: boolean;
   related: boolean;
@@ -16,8 +18,10 @@ export interface ApprovalNodeData extends Record<string, unknown> {
 export type ApprovalNodeType = Node<ApprovalNodeData, "approvalNode">;
 
 function ApprovalNodeImpl({ data }: NodeProps<ApprovalNodeType>) {
-  const { approval, onCriticalPath, selected, related, focused, laneIndex } = data;
+  const { approval, planningDays, onCriticalPath, selected, related, focused, laneIndex } = data;
   const conditional = Boolean(approval.conditional_on);
+  const days = planningDays ?? approval.statutory_days;
+  const drift = days - approval.statutory_days;
 
   return (
     <div
@@ -57,8 +61,20 @@ function ApprovalNodeImpl({ data }: NodeProps<ApprovalNodeType>) {
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="font-num font-mono text-[11px] font-semibold text-ink">
-          {approval.statutory_days} d
+        <span className="flex items-baseline gap-1">
+          <span className="font-num font-mono text-[11px] font-semibold text-ink">{days} d</span>
+          {drift !== 0 ? (
+            <span
+              className={cn(
+                "font-num font-mono text-[9.5px] font-medium",
+                drift > 0 ? "text-critical" : "text-state-done-ink",
+              )}
+              title={`Statutory window is ${approval.statutory_days} days`}
+            >
+              {drift > 0 ? "+" : ""}
+              {drift}
+            </span>
+          ) : null}
         </span>
         <span className="flex items-center gap-1.5">
           {approval.deemed_exists && !onCriticalPath ? (

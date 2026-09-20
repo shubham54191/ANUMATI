@@ -4,6 +4,9 @@ export type ViewMode = "applicant" | "department";
 
 export type Pane = "graph" | "register" | "documents" | "track";
 
+/** Statute, or what applicants actually reported. */
+export type ClockBasis = "statutory" | "observed";
+
 interface RoadmapState {
   selectedApprovalId: string | null;
   hoveredApprovalId: string | null;
@@ -15,6 +18,7 @@ interface RoadmapState {
   /** "Which department am I logged in as" — only meaningful in the department
    *  view. Gates write actions in the Workflow pane (read all, write your own). */
   activeDepartmentId: string | null;
+  clockBasis: ClockBasis;
   select: (id: string | null) => void;
   hover: (id: string | null) => void;
   setViewMode: (m: ViewMode) => void;
@@ -23,6 +27,7 @@ interface RoadmapState {
   setEmployees: (n: number) => void;
   setHeight: (n: number) => void;
   setActiveDepartmentId: (id: string | null) => void;
+  setClockBasis: (b: ClockBasis) => void;
   hydrateFromSetup: (patch: { employees?: number; heightM?: number; on?: Record<string, boolean> }) => void;
 }
 
@@ -48,7 +53,9 @@ export const useRoadmapStore = create<RoadmapState>((set) => ({
   employees: 72,
   heightM: 11,
   activeDepartmentId: null,
+  clockBasis: "statutory",
   select: (id) => set({ selectedApprovalId: id }),
+  setClockBasis: (clockBasis) => set({ clockBasis }),
   hover: (id) => set({ hoveredApprovalId: id }),
   setViewMode: (viewMode) => set({ viewMode, pane: LANDING_PANE[viewMode] }),
   setPane: (pane) => set({ pane }),

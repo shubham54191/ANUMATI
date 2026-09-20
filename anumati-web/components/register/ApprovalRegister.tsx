@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import type { Roadmap } from "@/types/roadmap";
+import type { ApprovalEvidence } from "@/types/report";
 import type { Stage } from "@/types/approval";
 import { EDGE_SPEC } from "@/lib/constants/edgeTypes";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
@@ -23,7 +24,13 @@ const STAGES: { id: Stage; title: string; blurb: string }[] = [
   },
 ];
 
-export function ApprovalRegister({ roadmap }: { roadmap: Roadmap }) {
+export function ApprovalRegister({
+  roadmap,
+  evidence,
+}: {
+  roadmap: Roadmap;
+  evidence: Record<string, ApprovalEvidence>;
+}) {
   const select = useRoadmapStore((s) => s.select);
   const selectedId = useRoadmapStore((s) => s.selectedApprovalId);
   const [query, setQuery] = useState("");
@@ -159,10 +166,10 @@ export function ApprovalRegister({ roadmap }: { roadmap: Roadmap }) {
                   <span role="columnheader" className="label flex-1">
                     Approval and the provision it comes from
                   </span>
-                  <span role="columnheader" className="label w-[196px] flex-none">
+                  <span role="columnheader" className="label w-[168px] flex-none">
                     Department
                   </span>
-                  <span role="columnheader" className="label w-[150px] flex-none">
+                  <span role="columnheader" className="label w-[118px] flex-none">
                     Waits on
                   </span>
                   <span role="columnheader" className="label w-[104px] flex-none text-right">
@@ -170,6 +177,13 @@ export function ApprovalRegister({ roadmap }: { roadmap: Roadmap }) {
                   </span>
                   <span role="columnheader" className="label w-[72px] flex-none text-right">
                     Statutory
+                  </span>
+                  <span
+                    role="columnheader"
+                    className="label w-[96px] flex-none text-right"
+                    title="Median of what applicants reported actually waiting, and the sample it rests on"
+                  >
+                    Observed
                   </span>
                   <span role="columnheader" className="label w-[78px] flex-none text-right">
                     Deemed
@@ -239,12 +253,12 @@ export function ApprovalRegister({ roadmap }: { roadmap: Roadmap }) {
 
                       <span
                         role="cell"
-                        className="w-[196px] flex-none pt-0.5 text-[12.5px] leading-snug text-ink"
+                        className="w-[168px] flex-none pt-0.5 text-[12.5px] leading-snug text-ink"
                       >
                         {a.department_name}
                       </span>
 
-                      <span role="cell" className="flex w-[150px] flex-none flex-wrap gap-1 pt-0.5">
+                      <span role="cell" className="flex w-[118px] flex-none flex-wrap gap-1 pt-0.5">
                         {waits.length === 0 ? (
                           <span className="text-[12px] text-faint" title="No prerequisite — this can be filed on day one">
                               —
@@ -284,6 +298,39 @@ export function ApprovalRegister({ roadmap }: { roadmap: Roadmap }) {
                         className="font-num w-[72px] flex-none pt-0.5 text-right font-mono text-[12.5px] font-semibold text-ink"
                       >
                         {a.statutory_days} d
+                      </span>
+
+                      <span role="cell" className="w-[96px] flex-none pt-0.5 text-right">
+                        {(() => {
+                          const e = evidence[a.id];
+                          if (!e || e.sample === 0) {
+                            return (
+                              <span
+                                className="font-mono text-[11.5px] text-faint"
+                                title="Nobody has reported a timing for this approval yet"
+                              >
+                                no data
+                              </span>
+                            );
+                          }
+                          const slower = (e.delta ?? 0) > 0;
+                          return (
+                            <>
+                              <span
+                                className={cn(
+                                  "font-num block font-mono text-[12.5px] font-semibold",
+                                  slower ? "text-critical" : "text-state-done-ink",
+                                )}
+                              >
+                                {e.observed_days} d
+                              </span>
+                              <span className="font-num block font-mono text-[10px] text-faint">
+                                {slower ? "+" : ""}
+                                {e.delta} · n={e.sample}
+                              </span>
+                            </>
+                          );
+                        })()}
                       </span>
 
                       <span

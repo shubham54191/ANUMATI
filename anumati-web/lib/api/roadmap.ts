@@ -1,6 +1,6 @@
 import type { Meta } from "@/types/api";
 import type { Roadmap, RoadmapRequest } from "@/types/roadmap";
-import { buildRoadmap } from "@/lib/data/engine";
+import { buildRoadmap, type DaysResolver } from "@/lib/data/engine";
 import { APPROVALS } from "@/lib/data/maharashtraFood";
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -20,8 +20,11 @@ export async function getRoadmap(
   return { data: buildRoadmap(request), meta: localMeta() };
 }
 
-export function getRoadmapSync(request: RoadmapRequest): { data: Roadmap; meta: Meta } {
-  return { data: buildRoadmap(request), meta: localMeta() };
+export function getRoadmapSync(
+  request: RoadmapRequest,
+  daysFor?: DaysResolver,
+): { data: Roadmap; meta: Meta } {
+  return { data: buildRoadmap(request, undefined, daysFor), meta: localMeta() };
 }
 
 export function localMeta(): Meta {
