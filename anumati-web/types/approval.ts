@@ -29,7 +29,24 @@ export interface Approval {
   required_documents: string[];
   produces_document: string | null;
 
+  /**
+   * Condition key that must be true for this approval to apply. Prefix with
+   * "!" for the negative case — "!midc_land" means "only on private land".
+   */
   conditional_on: string | null;
+  /**
+   * Some clearances are decided by a different authority depending on where
+   * the land is. Inside a notified MIDC area, MIDC is the Special Planning
+   * Authority and PMRDA never sees the building plan. The clearance is the
+   * same; the desk is not.
+   */
+  authority_variants?: {
+    when: string;
+    department_id: string;
+    department_name: string;
+    department_short: string;
+    source: SourceRef;
+  }[];
   confidence: number;
   review_status: ReviewStatus;
 

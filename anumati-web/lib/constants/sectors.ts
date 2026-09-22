@@ -19,6 +19,17 @@ export const STAGES = [
   { id: "renewal", label: "Renewal of existing licences" },
 ] as const;
 
+/**
+ * Where the land sits decides two things at once: whether a land-use
+ * conversion order is needed at all, and which authority sanctions the
+ * building plan. Inside a notified MIDC area the land is already industrial
+ * and MIDC is the Special Planning Authority.
+ */
+export const LAND_REGIMES = [
+  { id: "midc", label: "MIDC plot — notified industrial area" },
+  { id: "private", label: "Private land — outside MIDC" },
+] as const;
+
 export const CONDITIONS = [
   { id: "boiler", label: "Steam boiler on site", adds: 1 },
   { id: "height", label: "Built height over 15 m", adds: 2 },

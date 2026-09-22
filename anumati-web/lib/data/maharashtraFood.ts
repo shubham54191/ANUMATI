@@ -27,19 +27,23 @@ export const APPROVALS: Approval[] = [
     department_name: "Office of the Collector, Pune", department_short: "COLLECTOR",
     statutory_days: 60, deemed_exists: false, deemed_days: null, deemed_reference: null,
     required_documents: ["7/12 extract", "Layout plan", "Zone certificate"],
-    produces_document: "NA order", conditional_on: null,
-    source: src("MLRC-1966", "s. 44", "https://mahabhumi.gov.in"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    produces_document: "NA order",
+    // Private land only. Inside a notified MIDC area the land is already
+    // industrial and no conversion order exists to apply for.
+    conditional_on: "!midc_land",
+    source: src("MLRC-1966", "s. 42 to 44", "https://mahabhumi.gov.in"),
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A02", stage: "pre_establishment", name: "Company incorporation (SPICe+)", department_id: "mca",
     department_name: "Ministry of Corporate Affairs", department_short: "MCA",
-    statutory_days: 7, deemed_exists: true, deemed_days: 7,
-    deemed_reference: "Companies Act, 2013 — s. 7",
+    // No deemed incorporation exists in the Companies Act. Removed rather than
+    // asserted: s. 7 is the incorporation provision, not a deeming clause.
+    statutory_days: 7, deemed_exists: false, deemed_days: null, deemed_reference: null,
     required_documents: ["DIN", "DSC", "MoA and AoA"],
     produces_document: "Certificate of Incorporation", conditional_on: null,
     source: src("COMPANIES-ACT-2013", "s. 7", "https://www.mca.gov.in"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A03", stage: "pre_establishment", name: "PAN & TAN allotment", department_id: "cbdt",
@@ -66,7 +70,7 @@ export const APPROVALS: Approval[] = [
     required_documents: ["Certificate of Incorporation", "Project report", "Earnest money"],
     produces_document: "Lease deed", conditional_on: null,
     source: src("MID-ACT-1961", "s. 32", "https://www.midcindia.org"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A06", stage: "pre_establishment", name: "GST registration", department_id: "gstn",
@@ -76,7 +80,7 @@ export const APPROVALS: Approval[] = [
     required_documents: ["Certificate of Incorporation", "PAN", "Proof of place of business"],
     produces_document: "GSTIN", conditional_on: null,
     source: src("CGST-ACT-2017", "s. 25", "https://www.gst.gov.in"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A07", stage: "pre_establishment", name: "Shops & Establishments registration", department_id: "labour-mh",
@@ -108,12 +112,21 @@ export const APPROVALS: Approval[] = [
   a({
     id: "A10", stage: "pre_establishment", name: "Building plan approval", department_id: "pmrda",
     department_name: "Pune Metropolitan Region Development Authority", department_short: "PMRDA",
-    statutory_days: 45, deemed_exists: true, deemed_days: 30,
-    deemed_reference: "Maharashtra Right to Public Services Act, 2015",
-    required_documents: ["NA order", "Lease deed", "Architect drawings", "Structural stability certificate"],
+    statutory_days: 45, deemed_exists: true, deemed_days: 60,
+    deemed_reference: "MRTP Act, 1966 — s. 45(5)",
+    required_documents: ["NA order or MIDC lease particulars", "Architect drawings", "Structural stability certificate"],
     produces_document: "Sanctioned building plan", conditional_on: null,
+    authority_variants: [
+      {
+        when: "midc_land",
+        department_id: "midc",
+        department_name: "Maharashtra Industrial Development Corporation — Special Planning Authority",
+        department_short: "MIDC",
+        source: src("MRTP-ACT-1966", "s. 40 and s. 45", "https://www.midcindia.org"),
+      },
+    ],
     source: src("MRTP-ACT-1966", "s. 45", "https://pmrda.gov.in"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A11", stage: "pre_establishment", name: "HT power connection sanction", department_id: "msedcl",
@@ -136,12 +149,12 @@ export const APPROVALS: Approval[] = [
   a({
     id: "A13", stage: "pre_establishment", name: "Fire NOC — provisional", department_id: "mfs",
     department_name: "Maharashtra Fire Service", department_short: "MFS",
-    statutory_days: 21, deemed_exists: true, deemed_days: 60,
-    deemed_reference: "Maharashtra Fire Prevention and Life Safety Measures Act, 2006 — s. 3",
+    // Deeming clause not located in the bare act. Not asserted.
+    statutory_days: 21, deemed_exists: false, deemed_days: null, deemed_reference: null,
     required_documents: ["Architect drawings", "Fire fighting layout"],
     produces_document: "Provisional fire NOC", conditional_on: null,
     source: src("MH-FIRE-ACT-2006", "s. 3", "https://dof.maharashtra.gov.in"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A14", stage: "pre_establishment", name: "Trade licence", department_id: "pmc",
@@ -160,16 +173,17 @@ export const APPROVALS: Approval[] = [
     required_documents: ["Sanctioned building plan", "Project report", "Water balance chart", "ETP design", "Land document", "Consent fee challan"],
     produces_document: "Consent to Establish", conditional_on: null,
     source: src("WATER-ACT-1974", "s. 25", "https://mpcb.gov.in/consent-management"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A16", stage: "pre_establishment", name: "Factory plan approval", department_id: "dish",
     department_name: "Directorate of Industrial Safety and Health", department_short: "DISH",
-    statutory_days: 15, deemed_exists: false, deemed_days: null, deemed_reference: null,
+    statutory_days: 15, deemed_exists: true, deemed_days: 90,
+    deemed_reference: "Factories Act, 1948 — s. 6(2)",
     required_documents: ["Sanctioned building plan", "Machinery layout"],
     produces_document: "Approved factory plan", conditional_on: "factory",
     source: src("FACTORIES-ACT-1948", "s. 6", "https://mahakamgar.maharashtra.gov.in"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A17", stage: "pre_establishment", name: "Commencement certificate", department_id: "pmrda",
@@ -201,12 +215,14 @@ export const APPROVALS: Approval[] = [
   a({
     id: "A20", stage: "pre_operation", name: "MPCB Consent to Operate", department_id: "mpcb",
     department_name: "Maharashtra Pollution Control Board", department_short: "MPCB",
-    statutory_days: 45, deemed_exists: true, deemed_days: 120,
-    deemed_reference: "Air (Prevention and Control of Pollution) Act, 1981 — s. 21",
+    // The Water Act's four-month deeming clause is explicit (s. 25(7)); the
+    // Air Act's equivalent was not located, and a Consent to Operate covering
+    // both cannot be deemed on half a basis. Not asserted.
+    statutory_days: 45, deemed_exists: false, deemed_days: null, deemed_reference: null,
     required_documents: ["Consent to Establish", "ETP commissioning report", "Stack details"],
     produces_document: "Consent to Operate", conditional_on: null,
     source: src("AIR-ACT-1981", "s. 21", "https://mpcb.gov.in/consent-management"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A21", stage: "pre_operation", name: "Factory licence", department_id: "dish",
@@ -215,7 +231,7 @@ export const APPROVALS: Approval[] = [
     required_documents: ["Approved factory plan", "List of workers", "Fee challan"],
     produces_document: "Factory licence", conditional_on: "factory",
     source: src("FACTORIES-ACT-1948", "s. 6", "https://mahakamgar.maharashtra.gov.in"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A22", stage: "pre_operation", name: "Electrical inspector approval", department_id: "ceig-mh",
@@ -238,12 +254,13 @@ export const APPROVALS: Approval[] = [
   a({
     id: "A24", stage: "pre_operation", name: "FSSAI Central Licence", department_id: "fssai",
     department_name: "Food Safety and Standards Authority of India", department_short: "FSSAI",
-    statutory_days: 45, deemed_exists: true, deemed_days: 60,
-    deemed_reference: "FSS (Licensing and Registration) Regulations, 2011 — reg. 2.1.7",
+    // Regulation number not confirmed against the published regulations.
+    // Not asserted until it is.
+    statutory_days: 45, deemed_exists: false, deemed_days: null, deemed_reference: null,
     required_documents: ["Consent to Operate", "Layout plan", "Water test report", "Food safety plan"],
     produces_document: "FSSAI licence", conditional_on: null,
     source: src("FSS-ACT-2006", "s. 31", "https://foscos.fssai.gov.in"),
-    verified_by: "R. Kulkarni", verified_on: "2026-08-19",
+    verified_by: "Team — bare act read", verified_on: "2026-09-21",
   }),
   a({
     id: "A25", stage: "pre_operation", name: "Occupancy certificate", department_id: "pmrda",

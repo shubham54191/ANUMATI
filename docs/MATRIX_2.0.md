@@ -43,75 +43,86 @@ with a real identity provider and server-side checks.
 Sign in as `OFFICER` / `ADMIN`. Three files are waiting, one per row of the decision
 matrix, so every branch of the protocol can be walked without editing anything.
 
-### File 1 — `APP-2026-0148`, the veto rule
+### File 1 — `APP-2026-0148`, technical objection under the parent Act
 
 1. **Dispatch to all 4 departments.** The track fans out from one dispatch node into
-   four lanes — FINANCE, IT, MPCB, LABOUR — and all four SLA clocks start on day 0.
-   This is the concurrent routing in point 2 of the brief: no department is waiting
-   behind another's desk.
-2. **Simultaneous clash — FINANCE approve + IT reject.** Both decisions are committed
+   four lanes — MIDC, MPCB, FIRE, LABOUR — and all four time limits start on day 0.
+2. **Simultaneous clash — MIDC approve + MPCB reject.** Both decisions are committed
    on a single timestamp. Instantly:
-   - the FINANCE lane turns **green**, the IT lane turns **red**, and the track visibly
-     splits;
-   - a red banner drops across the top of the file for every viewer, naming both
-     departments and the clock second the clash happened;
-   - the overarching phase bar turns **amber** and reads `HALTED — TECHNICAL VETO`;
+   - the MIDC lane turns **green**, the MPCB lane turns **red**, and the track splits;
+   - a banner drops across the file naming both departments and the clock second;
+   - the phase bar turns **amber** and reads `HALTED — TECHNICAL VETO`;
    - **Finalise approval is disabled** and stays disabled;
    - the cross-departmental thread opens itself, carrying both officers' reasons.
-3. **The Conflict Resolution screen** appears below the track as a side-by-side grid.
-   Left: the exact reason IT rejected — *"Server infrastructure budget exceeds cloud
-   allocation guidelines — 18 on-premise racks proposed where MahaGov Cloud capacity is
-   already allotted to this cluster."* Right: the row of the Pre-Defined Decision Matrix
-   that decides who wins, with the clause it comes from.
-4. **Data matrix tab.** Nothing to press — background validation fired on dispatch, and
-   five records have already been pulled from other ministries. Four verify; the MahaGov
-   Cloud capacity register comes back a **MISMATCH**, and that record is quoted on the
-   conflict screen as the evidence behind IT's rejection.
-5. **Thread tab → Resolve & re-evaluate as IT.** IT withdraws its own objection. The
-   lane goes red → **PROCESSING**, the banner clears, the conflict evaporates. Nobody
-   overruled anybody.
-6. **Stage the clash again → Send for revision.** The revision packet opens: IT's
-   objection to be corrected, and FINANCE's approval listed as *carried forward — do not
-   re-file*. The applicant gets 15 days; the phase resumes where it stopped.
+3. **The Conflict Resolution screen.** Left: the reason MPCB refused — *"Effluent
+   treatment capacity proposed is 145 KLD against a declared draw of 210 KLD."*
+   Right: the matrix row, which says the refusal stands on the **Water Act**, not on
+   this system, and that the rejection must record its reasons (MAITRI Act s. 4(3)).
+   The chip reads `IN FORCE`, because that row is drawn from an enacted statute.
+4. **Data matrix tab.** Background validation fired on dispatch. The cross-check of
+   the water-draw figure declared to MIDC against the figure declared to MPCB comes
+   back a **MISMATCH** — and that record is quoted on the conflict screen as the
+   evidence behind the refusal. The applicant could have seen the same thing in the
+   pre-check screen three weeks earlier, for nothing.
+5. **Thread tab → Resolve & re-evaluate as MPCB.** The objecting department withdraws
+   its own refusal. The lane goes red → **PROCESSING** and the conflict evaporates.
+6. **Stage the clash again → Send for revision.** The packet carries MPCB's objection
+   and lists MIDC's approval as *carried forward — do not re-file*.
 
-### File 2 — `APP-2026-0151`, the tie-breaker rule
+### File 2 — `APP-2026-0151`, equal authority → Empowered Committee
 
-Both departments carry equal weight, so neither may override the other.
+Two competent authorities of equal standing, reading the same drawing differently.
 
-1. **Simultaneous clash — FINANCE approve + MPCB reject.**
-2. The file **routes itself**: the banner reads *Escalated: awaiting tie-breaker panel*, a
-   temporary **Tie-Breaker** node appears at the end of the parallel track drawn dashed in
-   amber, and the file lands on the panel's dashboard. Nobody forwarded it — an
-   equal-weight deadlock has nowhere else to go, so the matrix moves it.
-3. **Open tie-breaker panel.** The panel screen shows both departments' inputs side by side — officer, designation,
-   timestamp, weight, veto status — with exactly two buttons: **Overrule MPCB & approve**
-   or **Sustain rejection**. There is no third option on purpose; an escalation that can
-   be left half-decided is how a file spends six months on a desk.
+1. **Simultaneous clash — DISH approve + FIRE reject.** DISH approves the factory
+   plan; the Fire Service refuses the provisional NOC because the same plan set shows
+   one 1.0 m staircase where two exits and 1.5 m are required.
+2. The file **routes itself** to the **Empowered Committee** — a temporary node appears
+   at the end of the track, and the banner reads *Escalated: awaiting tie-breaker
+   panel*. Nobody forwarded it.
+3. **Open the panel.** Both departments' inputs side by side, and exactly two buttons:
+   **Overrule & approve** or **Sustain rejection**. The panel is the Committee the Act
+   constitutes (s. 6), chaired by the Development Commissioner (Industries), and its
+   decisions bind both the applicant and the authorities (s. 9).
 
-### File 3 — `APP-2026-0155`, the weighted rule
+**The honest caveat, said out loud on the screen:** the Act sends files to the
+Committee on *delay* (s. 5) and on *grievance* (s. 8). It has no clause headed "two
+departments disagree". The Committee, its chair and the binding effect are enacted;
+applying that route to a deadlock is this pilot's reading, and the rule's note says so.
 
-A tender, where departments score instead of voting.
+### File 3 — `APP-2026-0155`, risk-based scrutiny
 
-1. **Simultaneous clash.** FINANCE scores 95, IT scores 40. The Consolidated Dashboard
-   Score reads **67.5 / 100** against a passing score of 75 — `BELOW THRESHOLD BY 7.5`,
-   with the threshold marked on the bar.
-2. Score the remaining two desks (MPCB 80, PWD 78) from the departmental desk strip and
-   the average moves live to **73.3** — still short.
-3. The moment the last desk reports, the phase **marks itself failed** and the project
-   manager is notified. No officer signs a failure into existence; the threshold does.
+Departments score the risk rather than voting the proposal up or down.
 
-### SLA, escalation and deemed approval — on any file
+1. **Simultaneous clash.** MSEDCL scores the distribution side 88; the Electrical
+   Inspector scores 42, because the single-line diagram shows a 1,600 kVA transformer
+   against a load application for 1,250 kVA.
+2. The consolidated score decides **how hard the file is looked at** — documents only,
+   or a full joint inspection. It never grants or refuses a clearance.
+3. Score the remaining desks and the moment the last one reports below the threshold,
+   the phase marks itself and notifies the project manager. No officer signs that
+   into existence; the threshold does.
 
-Press **+1 D** repeatedly, or start the **CLOCK** to run a day every 1.4 seconds, and
-watch the escalation matrix act on its own:
+### What a missed time limit actually does — on any file
 
-- Two days out, each desk gets an SLA warning in the audit trail.
-- **LABOUR** (non-statutory, 7-day window) breaches on day 8 and is marked
-  **DEEMED APPROVED** under the Right to Public Services Act, 2015 s. 5(3). The phase
-  advances without it.
-- **IT** (statutory, 10-day window) breaches on day 11 and is **auto-escalated** to the
-  Principal Secretary (IT) — a statutory clearance cannot be deemed, so the tier above
-  inherits the delay instead.
+Press **+1 D**, or start the **CLOCK**, and watch the escalation matrix act on its own.
+Two different consequences, and which one applies is a property of the **statute**,
+not a category of department:
+
+- **FIRE** (21-day limit, no deeming clause in its own Act) breaches and the file is
+  **transferred to the Empowered Committee**. MAITRI Act, 2023 — s. 5(1) and s. 5(2):
+  the Nodal Agency moves the application and the competent authority *ceases to have
+  the power to deal with it*. Nothing is waved through, and the lane stays open,
+  because the Committee still has to decide it under the same law (s. 5(3)).
+- **MIDC** (building plan) breaches its 60-day clause and is **deemed granted** —
+  under **MRTP Act, 1966 s. 45(5)**, the Act's own provision.
+
+> **The error this replaced.** An earlier build deemed clearances approved under the
+> "Right to Public Services Act, 2015 s. 5(3)". That provision does not exist. The RTS
+> Act gives an applicant an **appeal** (s. 9) and puts a **penalty of ₹500 to ₹5,000**
+> on the designated officer (s. 10) — it deems nothing approved. Deeming is a power of
+> the sectoral statute, and only four clearances in this rule base actually have one:
+> MRTP s. 45(5), CGST r. 9(5), Water Act s. 25(7), Factories Act s. 6(2). Where a
+> clause could not be found in the bare act, none is asserted. A test enforces this.
 
 **Reset** returns any file to its filed state, so the demo can be run again immediately.
 
@@ -169,9 +180,9 @@ Each file carries a `MatrixRule`. Three rows ship in `lib/matrix/rules.ts`:
 
 | Row | Kind | What it decides | Cited to |
 |---|---|---|---|
-| `MX-VETO-TECH` | `veto` | A rejection by a designated technical or statutory authority hard-blocks the phase | Draft Single Window Conflict Rules (pilot), cl. 14(2) — **not notified** |
-| `MX-ESCALATE-EQUAL` | `escalation` | Equal weight → District Steering Committee, 7-day window | Draft Steering Committee Escalation Rules (pilot), cl. 6 — **not notified** |
-| `MX-WEIGHTED-PROC` | `weighted` | Consolidated weighted average must reach 75 | Draft Multi-Department Evaluation Rules (pilot), cl. 22 — **not notified** |
+| `MX-VETO-TECH` | `veto` | A refusal by the authority the sectoral Act names stands on that Act | Water Act 1974 / Fire Act 2006 / Factories Act 1948, read with MAITRI Act s. 4(3), s. 5(3) — **in force** |
+| `MX-ESCALATE-EQUAL` | `escalation` | Equal authority → Empowered Committee, decisions binding | MAITRI Act, 2023 — s. 6, s. 8, s. 9 — **in force** |
+| `MX-RISK-SCRUTINY` | `weighted` | Consolidated score sets the depth of scrutiny, never the outcome | Pilot parameter — **draft**, weights are the district's |
 
 Each row carries an `authority_status` of `enacted` or `draft`, and every screen
 that shows a row shows that status beside it. All three rows shipped here are

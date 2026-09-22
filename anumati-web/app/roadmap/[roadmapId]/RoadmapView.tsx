@@ -14,6 +14,7 @@ import { RoadmapGraph } from "@/components/graph/RoadmapGraph";
 import { ApprovalRegister } from "@/components/register/ApprovalRegister";
 import { DocumentLedger } from "@/components/documents/DocumentLedger";
 import { WorkflowTrack } from "@/components/track/WorkflowTrack";
+import { PreCheckPane } from "@/components/precheck/PreCheckPane";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useReportsStore } from "@/store/useReportsStore";
 import { daysUnder, evidenceIndex } from "@/lib/data/observed";
@@ -47,9 +48,20 @@ function ApplySetupChoices() {
     for (const key of SETUP_FLAGS) {
       if (searchParams.get(key) === "1") on[key] = true;
     }
+    // Land regime is a three-state answer on the wire: absent means "leave it
+    // alone", 1 and 0 are explicit, because "not MIDC" is a real answer and
+    // must not be confused with "not asked".
+    const landParam = searchParams.get("midc_land");
+    if (landParam === "1" || landParam === "0") on.midc_land = landParam === "1";
 
     const paneParam = searchParams.get("pane");
-    if (paneParam === "register" || paneParam === "documents" || paneParam === "graph" || paneParam === "track") {
+    if (
+      paneParam === "register" ||
+      paneParam === "documents" ||
+      paneParam === "graph" ||
+      paneParam === "track" ||
+      paneParam === "precheck"
+    ) {
       useRoadmapStore.getState().setPane(paneParam);
     }
     const roleParam = searchParams.get("role");
@@ -159,6 +171,7 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
         {pane === "register" ? <ApprovalRegister roadmap={roadmap} evidence={evidence} /> : null}
         {pane === "documents" ? <DocumentLedger roadmap={roadmap} /> : null}
         {pane === "track" ? <WorkflowTrack roadmap={roadmap} /> : null}
+        {pane === "precheck" ? <PreCheckPane roadmap={roadmap} /> : null}
         <ApprovalDetailPanel roadmap={roadmap} evidence={evidence} />
       </main>
     </AppShell>

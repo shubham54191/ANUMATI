@@ -27,7 +27,12 @@ export const dateOf = (iso: string) => iso.slice(0, 10);
 export const isDecided = (r: DeptReview) =>
   r.state === "approved" || r.state === "rejected" || r.state === "deemed_approved";
 
-export const isOpen = (r: DeptReview) => r.state === "queued" || r.state === "in_review";
+export const isOpen = (r: DeptReview) =>
+  r.state === "queued" ||
+  r.state === "in_review" ||
+  // A transferred file is not settled. It is on a different desk — the
+  // Committee's — and still has to be decided under the relevant law.
+  r.state === "transferred_to_committee";
 
 /** Days left before this department breaches its window. Negative = overdue. */
 export function slaRemaining(review: DeptReview, day: number): number {
@@ -210,9 +215,15 @@ export function reEvaluate(app: ApplicationFile, deptId: string, note: string): 
 
 /**
  * Advance the shared clock one day and apply whatever the escalation matrix
- * says falls due. A statutory department that misses its window is pushed up a
- * tier; a non-critical one is deemed to have approved, which is the only thing
- * that stops one silent desk holding a project for a year.
+ * says falls due.
+ *
+ * Two different consequences, and which one applies is a property of the
+ * statute rather than of the department. Where the parent Act carries its own
+ * deeming clause — MRTP s. 45(5), CGST r. 9(5) — silence deems the clearance
+ * granted. Everywhere else the MAITRI Act takes the file off the desk and
+ * hands it to the Empowered Committee (s. 5). Either way one quiet desk can no
+ * longer hold a project for a year, and neither way invents a power the law
+ * does not give.
  */
 export function advanceDay(app: ApplicationFile, by = 1): ApplicationFile {
   // A settled phase has no clock. Once the file has been returned to the
@@ -250,28 +261,15 @@ function tick(app: ApplicationFile): ApplicationFile {
       return r;
     }
 
-    if (left < 0 && r.statutory && r.escalated_on_day === null) {
-      events.push(
-        event(
-          stamped,
-          "escalation",
-          "Matrix 2.0",
-          `${r.dept_short} missed its ${r.sla_days}-day statutory window. File auto-escalated to ${r.escalation_tier}. Statutory clearances cannot be deemed — the tier above now owns the delay.`,
-          "Maharashtra Right to Public Services Act, 2015 — s. 6",
-          at,
-        ),
-      );
-      return { ...r, escalated_on_day: day };
-    }
-
-    if (left < 0 && !r.statutory) {
+    // The parent law's own deeming clause, where the statute actually has one.
+    if (r.deemed_exists && r.deemed_days !== null && day > r.deemed_days) {
       events.push(
         event(
           stamped,
           "deemed",
           "Matrix 2.0",
-          `${r.dept_short} did not act within ${r.sla_days} days and recorded no reason. ${r.approval_id} marked DEEMED APPROVED and the phase advanced.`,
-          "Maharashtra Right to Public Services Act, 2015 — s. 5(3)",
+          `${r.dept_short} did not act within the ${r.deemed_days}-day window its own Act allows. ${r.approval_id} is DEEMED APPROVED under that Act.`,
+          r.deemed_reference ?? undefined,
           at,
         ),
       );
@@ -280,7 +278,32 @@ function tick(app: ApplicationFile): ApplicationFile {
         state: "deemed_approved" as ReviewState,
         decided_on_day: day,
         decided_at: at,
-        remarks: `Deemed approved — no action within the ${r.sla_days}-day window.`,
+        remarks: `Deemed approved under ${r.deemed_reference ?? "the parent Act"} — no order within ${r.deemed_days} days.`,
+      };
+    }
+
+    // Everything else. Maharashtra's single window law does not deem a
+    // clearance granted when a desk goes quiet: the Nodal Agency takes the
+    // file off that desk and gives it to the Empowered Committee, which then
+    // disposes of it under the same sectoral law the department would have
+    // applied. Nothing is waved through, and nobody gains a power they did
+    // not already have.
+    if (left < 0 && r.escalated_on_day === null) {
+      events.push(
+        event(
+          stamped,
+          "escalation",
+          "Matrix 2.0",
+          `${r.dept_short} missed its ${r.sla_days}-day limit on ${r.approval_id}. The file is transferred to ${r.escalation_tier}; ${r.dept_short} ceases to have power over it. The Committee will still decide under the same Act.`,
+          "MAITRI Act, 2023 — s. 5(1) and s. 5(2)",
+          at,
+        ),
+      );
+      return {
+        ...r,
+        state: "transferred_to_committee" as ReviewState,
+        escalated_on_day: day,
+        remarks: `Transferred to ${r.escalation_tier} after the ${r.sla_days}-day limit lapsed.`,
       };
     }
 
@@ -300,16 +323,22 @@ export function derive(app: ApplicationFile): DerivedMatrixState {
   const rejected = app.reviews.filter((r) => r.state === "rejected");
   const pending = app.reviews.filter(isOpen);
   const escalated = app.reviews.filter((r) => r.escalated_on_day !== null && isOpen(r));
+  const transferred = app.reviews.filter((r) => r.state === "transferred_to_committee");
   const breachedSla = app.reviews.filter((r) => isOpen(r) && r.sla_days - app.day < 0);
 
   const clearedCount = approved.length + deemed.length;
   const conflict = rejected.length > 0 && clearedCount > 0;
 
-  const stamps = [...approved, ...rejected]
-    .map((r) => r.decided_at)
-    .filter((x): x is string => Boolean(x))
-    .map((x) => x.slice(0, 19));
-  const simultaneous = conflict && new Set(stamps).size === 1 && stamps.length > 1;
+  // Simultaneous means simultaneous on BOTH clocks: the same wall-clock second
+  // and the same day of the file's own life. Wall-clock alone is not enough —
+  // in a walkthrough two decisions three simulated days apart can still land
+  // inside one real second, and calling that "at the same instant" would put a
+  // claim on screen that the timestamps do not support.
+  const decisive = [...approved, ...rejected].filter(
+    (r) => r.decided_at !== null && r.decided_on_day !== null,
+  );
+  const stamps = decisive.map((r) => `${r.decided_on_day}@${(r.decided_at as string).slice(0, 19)}`);
+  const simultaneous = conflict && stamps.length > 1 && new Set(stamps).size === 1;
 
   const vetoDepts = new Set(app.rule.veto_departments ?? []);
   const vetoedBy =
@@ -393,6 +422,7 @@ export function derive(app: ApplicationFile): DerivedMatrixState {
     pending,
     deemed,
     escalated,
+    transferred,
     conflict,
     simultaneous,
     vetoedBy,

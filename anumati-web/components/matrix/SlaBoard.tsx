@@ -67,34 +67,41 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
                 </div>
 
                 {open ? (
-                <p className="mt-1.5 text-[11.5px] leading-snug text-muted">
-                  {r.statutory ? (
-                    <>
-                      Statutory — cannot be deemed. On breach the file goes to{" "}
-                      <span className="text-ink">{r.escalation_tier}</span>.
-                    </>
-                  ) : (
-                    <>
-                      Non-critical — deemed approved on breach if no reason is recorded, under the
-                      Right to Public Services Act.
-                    </>
-                  )}
-                </p>
+                  <p className="mt-1.5 text-[11.5px] leading-snug text-muted">
+                    {r.deemed_exists ? (
+                      <>
+                        Its own Act deems this granted after{" "}
+                        <span className="text-ink">{r.deemed_days} days</span> —{" "}
+                        <span className="font-mono text-[10.5px]">{r.deemed_reference}</span>.
+                      </>
+                    ) : (
+                      <>
+                        No deeming clause in the parent Act. On breach the file transfers to{" "}
+                        <span className="text-ink">{r.escalation_tier}</span>, which decides it under
+                        the same law.
+                      </>
+                    )}
+                  </p>
                 ) : null}
 
                 {r.escalated_on_day !== null ? (
-                  <div className="mt-2 flex items-center gap-1.5 rounded-sm border border-state-deemed/45 bg-state-deemed/[0.1] px-2 py-1">
-                    <ArrowUpRight className="h-3 w-3 flex-none text-state-deemed-ink" strokeWidth={1.8} />
-                    <span className="font-mono text-[10px] font-medium tracking-[0.05em] text-state-deemed-ink">
-                      ESCALATED ON DAY {r.escalated_on_day} → {r.escalation_tier.toUpperCase()}
+                  <div className="mt-2 flex items-start gap-1.5 rounded-sm border border-accent/45 bg-accent-muted px-2 py-1">
+                    <ArrowUpRight className="mt-0.5 h-3 w-3 flex-none text-accent" strokeWidth={1.8} />
+                    <span className="text-[10.5px] leading-snug text-accent">
+                      <span className="font-mono font-medium tracking-[0.05em]">
+                        TRANSFERRED ON DAY {r.escalated_on_day}
+                      </span>{" "}
+                      — {r.dept_short} ceased to have power over this application. MAITRI Act, 2023
+                      s. 5(1) and s. 5(2).
                     </span>
                   </div>
                 ) : null}
 
                 {r.state === "deemed_approved" ? (
                   <div className="mt-2 rounded-sm border border-state-deemed/45 bg-state-deemed/[0.1] px-2 py-1 text-[11px] leading-snug text-state-deemed-ink">
-                    Deemed approved on day {r.decided_on_day} — the window closed with no action and no
-                    recorded reason.
+                    Deemed granted on day {r.decided_on_day} under{" "}
+                    <span className="font-mono text-[10.5px]">{r.deemed_reference}</span> — the Act&apos;s
+                    own clause, not a service-delivery rule.
                   </div>
                 ) : null}
               </div>
@@ -106,9 +113,18 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
           <Label className="mb-1 block">How the ladder works</Label>
           <ol className="flex flex-col gap-1 text-[11.5px] leading-relaxed text-muted">
             <li>1. Two days out, the desk and its supervisor are warned.</li>
-            <li>2. On breach, a statutory desk is escalated a tier and the file is flagged.</li>
-            <li>3. On breach, a non-critical desk is deemed approved and the phase advances.</li>
-            <li>4. Every step is written to the audit trail with the provision it was taken under.</li>
+            <li>
+              2. Where the parent Act has its own deeming clause, silence deems the clearance granted
+              on that Act&apos;s terms.
+            </li>
+            <li>
+              3. Everywhere else the file transfers to the Empowered Committee and the department
+              ceases to have power over it — MAITRI Act s. 5.
+            </li>
+            <li>
+              4. The Committee still decides under the relevant law (s. 5(3)). Nothing is waved through.
+            </li>
+            <li>5. Every step is written to the audit trail with the provision it was taken under.</li>
           </ol>
         </div>
       </div>

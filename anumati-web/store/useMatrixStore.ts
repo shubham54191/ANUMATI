@@ -19,7 +19,7 @@ import {
   tieBreakerDecision,
 } from "@/lib/matrix/engine";
 
-export type ContextTab = "thread" | "data" | "sla" | "audit";
+export type ContextTab = "thread" | "data" | "sla" | "visits" | "redress" | "audit";
 
 interface MatrixState {
   applications: ApplicationFile[];
@@ -166,7 +166,7 @@ export const useMatrixStore = create<MatrixState>((set, get) => ({
     update(set, get, (app) => {
       const dept = app.reviews.find((r) => r.dept_id === deptId);
       return postMessage(app, {
-        author: dept ? `${dept.officer_name}` : "R. Kulkarni",
+        author: dept ? `${dept.officer_name}` : "Single-window officer",
         author_short: dept ? dept.dept_short : "SINGLE WINDOW",
         role: dept ? "department" : "officer",
         dept_id: dept?.dept_id ?? null,

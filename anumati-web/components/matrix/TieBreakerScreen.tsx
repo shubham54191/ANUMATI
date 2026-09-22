@@ -89,8 +89,9 @@ export function TieBreakerScreen({
                   </div>
                   <p className="mt-2.5 text-[13px] leading-relaxed text-ink">{approver.remarks}</p>
                   <p className="mt-3 font-mono text-[10.5px] text-faint">
-                    WEIGHT {approver.weight.toFixed(1)} · {approver.veto ? "HOLDS VETO" : "NO VETO"} ·{" "}
-                    {approver.statutory ? "STATUTORY" : "NON-STATUTORY"}
+                    WEIGHT {approver.weight.toFixed(1)} ·{" "}
+                    {approver.veto ? "PARENT ACT VETO" : "NO VETO"} ·{" "}
+                    {approver.deemed_exists ? `DEEMS AT ${approver.deemed_days} D` : "NO DEEMING CLAUSE"}
                   </p>
                 </>
               ) : (
@@ -111,8 +112,9 @@ export function TieBreakerScreen({
                   </div>
                   <p className="mt-2.5 text-[13px] leading-relaxed text-ink">{rejecter.remarks}</p>
                   <p className="mt-3 font-mono text-[10.5px] text-faint">
-                    WEIGHT {rejecter.weight.toFixed(1)} · {rejecter.veto ? "HOLDS VETO" : "NO VETO"} ·{" "}
-                    {rejecter.statutory ? "STATUTORY" : "NON-STATUTORY"}
+                    WEIGHT {rejecter.weight.toFixed(1)} ·{" "}
+                    {rejecter.veto ? "PARENT ACT VETO" : "NO VETO"} ·{" "}
+                    {rejecter.deemed_exists ? `DEEMS AT ${rejecter.deemed_days} D` : "NO DEEMING CLAUSE"}
                   </p>
                 </>
               ) : (

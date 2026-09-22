@@ -15,7 +15,21 @@ export type ReviewState =
   | "in_review"
   | "approved"
   | "rejected"
-  | "deemed_approved";
+  /**
+   * Only where the parent law itself provides a deeming clause — MRTP s. 45(5),
+   * CGST r. 9(5), Water Act s. 25(7). The Right to Public Services Act, 2015
+   * does NOT deem anything approved: it gives an appeal (s. 9) and a penalty on
+   * the officer (s. 10). Deeming is a power of the sectoral statute, never of
+   * the service-delivery statute.
+   */
+  | "deemed_approved"
+  /**
+   * The default consequence of a missed window under Maharashtra's own single
+   * window law: the Nodal Agency transfers the file to the Empowered Committee
+   * and the competent authority ceases to have power over it.
+   * MAITRI Act, 2023 — s. 5.
+   */
+  | "transferred_to_committee";
 
 /** What the pre-defined decision matrix says to do when reviews disagree. */
 export type MatrixRuleKind = "veto" | "escalation" | "weighted";
@@ -66,15 +80,21 @@ export interface DeptReview {
   approval_name: string;
   /** Share of the consolidated score under a weighted rule. */
   weight: number;
-  /** True where a rejection is a dealbreaker — IT, Legal, Fire, Pollution. */
+  /** True where a rejection is a dealbreaker — Pollution, Fire, Factories. */
   veto: boolean;
   /**
-   * Statutory departments cannot be deemed-approved away; a missed clock
-   * escalates instead. Non-critical ones fall to deemed approval.
+   * Whether the PARENT LAW of this clearance carries its own deeming clause.
+   * This is a property of the statute, not a category of department: MRTP has
+   * one, the Companies Act does not. Where it is false, a missed window sends
+   * the file to the Empowered Committee instead of deeming anything.
    */
-  statutory: boolean;
+  deemed_exists: boolean;
+  /** Days after which the parent law's deeming clause bites. */
+  deemed_days: number | null;
+  /** The clause that does the deeming — never the RTS Act. */
+  deemed_reference: string | null;
   sla_days: number;
-  /** Where a missed SLA goes next. */
+  /** Where a missed window goes. Default: the Empowered Committee. */
   escalation_tier: string;
   state: ReviewState;
   /** Simulated day (from dispatch) the department decided. */
@@ -84,7 +104,7 @@ export interface DeptReview {
   /** 0–100, only meaningful under a weighted rule. */
   score: number | null;
   remarks: string | null;
-  /** Set once the SLA has been breached and the file pushed up a tier. */
+  /** Set once the window was missed and the file left the department. */
   escalated_on_day: number | null;
   /** Documents this department is waiting on from the shared data matrix. */
   requires: string[];
@@ -212,6 +232,8 @@ export interface DerivedMatrixState {
   pending: DeptReview[];
   deemed: DeptReview[];
   escalated: DeptReview[];
+  /** Lanes the Empowered Committee now holds, under MAITRI Act s. 5. */
+  transferred: DeptReview[];
   /** A conflict is an approval and a rejection inside the same parallel phase. */
   conflict: boolean;
   /** Set when the clash happened within the same clock second. */

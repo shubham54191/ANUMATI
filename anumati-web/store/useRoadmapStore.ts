@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 export type ViewMode = "applicant" | "department";
 
-export type Pane = "graph" | "register" | "documents" | "track";
+export type Pane = "graph" | "register" | "documents" | "track" | "precheck";
 
 /** Statute, or what applicants actually reported. */
 export type ClockBasis = "statutory" | "observed";
@@ -42,6 +42,7 @@ export const useRoadmapStore = create<RoadmapState>((set) => ({
   viewMode: "applicant",
   pane: "graph",
   conditions: {
+    midc_land: true,
     boiler: true,
     height: false,
     hazardous: true,

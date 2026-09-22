@@ -23,7 +23,7 @@ export interface Session {
 const OFFICER_SESSION: Session = {
   role: "officer",
   username: "OFFICER",
-  name: "R. Kulkarni",
+  name: "Demo Officer",
   designation: "Single-Window Facilitation Officer",
   office: "District Industries Centre, Pune",
   admin: true,

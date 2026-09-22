@@ -1,5 +1,5 @@
 "use client";
-import { Files, GitBranch, Rows3, Workflow } from "lucide-react";
+import { Files, GitBranch, Rows3, ShieldCheck, Workflow } from "lucide-react";
 import { useRoadmapStore, type Pane } from "@/store/useRoadmapStore";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +8,7 @@ const PANES: { id: Pane; label: string; Icon: typeof Rows3 }[] = [
   { id: "register", label: "Checklist", Icon: Rows3 },
   { id: "documents", label: "Documents", Icon: Files },
   { id: "track", label: "Workflow", Icon: Workflow },
+  { id: "precheck", label: "Pre-check", Icon: ShieldCheck },
 ];
 
 export function PaneSwitch() {

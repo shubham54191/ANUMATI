@@ -12,7 +12,32 @@ export class CyclicDependencyError extends Error {
 
 function applicable(a: Approval, conditions: Record<string, boolean | number>): boolean {
   if (!a.conditional_on) return true;
+  // "!key" is the negative case: the approval applies when the condition is
+  // NOT set. Land-use conversion is the example — it applies on private land
+  // precisely because the land is not already in a notified industrial area.
+  if (a.conditional_on.startsWith("!")) {
+    return conditions[a.conditional_on.slice(1)] !== true;
+  }
   return conditions[a.conditional_on] === true;
+}
+
+/**
+ * Swap in the authority that actually decides this clearance for this site.
+ * The rule is the same everywhere; who applies it is not.
+ */
+function resolveAuthority(
+  a: Approval,
+  conditions: Record<string, boolean | number>,
+): Approval {
+  const variant = a.authority_variants?.find((v) => conditions[v.when] === true);
+  if (!variant) return a;
+  return {
+    ...a,
+    department_id: variant.department_id,
+    department_name: variant.department_name,
+    department_short: variant.department_short,
+    source: variant.source,
+  };
 }
 
 /** Kahn's algorithm. Raises loudly on a cycle rather than looping forever. */
@@ -53,7 +78,7 @@ export function buildRoadmap(
 ): Roadmap {
   const approvals = APPROVALS.filter(
     (a) => applicable(a, request.conditions) && a.review_status === "published",
-  );
+  ).map((a) => resolveAuthority(a, request.conditions));
   const live = new Set(approvals.map((a) => a.id));
   const dependencies = DEPENDENCIES.filter(
     (d) => live.has(d.from_approval_id) && live.has(d.to_approval_id),
@@ -134,6 +159,7 @@ export const DEFAULT_REQUEST: RoadmapRequest = {
   size_band: "medium",
   stage: "new",
   conditions: {
+    midc_land: true,
     boiler: true,
     height: false,
     hazardous: true,

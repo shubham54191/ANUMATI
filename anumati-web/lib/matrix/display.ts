@@ -33,6 +33,13 @@ export const REVIEW_META: Record<
     bg: "bg-critical/[0.06]",
     border: "border-critical/45",
   },
+  transferred_to_committee: {
+    label: "WITH COMMITTEE",
+    colorVar: "--state-active",
+    text: "text-accent",
+    bg: "bg-accent-muted",
+    border: "border-accent/45",
+  },
   deemed_approved: {
     label: "DEEMED APPROVED",
     colorVar: "--state-deemed",
@@ -61,8 +68,11 @@ export function slaLabel(review: DeptReview, day: number): string {
   const settledOn = review.decided_on_day;
   if (settledOn !== null) {
     return review.state === "deemed_approved"
-      ? `deemed d${settledOn} · ${review.sla_days} d window`
+      ? `deemed d${settledOn} · ${review.sla_days} d limit`
       : `decided d${settledOn} of ${review.sla_days} d`;
+  }
+  if (review.state === "transferred_to_committee") {
+    return `transferred d${review.escalated_on_day} · limit was ${review.sla_days} d`;
   }
   const left = review.sla_days - day;
   if (left < 0) return `overdue by ${Math.abs(left)} d`;

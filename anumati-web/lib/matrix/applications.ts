@@ -2,14 +2,19 @@ import type { ApplicationFile, DataRecord, DeptReview } from "@/types/matrix";
 import { MATRIX_RULES } from "./rules";
 
 /**
- * Three live files, one per row of the decision matrix, so every branch of the
- * conflict protocol can be walked in a demo without editing anything.
+ * Three live files, one per row of the decision matrix.
+ *
+ * Every department here is one that actually clears an industrial unit in
+ * Maharashtra, and every clash is one that actually happens: the same physical
+ * fact written differently on two departments' forms. No file is reviewed by a
+ * department that would never see it.
+ *
+ * Officers are named by post, not by person. An invented individual on a
+ * government screen is a small lie that costs more than it saves.
  *
  * Timestamps are fixed strings, not new Date() — the seed has to render the
  * same on the server and in the browser.
  */
-
-const FILED = "2026-09-02";
 
 type ReviewSeed = Omit<DeptReview, "decided_on_day" | "decided_at" | "escalated_on_day"> &
   Partial<Pick<DeptReview, "decided_on_day" | "decided_at" | "escalated_on_day">>;
@@ -18,24 +23,72 @@ function review(x: ReviewSeed): DeptReview {
   return { decided_on_day: null, decided_at: null, escalated_on_day: null, ...x };
 }
 
+/** Where a missed limit sends the file, unless the parent Act deems instead. */
+const COMMITTEE = "the Empowered Committee (MAITRI Act, 2023 — s. 6)";
+
 // --- Departments that recur across files -----------------------------------
 
-const FINANCE = {
-  dept_id: "finance-mh",
-  dept_name: "Finance Department, Maharashtra",
-  dept_short: "FINANCE",
-  officer_name: "S. Deshpande",
-  officer_designation: "Deputy Secretary (Expenditure)",
-  escalation_tier: "Principal Secretary (Finance)",
+const MIDC = {
+  dept_id: "midc",
+  dept_name: "Maharashtra Industrial Development Corporation",
+  dept_short: "MIDC",
+  officer_name: "Executive Engineer",
+  officer_designation: "MIDC Regional Office, Chakan",
+  escalation_tier: COMMITTEE,
 };
 
-const IT = {
-  dept_id: "dit-mh",
-  dept_name: "Directorate of Information Technology, Maharashtra",
-  dept_short: "IT",
-  officer_name: "A. Nair",
-  officer_designation: "Joint Director (Infrastructure)",
-  escalation_tier: "Principal Secretary (IT)",
+const MPCB = {
+  dept_id: "mpcb",
+  dept_name: "Maharashtra Pollution Control Board",
+  dept_short: "MPCB",
+  officer_name: "Regional Officer",
+  officer_designation: "MPCB Regional Office, Pune",
+  escalation_tier: COMMITTEE,
+};
+
+const DISH = {
+  dept_id: "dish",
+  dept_name: "Directorate of Industrial Safety and Health",
+  dept_short: "DISH",
+  officer_name: "Deputy Director",
+  officer_designation: "DISH Divisional Office, Pune",
+  escalation_tier: COMMITTEE,
+};
+
+const FIRE = {
+  dept_id: "mfs",
+  dept_name: "Maharashtra Fire Service",
+  dept_short: "FIRE",
+  officer_name: "Divisional Fire Officer",
+  officer_designation: "Fire Prevention Wing, Pune",
+  escalation_tier: COMMITTEE,
+};
+
+const MSEDCL = {
+  dept_id: "msedcl",
+  dept_name: "Maharashtra State Electricity Distribution Co. Ltd.",
+  dept_short: "MSEDCL",
+  officer_name: "Executive Engineer",
+  officer_designation: "HT Section, Chakan Circle",
+  escalation_tier: COMMITTEE,
+};
+
+const CEIG = {
+  dept_id: "ceig-mh",
+  dept_name: "Chief Electrical Inspector to Government, Maharashtra",
+  dept_short: "CEIG",
+  officer_name: "Electrical Inspector",
+  officer_designation: "CEIG Circle Office, Pune",
+  escalation_tier: COMMITTEE,
+};
+
+const LABOUR = {
+  dept_id: "labour-mh",
+  dept_name: "Labour Department, Maharashtra",
+  dept_short: "LABOUR",
+  officer_name: "Assistant Commissioner",
+  officer_designation: "Office of the Labour Commissioner, Pune",
+  escalation_tier: COMMITTEE,
 };
 
 // --- Shared data matrix records --------------------------------------------
@@ -57,17 +110,17 @@ function baseRecords(): DataRecord[] {
       endpoint: "GET /taxpayer/status?gstin=27AABCT1332L1ZQ",
       latency_ms: 900,
       replaces: "Attested PAN copy and a GST clearance letter carried to each counter",
-      consumers: ["FINANCE", "GST DEPT"],
+      consumers: ["MIDC", "LABOUR"],
     }),
     record({
       id: "DR-LAND",
-      label: "7/12 extract and NA order",
-      source: "Revenue Department — MahaBhumi land registry",
-      source_short: "REVENUE",
-      endpoint: "GET /land/parcel/PN-CHK-114-2A",
+      label: "MIDC plot allotment and lease particulars",
+      source: "MIDC land records",
+      source_short: "MIDC LAND",
+      endpoint: "GET /land/plot/CHK-D-114-2A",
       latency_ms: 1400,
-      replaces: "Certified 7/12 extract from the tahsil office (5–7 days by post)",
-      consumers: ["MIDC", "PMRDA", "COLLECTOR"],
+      replaces: "Certified copy of the lease deed carried to every other department",
+      consumers: ["MIDC", "MPCB", "DISH"],
     }),
     record({
       id: "DR-PROMOTER",
@@ -77,7 +130,7 @@ function baseRecords(): DataRecord[] {
       endpoint: "POST /verification/promoter",
       latency_ms: 1800,
       replaces: "Physical police clearance certificate and an affidavit",
-      consumers: ["FINANCE", "COLLECTOR"],
+      consumers: ["MIDC", "LABOUR"],
     }),
     record({
       id: "DR-EPFO",
@@ -87,21 +140,21 @@ function baseRecords(): DataRecord[] {
       endpoint: "GET /establishment/compliance/MHPUN2249081",
       latency_ms: 700,
       replaces: "Chartered accountant's compliance certificate",
-      consumers: ["LABOUR", "FINANCE"],
+      consumers: ["LABOUR", "DISH"],
     }),
   ];
 }
 
-// --- File 1 — veto / hard block --------------------------------------------
+// --- File 1 — technical objection under the parent Act ----------------------
 
 const FILE_VETO: ApplicationFile = {
   id: "APP-2026-0148",
   applicant: "Sahyadri Agro Foods Pvt Ltd",
-  project: "Cold-chain and traceability platform, Chakan Food Park",
+  project: "Food processing unit, 4,200 sq m, MIDC Chakan",
   sector: "Food processing",
   location: "MIDC Chakan, Pune",
-  filed_on: FILED,
-  phase: "Parallel Review Phase 2 — infrastructure and funding",
+  filed_on: "2026-09-02",
+  phase: "Parallel Review Phase 1 — establishment clearances",
   day: 0,
   dispatched: false,
   rule: MATRIX_RULES["MX-VETO-TECH"],
@@ -109,62 +162,63 @@ const FILE_VETO: ApplicationFile = {
   resolution: null,
   reviews: [
     review({
-      ...FINANCE,
-      approval_id: "A05",
-      approval_name: "MIDC plot allotment & capital subsidy sanction",
+      ...MIDC,
+      approval_id: "A10",
+      approval_name: "Building plan approval (MIDC as Special Planning Authority)",
       weight: 1,
       veto: false,
-      statutory: false,
-      sla_days: 14,
+      // MIDC acts as Special Planning Authority under the MRTP Act, which
+      // carries its own deeming clause for building permission.
+      deemed_exists: true,
+      deemed_days: 60,
+      deemed_reference: "MRTP Act, 1966 — s. 45(5)",
+      sla_days: 45,
       state: "queued",
       score: null,
       remarks: null,
-      requires: ["Project report", "PAN", "EPFO standing"],
+      requires: ["Architect drawings", "Structural stability certificate", "Lease particulars"],
     }),
     review({
-      ...IT,
-      approval_id: "A11",
-      approval_name: "IT infrastructure and cloud allocation clearance",
-      weight: 1,
-      veto: true,
-      statutory: true,
-      sla_days: 10,
-      state: "queued",
-      score: null,
-      remarks: null,
-      requires: ["Server sizing note", "MahaGov Cloud capacity record"],
-    }),
-    review({
-      dept_id: "mpcb",
-      dept_name: "Maharashtra Pollution Control Board",
-      dept_short: "MPCB",
-      officer_name: "V. Pawar",
-      officer_designation: "Regional Officer, Pune",
-      escalation_tier: "Member Secretary, MPCB",
+      ...MPCB,
       approval_id: "A15",
-      approval_name: "Consent to Establish",
+      approval_name: "Consent to Establish (water and air)",
       weight: 1,
       veto: true,
-      statutory: true,
+      // The Water Act's own four-month clause. Not the RTS Act.
+      deemed_exists: true,
+      deemed_days: 120,
+      deemed_reference: "Water (Prevention and Control of Pollution) Act, 1974 — s. 25(7)",
+      sla_days: 60,
+      state: "queued",
+      score: null,
+      remarks: null,
+      requires: ["Effluent treatment design", "Water balance", "Consent history"],
+    }),
+    review({
+      ...FIRE,
+      approval_id: "A13",
+      approval_name: "Fire NOC — provisional",
+      weight: 1,
+      veto: true,
+      deemed_exists: false,
+      deemed_days: null,
+      deemed_reference: null,
       sla_days: 21,
       state: "queued",
       score: null,
       remarks: null,
-      requires: ["Effluent plan", "Consent history"],
+      requires: ["Fire-fighting layout", "Means of egress plan"],
     }),
     review({
-      dept_id: "labour-mh",
-      dept_name: "Labour Department, Maharashtra",
-      dept_short: "LABOUR",
-      officer_name: "K. Jadhav",
-      officer_designation: "Assistant Commissioner",
-      escalation_tier: "Joint Commissioner (Labour)",
+      ...LABOUR,
       approval_id: "A29",
       approval_name: "Contract labour licence",
       weight: 1,
       veto: false,
-      statutory: false,
-      sla_days: 7,
+      deemed_exists: false,
+      deemed_days: null,
+      deemed_reference: null,
+      sla_days: 10,
       state: "queued",
       score: null,
       remarks: null,
@@ -174,38 +228,38 @@ const FILE_VETO: ApplicationFile = {
   records: [
     ...baseRecords(),
     record({
-      id: "DR-CLOUD",
-      label: "MahaGov Cloud capacity allocation",
-      source: "Directorate of Information Technology — capacity register",
-      source_short: "DIT",
-      endpoint: "GET /cloud/allocation/pune-cluster",
+      id: "DR-WATER-DRAW",
+      label: "Water draw and effluent load, as declared to each department",
+      source: "MIDC water application register, cross-read against the MPCB consent form",
+      source_short: "MIDC · MPCB",
+      endpoint: "GET /crosscheck/water?file=APP-2026-0148",
       latency_ms: 1200,
-      replaces: "An email trail with the state data centre, typically 10 days",
-      consumers: ["IT", "FINANCE"],
+      replaces: "An officer comparing two paper forms by eye, if anyone thought to",
+      consumers: ["MPCB", "MIDC"],
     }),
   ],
   thread: [],
   events: [],
   demo: {
-    approver_dept: "finance-mh",
-    rejecter_dept: "dit-mh",
+    approver_dept: "midc",
+    rejecter_dept: "mpcb",
     approver_note:
-      "Capital outlay of ₹4.2 cr is within the sanctioned head and the subsidy ceiling. Cleared on the funding side.",
+      "Plot is in the notified industrial area and the plan meets the MIDC development control norms. Building plan cleared.",
     rejection_reason:
-      "Server infrastructure budget exceeds cloud allocation guidelines — 18 on-premise racks proposed where MahaGov Cloud capacity is already allotted to this cluster.",
+      "Effluent treatment capacity proposed is 145 KLD against a declared draw of 210 KLD. Consent to Establish cannot be granted on a design that cannot treat the load it creates.",
   },
 };
 
-// --- File 2 — escalation to a tie-breaker -----------------------------------
+// --- File 2 — equal authority, Empowered Committee decides ------------------
 
 const FILE_ESCALATION: ApplicationFile = {
   id: "APP-2026-0151",
   applicant: "Deccan Cold Storage LLP",
-  project: "Effluent line and 2× capacity expansion, Ranjangaon",
+  project: "Cold storage block and 2× capacity expansion, Ranjangaon",
   sector: "Food processing",
   location: "MIDC Ranjangaon, Pune",
   filed_on: "2026-08-28",
-  phase: "Parallel Review Phase 1 — establishment clearances",
+  phase: "Parallel Review Phase 1 — plan approvals",
   day: 5,
   dispatched: true,
   rule: MATRIX_RULES["MX-ESCALATE-EQUAL"],
@@ -213,76 +267,82 @@ const FILE_ESCALATION: ApplicationFile = {
   resolution: null,
   reviews: [
     review({
-      ...FINANCE,
-      approval_id: "A05",
-      approval_name: "Expansion incentive sanction",
+      ...DISH,
+      approval_id: "A16",
+      approval_name: "Factory plan approval",
       weight: 1,
       veto: false,
-      statutory: false,
-      sla_days: 14,
+      // Factories Act's own deeming clause: three months, no communication.
+      deemed_exists: true,
+      deemed_days: 90,
+      deemed_reference: "Factories Act, 1948 — s. 6(2)",
+      sla_days: 15,
       state: "in_review",
       score: null,
       remarks: null,
-      requires: ["Audited accounts", "PAN"],
+      requires: ["Factory layout", "Machinery list", "Means of egress plan"],
     }),
     review({
-      dept_id: "mpcb",
-      dept_name: "Maharashtra Pollution Control Board",
-      dept_short: "MPCB",
-      officer_name: "V. Pawar",
-      officer_designation: "Regional Officer, Pune",
-      escalation_tier: "Member Secretary, MPCB",
-      approval_id: "A20",
-      approval_name: "Consent to Operate — amended",
+      ...FIRE,
+      approval_id: "A13",
+      approval_name: "Fire NOC — provisional",
       weight: 1,
       veto: false,
-      statutory: true,
+      deemed_exists: false,
+      deemed_days: null,
+      deemed_reference: null,
       sla_days: 21,
       state: "in_review",
       score: null,
       remarks: null,
-      requires: ["Effluent plan", "Consent history"],
+      requires: ["Fire-fighting layout", "Means of egress plan"],
     }),
     review({
-      dept_id: "midc",
-      dept_name: "Maharashtra Industrial Development Corporation",
-      dept_short: "MIDC",
-      officer_name: "P. Shirke",
-      officer_designation: "Executive Engineer",
-      escalation_tier: "Regional Officer, MIDC",
+      ...MIDC,
       approval_id: "A12",
       approval_name: "Industrial water connection — enhanced draw",
       weight: 1,
       veto: false,
-      statutory: false,
+      deemed_exists: false,
+      deemed_days: null,
+      deemed_reference: null,
       sla_days: 10,
       state: "approved",
       decided_on_day: 4,
       decided_at: "2026-09-01T11:04:12.000Z",
       score: null,
       remarks: "Enhanced draw of 210 KLD available on the Ranjangaon header. No objection.",
-      requires: ["Lease deed", "Water balance"],
+      requires: ["Lease particulars", "Water balance"],
     }),
     review({
-      dept_id: "labour-mh",
-      dept_name: "Labour Department, Maharashtra",
-      dept_short: "LABOUR",
-      officer_name: "K. Jadhav",
-      officer_designation: "Assistant Commissioner",
-      escalation_tier: "Joint Commissioner (Labour)",
+      ...LABOUR,
       approval_id: "A29",
       approval_name: "Contract labour licence — revised strength",
       weight: 1,
       veto: false,
-      statutory: false,
-      sla_days: 7,
+      deemed_exists: false,
+      deemed_days: null,
+      deemed_reference: null,
+      sla_days: 10,
       state: "in_review",
       score: null,
       remarks: null,
       requires: ["Employee roll"],
     }),
   ],
-  records: baseRecords(),
+  records: [
+    ...baseRecords(),
+    record({
+      id: "DR-EGRESS",
+      label: "Means of egress: staircase width and exit count, on both plan sets",
+      source: "DISH factory plan set, cross-read against the Fire Service plan set",
+      source_short: "DISH · FIRE",
+      endpoint: "GET /crosscheck/egress?file=APP-2026-0151",
+      latency_ms: 1300,
+      replaces: "Two departments each marking up their own copy of the same drawing",
+      consumers: ["DISH", "FIRE"],
+    }),
+  ],
   thread: [],
   events: [
     {
@@ -291,108 +351,118 @@ const FILE_ESCALATION: ApplicationFile = {
       day: 0,
       at: "2026-08-28T09:30:00.000Z",
       actor: "Matrix 2.0",
-      body: "File pushed concurrently to 4 departments — FINANCE, MPCB, MIDC, LABOUR. All SLA clocks started together.",
-      authority: "Maharashtra Single Window Clearance Rules — r. 9(1)",
+      body: "File pushed concurrently to 4 departments — DISH, FIRE, MIDC, LABOUR. All time limits started together.",
+      authority: "MAITRI Act, 2023 — s. 4",
     },
     {
       id: "EV-SEED-2",
       kind: "decision",
       day: 4,
       at: "2026-09-01T11:04:12.000Z",
-      actor: "MIDC · P. Shirke",
+      actor: "MIDC · Executive Engineer",
       body: "A12 approved — enhanced draw of 210 KLD available on the Ranjangaon header.",
     },
   ],
   demo: {
-    approver_dept: "finance-mh",
-    rejecter_dept: "mpcb",
+    approver_dept: "dish",
+    rejecter_dept: "mfs",
     approver_note:
-      "Expansion incentive of ₹1.8 cr is within the district ceiling and the unit is compliant on past disbursals.",
+      "Layout, machinery spacing and headroom meet the Factories Rules. Plan approved as submitted.",
     rejection_reason:
-      "Effluent load at 2× capacity crosses the consented discharge for the Ranjangaon common facility. Consent to Operate cannot be amended on the present design.",
+      "The plan set shows one staircase of 1.0 m serving the first floor. Two exits with a minimum 1.5 m staircase are required for this occupancy and height. Provisional NOC refused on the drawing as submitted.",
   },
 };
 
-// --- File 3 — weighted score ------------------------------------------------
+// --- File 3 — risk-based scrutiny score -------------------------------------
 
-const FILE_WEIGHTED: ApplicationFile = {
+const FILE_RISK: ApplicationFile = {
   id: "APP-2026-0155",
-  applicant: "Tender PUN/2026/CS-11 — four bidders",
-  project: "Managed cold-storage and IT services, Pune cluster",
-  sector: "Procurement",
-  location: "Pune district",
+  applicant: "Sahyadri Agro Foods Pvt Ltd",
+  project: "HT power connection and electrical installation, MIDC Chakan",
+  sector: "Food processing",
+  location: "MIDC Chakan, Pune",
   filed_on: "2026-09-04",
-  phase: "Parallel Review Phase 3 — technical evaluation",
+  phase: "Parallel Review Phase 2 — power and installation",
   day: 6,
   dispatched: true,
-  rule: MATRIX_RULES["MX-WEIGHTED-PROC"],
+  rule: MATRIX_RULES["MX-RISK-SCRUTINY"],
   tie_breaker_open: false,
   resolution: null,
   reviews: [
     review({
-      ...FINANCE,
-      approval_id: "T01",
-      approval_name: "Financial capacity and rate reasonability",
+      ...MSEDCL,
+      approval_id: "A11",
+      approval_name: "HT load sanction",
       weight: 1,
       veto: false,
-      statutory: false,
-      sla_days: 12,
+      deemed_exists: false,
+      deemed_days: null,
+      deemed_reference: null,
+      sla_days: 15,
       state: "in_review",
       score: null,
       remarks: null,
-      requires: ["Audited accounts", "Rate analysis"],
+      requires: ["Load application", "Single-line diagram"],
     }),
     review({
-      ...IT,
-      approval_id: "T02",
-      approval_name: "Technical architecture and security posture",
+      ...CEIG,
+      approval_id: "A22",
+      approval_name: "Electrical installation approval",
       weight: 1,
-      veto: false,
-      statutory: false,
-      sla_days: 12,
+      veto: true,
+      deemed_exists: false,
+      deemed_days: null,
+      deemed_reference: null,
+      sla_days: 15,
       state: "in_review",
       score: null,
       remarks: null,
-      requires: ["Architecture note", "Security audit"],
+      requires: ["Single-line diagram", "Earthing layout", "Contractor licence"],
     }),
     review({
-      dept_id: "mpcb",
-      dept_name: "Maharashtra Pollution Control Board",
-      dept_short: "MPCB",
-      officer_name: "V. Pawar",
-      officer_designation: "Regional Officer, Pune",
-      escalation_tier: "Member Secretary, MPCB",
-      approval_id: "T03",
-      approval_name: "Refrigerant and emissions compliance",
+      ...DISH,
+      approval_id: "A16",
+      approval_name: "Machinery and safety clearance",
       weight: 1,
       veto: false,
-      statutory: false,
-      sla_days: 12,
+      deemed_exists: true,
+      deemed_days: 90,
+      deemed_reference: "Factories Act, 1948 — s. 6(2)",
+      sla_days: 15,
       state: "in_review",
       score: null,
       remarks: null,
-      requires: ["Refrigerant declaration"],
+      requires: ["Machinery list"],
     }),
     review({
-      dept_id: "pwd-mh",
-      dept_name: "Public Works Department, Maharashtra",
-      dept_short: "PWD",
-      officer_name: "R. Gaikwad",
-      officer_designation: "Superintending Engineer",
-      escalation_tier: "Chief Engineer (PWD)",
-      approval_id: "T04",
-      approval_name: "Civil works and structural adequacy",
+      ...MPCB,
+      approval_id: "A28",
+      approval_name: "DG set and stack height clearance",
       weight: 1,
       veto: false,
-      statutory: false,
-      sla_days: 12,
+      deemed_exists: false,
+      deemed_days: null,
+      deemed_reference: null,
+      sla_days: 15,
       state: "in_review",
       score: null,
       remarks: null,
-      requires: ["Structural drawings"],
+      requires: ["DG set specification", "Stack height calculation"],
     }),
   ],
-  records: baseRecords(),
+  records: [
+    ...baseRecords(),
+    record({
+      id: "DR-TRANSFORMER",
+      label: "Transformer rating, as stated on the load application and on the diagram",
+      source: "MSEDCL load application, cross-read against the CEIG single-line diagram",
+      source_short: "MSEDCL · CEIG",
+      endpoint: "GET /crosscheck/transformer?file=APP-2026-0155",
+      latency_ms: 1100,
+      replaces: "Nobody noticing until the inspection, six weeks later",
+      consumers: ["MSEDCL", "CEIG"],
+    }),
+  ],
   thread: [],
   events: [
     {
@@ -401,25 +471,26 @@ const FILE_WEIGHTED: ApplicationFile = {
       day: 0,
       at: "2026-09-04T10:00:00.000Z",
       actor: "Matrix 2.0",
-      body: "Tender pushed concurrently to 4 evaluating departments. Scores are due together, not in sequence.",
-      authority: "Maharashtra Public Procurement Policy, 2023 — cl. 22",
+      body: "File pushed concurrently to 4 departments. Risk scores are due together, not in sequence.",
+      authority: "MAITRI Act, 2023 — s. 16 (risk-led and random inspection)",
     },
   ],
   demo: {
-    approver_dept: "finance-mh",
-    rejecter_dept: "dit-mh",
-    approver_note: "Rates are 6% under the estimate and the bidder's financial standing is sound.",
+    approver_dept: "msedcl",
+    rejecter_dept: "ceig-mh",
+    approver_note:
+      "Sanctioned load of 1,250 kVA is available on the Chakan feeder. Low risk on the distribution side.",
     rejection_reason:
-      "Single-region hosting with no disaster-recovery site and an expired security audit. Architecture does not meet the state IT policy baseline.",
-    approver_score: 95,
-    rejecter_score: 40,
+      "The single-line diagram shows a 1,600 kVA transformer against a load application for 1,250 kVA. Until the two agree, the installation cannot be scored as low risk and a full inspection is required.",
+    approver_score: 88,
+    rejecter_score: 42,
   },
 };
 
 export const SEED_APPLICATIONS: ApplicationFile[] = [
   FILE_VETO,
   FILE_ESCALATION,
-  FILE_WEIGHTED,
+  FILE_RISK,
 ];
 
 /** Deep enough copy that resetting a file cannot leak state between demos. */

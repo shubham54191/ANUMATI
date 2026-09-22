@@ -29,7 +29,7 @@ export function ProvenanceBlock({ approval }: { approval: Approval }) {
         <div>
           <Label className="mb-0.5 block text-[9px]">Confidence</Label>
           <div className="font-num font-mono text-[11.5px] font-medium text-state-done-ink">
-            {approval.confidence.toFixed(2)} {approval.verified_by ? "verified" : "extracted"}
+            {approval.confidence.toFixed(2)} {approval.verified_by ? "read" : "extracted"}
           </div>
         </div>
       </div>
@@ -46,8 +46,9 @@ export function ProvenanceBlock({ approval }: { approval: Approval }) {
 
       {approval.verified_by ? (
         <div className="text-[11.5px] text-muted">
-          Verified by <span className="text-ink">{approval.verified_by}</span> on{" "}
-          <span className="font-mono text-[11px]">{approval.verified_on}</span>
+          Read from the bare act by <span className="text-ink">{approval.verified_by}</span> on{" "}
+          <span className="font-mono text-[11px]">{approval.verified_on}</span>. Departmental
+          officer review still pending.
         </div>
       ) : (
         <div className="text-[11.5px] text-muted">

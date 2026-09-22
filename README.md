@@ -16,7 +16,11 @@
 
 ## Executive Summary
 
-Setting up an industrial enterprise in India typically requires navigating **25 to 35+ clearances across 15+ different central, state, and local departments**. While modern Single Window Systems (like MAITRI or NSWS) provide centralized portals to submit applications, they function primarily as document repositories rather than **intelligent dependency coordinators**.
+Setting up an industrial enterprise in Maharashtra typically requires navigating **25 to 35+ clearances across 15+ central, state and local departments**. The state already has a serious single window: **MAITRI 2.0**, launched in February 2025 under the **Maharashtra Industry, Trade and Investment Facilitation Act, 2023**, carries 119 services across 15–16 departments with an application wizard, desk-level tracking, an incentive calculator, a document repository, a grievance system and NSWS synchronisation.
+
+What no portal yet does — MAITRI included — is tell an applicant **when** each clearance may be filed, **check a file before it is filed**, **coordinate the departments that must decide together**, and **settle it when two of them decide the opposite thing**. That is the gap ANUMATI fills.
+
+**One line:** MAITRI 2.0 tells you *what* to file. ANUMATI tells you *when*, checks it *before* you file, groups the inspections it will attract, and shows the Empowered Committee *where* files get stuck.
 
 Entrepreneurs and Single-Window Facilitation Officers face three fundamental roadblocks:
 1. **Opaque Dependency Order**: Department websites specify *what* documents they need, but never *when* an applicant can safely apply without waiting on another counter.
@@ -41,7 +45,14 @@ An interactive visual canvas mapping all required clearances.
 - **Horizontal Axis = Parallel Lanes**: Approvals that can run at the same time.
 - **Vertical Axis = Sequential Milestones**: Time progression from Day 0.
 - **Red Critical Path Spine**: The non-negotiable sequence that governs overall project completion.
-- **Timeline Collapse**: Visual metric showing **524 sequential days compressed into 255 parallel days (saving 269 days / 51.3%)**.
+- **Timeline Collapse**: sequential filing compressed onto the critical path. The figure depends on where the land is, because a site inside a notified MIDC area needs no land-use conversion order and MIDC itself sanctions the building plan:
+
+| Site | Critical path | Filed in series |
+|---|---|---|
+| **MIDC plot** (notified industrial area) | **223 days** | 464 days · 31 approvals |
+| **Private land** (outside MIDC) | **255 days** | 524 days · 32 approvals |
+
+> **Modelled, not measured.** These are the sum of notified time limits in series against the critical path through them. They are what the law allows, not what applicants experienced — the observed clock is a separate number, computed from field reports, and is labelled as seeded pilot data wherever it appears.
 
 ![Applicant Roadmap Graph](screenshots/02-applicant-roadmap-graph.png)
 
@@ -55,7 +66,7 @@ The facilitation officer's working ledger. Organised by standard industrial phas
 ---
 
 ### 4. What-If Policy Reform Simulator
-An evidence-based decision workspace for Industries Department leadership. Policy makers can toggle reform levers (e.g. reducing statutory SLAs, parallelizing screening stages, enforcing deemed approvals under the Right to Public Services Act) and immediately observe the macro impact on project clearance timelines. Includes **strict statutory guardrails** that refuse illegal reforms.
+An evidence-based decision workspace for Industries Department leadership. Policy makers toggle reform levers — shortening a notified time limit, removing a dependency that rests on practice rather than law, honouring a deeming clause the parent Act already contains — and see the macro impact on clearance timelines. Includes **strict statutory guardrails** that refuse a reform the statute does not permit. The Nodal Agency is already asked to propose reforms from user feedback (MAITRI Act s. 15); this is the instrument for that job.
 
 ![Policy Reform Simulator](screenshots/04-policy-reform-simulator.png)
 
@@ -90,7 +101,7 @@ One file is pushed to all stakeholder departments at the same moment rather than
 ---
 
 ### 9. Conflict Resolution Protocol — when two departments decide the opposite thing
-When Finance clicks **Approve** at the same instant IT clicks **Reject**, the pipeline splits visually (green lane / red lane), a high-visibility banner drops across the file naming both departments and the clock second of the clash, the phase bar turns amber, and **Finalise approval** is disabled. The Conflict Resolution screen opens as a side-by-side grid: the exact rejection reason on the left, the row of the **Pre-Defined Decision Matrix** that settles it — with its statutory citation — on the right.
+When MIDC clears the building plan at the same instant MPCB refuses the Consent to Establish, the pipeline splits visually (green lane / red lane), a high-visibility banner drops across the file naming both departments and the clock second of the clash, the phase bar turns amber, and **Finalise approval** is disabled. The Conflict Resolution screen opens as a side-by-side grid: the exact refusal on the left — *"effluent treatment capacity proposed is 145 KLD against a declared draw of 210 KLD"* — and the row of the **Pre-Defined Decision Matrix** that settles it, with the Act it stands on, on the right.
 
 ![Conflict resolution screen](screenshots/09-conflict-resolution.png)
 
@@ -100,7 +111,7 @@ Three governance rules ship, and the UI adapts to whichever one the file carries
 |---|---|---|
 | **Veto / hard block** (`MX-VETO-TECH`) | Stage halts, master action disabled | **Send for revision** — packages the objections *and* the clearances already granted, so nothing already passed is re-filed |
 | **Escalation to tie-breaker** (`MX-ESCALATE-EQUAL`) | Equal weight, neither may override | The file routes **itself** — a temporary **Tie-Breaker Panel** node appears on the track and it lands on the steering committee's dashboard |
-| **Weighted score** (`MX-WEIGHTED-PROC`) | Departments score rather than vote | Live consolidated score; once every desk has reported below the threshold the phase marks **itself** failed and notifies the project manager |
+| **Risk-based scrutiny** (`MX-RISK-SCRUTINY`) | Departments score the risk rather than vote | Live consolidated score sets the **depth of scrutiny** — documents only, or a full joint inspection. Marked `DRAFT`: the Act permits risk-led inspection (s. 16) but sets no formula |
 
 ---
 
@@ -112,7 +123,7 @@ Both departments' conflicting inputs side by side, with officer, designation, ti
 ---
 
 ### 11. Weighted Consolidated Score
-Finance scores 95, IT scores 40 — the live consolidated dashboard score reads **67.5 / 100** against a passing score of 75, with the threshold marked on the bar and every department's contribution broken out. When the last department reports and the average is still short, the phase marks itself failed and notifies the project manager with nobody pressing anything.
+MSEDCL scores the distribution side 88; the Electrical Inspector scores 42, because the single-line diagram shows a 1,600 kVA transformer against a load application for 1,250 kVA. The consolidated score is live, with the threshold marked on the bar and every department's contribution broken out. It sets how hard the file is looked at — **never** whether the clearance is granted.
 
 ![Weighted consolidated score](screenshots/13-weighted-score.png)
 
@@ -123,7 +134,12 @@ Once the last department reports, the phase settles itself — the file is marke
 ---
 
 ### 12. SLA Auto-Escalation and Deemed Approval
-Every lane runs its own statutory window. Two days out, the desk is warned. On breach, a **statutory** clearance is auto-escalated to the tier above (it cannot be deemed), while a **non-critical** clearance that has recorded no reason is marked **DEEMED APPROVED** under the Right to Public Services Act, 2015 — so one silent desk cannot hold an entire project.
+Every lane runs its own notified limit. Two days out, the desk is warned. On breach, **which consequence applies is a property of the statute, not of the department**:
+
+- Where the parent Act carries its own deeming clause — MRTP s. 45(5), CGST r. 9(5), Water Act s. 25(7), Factories Act s. 6(2) — silence **deems the clearance granted** on that Act's terms.
+- Everywhere else the Nodal Agency **transfers the file to the Empowered Committee** and the competent authority *ceases to have the power to deal with it* — MAITRI Act, 2023 s. 5(1) and s. 5(2). The lane stays open, because the Committee still has to decide it **under the same law** (s. 5(3)).
+
+So one silent desk cannot hold a project — and nothing is waved through either.
 
 ![SLA escalation and deemed approval](screenshots/14-sla-escalation-deemed.png)
 
@@ -135,6 +151,98 @@ Where a department needs a fact another ministry already holds — a land record
 ![Shared data matrix](screenshots/10-shared-data-matrix.png)
 
 > **Full explanation of the protocol, the state machine and a four-minute demo script: [`docs/MATRIX_2.0.md`](docs/MATRIX_2.0.md).**
+
+---
+
+### 14. Pre-submission check — the file is examined before it is filed
+Every gap an officer would find at the counter, found in advance and for nothing: a document the department's own list asks for and the dossier does not hold, a prior order that does not exist yet, and — the expensive one — **the same physical fact written two different ways on two departments' forms**. Water draw declared as 210 KLD to MIDC and 145 KLD to MPCB is the exact clash the officer console then has to resolve three weeks later.
+
+Statutory prerequisites block. Practice conventions only advise, because the rule base already knows the difference.
+
+![Pre-submission check](screenshots/22-precheck.png)
+
+---
+
+### 15. Risk-based scrutiny — how hard this file gets looked at
+Departments score the risk a proposal carries instead of voting it up or down. Low risk clears on documents alone; high risk earns a full joint inspection. The weights are the district's own and are labelled a pilot parameter, because the Act permits risk-led and random inspection (s. 16) without setting a formula.
+
+**The score decides scrutiny, never the clearance.** No number here can grant or refuse what a sectoral Act requires.
+
+![Risk-based scrutiny](screenshots/23-risk-score.png)
+
+---
+
+### 16. Joint inspection planner — one site, one visit
+The Act asks for inspections to be conducted jointly as far as practicable (s. 16). The reason it rarely happens is not unwillingness — no single desk knows when every department will be ready to travel. The dependency graph does: an approval's window opens on the day the site is ready for that department. Grouping those days turns **12 separate inspections into 8 visits**.
+
+![Joint inspection planner](screenshots/29-officer-inspections.png)
+
+---
+
+### 17. Renewal calendar — a clearance is not a finish line
+The day a licence expires the unit is operating unlawfully with nobody having done anything wrong. Every validity period is a published fact of the parent rules, so the calendar is simply the second half of the same rule base: expiry, renewal window, days left, and alarms at 60, 30 and 7 days.
+
+![Renewal calendar](screenshots/25-renewals.png)
+
+---
+
+### 18. Grievance — the one remedy that leaves the department
+The Empowered Committee may call for the reasons behind a delay or a rejection and inquire into a grievance raised by an applicant (s. 8). One button on any stuck approval routes the file to that Committee — not back to the desk that is holding it. It decides nothing by itself: the application is still disposed of under the relevant law.
+
+![Grievance queue](screenshots/30-grievance-queue.png)
+
+---
+
+## Every feature maps to a section of the state's own Act
+
+ANUMATI does not ask Maharashtra to legislate anything new. The MAITRI Act, 2023 already provides the machinery; this is the software that uses it.
+
+| ANUMATI feature | MAITRI Act, 2023 |
+|---|---|
+| Dependency roadmap and sequencing | s. 20 — Online Wizard Module |
+| Concurrent dispatch to every department | s. 4 — application through the Nodal Agency |
+| Missed time limit transfers the file | s. 5 — Competent Authority ceases to have power |
+| Tie-breaker decisions bind both sides | s. 6, s. 9 — Empowered Committee and binding effect |
+| Joint inspection planner | s. 16 — inspections conducted jointly, random selection |
+| Grievance button | s. 8 — power to call for reasons and inquire |
+| Reform simulator and field reports | s. 15 — reforms proposed from user feedback |
+| Delay analytics | s. 8 — review of applications pending beyond the limit |
+| Adoption without amending any other state law | s. 25 — overriding effect |
+
+**The one thing the console will never do:** grant a clearance an Act would have refused. Even the Empowered Committee disposes of a transferred application *under the relevant law* (s. 5(3)), and the code follows that — a transferred lane stays open until it is actually decided.
+
+---
+
+## Questions a jury will ask, and the answers
+
+| Question | Answer |
+|---|---|
+| "MAITRI 2.0 already does this" | Yes — for the service list, tracking, incentives and grievance intake. No for **order**, **pre-submission checking**, **joint inspection planning** and **conflict handling**. We add only those four, on top of MAITRI rather than beside it. |
+| "Where does 255 days come from?" | The sum of notified time limits in series against the critical path through them. **Modelled, not measured.** The observed clock is a separate number, computed from field reports, and labelled as seeded pilot data. |
+| "Who verified these rules?" | We did, from the bare acts — every row names its Act and section, and the screen says `read from the bare act, officer review pending`. 11 of 34 are read; the other 23 are marked unverified rather than hidden. The review queue exists for exactly that gap. |
+| "Can your system overrule MPCB?" | No. Even the Empowered Committee disposes of a transferred application **under the relevant law** — MAITRI Act s. 5(3). The console routes; it never decides a clearance. |
+| "What if a law changes?" | Rules are versioned with effective dates. A roadmap generated today resolves against the rules as they stood today. |
+| "Why would MAITRI adopt this?" | s. 15 already asks the Nodal Agency to propose reforms from user feedback. This is the instrument for that job — the reform simulator runs on the rule graph and refuses reforms the statute does not permit. |
+| "Is the decision matrix your invention?" | Two of the three rows are drawn from enacted provisions and are marked `IN FORCE`. The third is a pilot parameter and is marked `DRAFT — NOT NOTIFIED` on every screen that shows it. |
+
+---
+
+## Tests
+
+```bash
+npm test          # 67 tests across the rule base, the matrix engine and the compliance modules
+npm run typecheck # strict TypeScript, no errors
+npm run build     # production bundle
+```
+
+The suite is written against the pure engines, which is where the claims live. Some of
+it exists to stop specific errors coming back:
+
+- no deeming clause may be attributed to the Right to Public Services Act;
+- no approval may claim a deeming clause without naming the provision that grants it;
+- no invented individual may appear as a verifier;
+- the two hero numbers (223 / 464 and 255 / 524) are **locked**, so a silent drift in
+  the rule base breaks a test rather than quietly making a public claim untrue.
 
 ---
 
@@ -340,7 +448,8 @@ All regulatory data in the seed is grounded in published Acts, Rules, and Notifi
 - **Water (Prevention & Control of Pollution) Act 1974** & **Air Act 1981** (MPCB Consent to Establish)
 - **Factories Act 1948**, Section 6 & **Maharashtra Factory Rules 1963** (Factory Plan Approval)
 - **Food Safety and Standards Act 2006**, Section 31 (FSSAI Manufacturing Licence)
-- **Maharashtra Right to Public Services Act 2015** (Deemed approval timeline provisions)
+- **Maharashtra Industry, Trade and Investment Facilitation Act 2023** (Mah. Act XXXIV of 2023) — single window, Empowered Committee, transfer on delay, joint inspection
+- **Maharashtra Right to Public Services Act 2015** (appeal under s. 9; penalty on the designated officer under s. 10 — *not* a deeming provision)
 
 ---
 

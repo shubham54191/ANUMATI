@@ -16,7 +16,11 @@
 
 ## Executive Summary
 
-Setting up an industrial enterprise in India typically requires navigating **25 to 35+ clearances across 15+ different central, state, and local departments**. While modern Single Window Systems (like MAITRI or NSWS) provide centralized portals to submit applications, they function primarily as document repositories rather than **intelligent dependency coordinators**.
+Setting up an industrial enterprise in Maharashtra typically requires navigating **25 to 35+ clearances across 15+ central, state and local departments**. The state already has a serious single window: **MAITRI 2.0**, launched in February 2025 under the **Maharashtra Industry, Trade and Investment Facilitation Act, 2023**, carries 119 services across 15–16 departments with an application wizard, desk-level tracking, an incentive calculator, a document repository, a grievance system and NSWS synchronisation.
+
+What no portal yet does — MAITRI included — is tell an applicant **when** each clearance may be filed, **check a file before it is filed**, **coordinate the departments that must decide together**, and **settle it when two of them decide the opposite thing**. That is the gap ANUMATI fills.
+
+**One line:** MAITRI 2.0 tells you *what* to file. ANUMATI tells you *when*, checks it *before* you file, groups the inspections it will attract, and shows the Empowered Committee *where* files get stuck.
 
 Entrepreneurs and Single-Window Facilitation Officers face three fundamental roadblocks:
 1. **Opaque Dependency Order**: Department websites specify *what* documents they need, but never *when* an applicant can safely apply without waiting on another counter.
@@ -89,8 +93,11 @@ Full protocol, demo script and internals: [`../docs/MATRIX_2.0.md`](../docs/MATR
 
 | User id | Password | Opens |
 |---|---|---|
-| `OFFICER` | `ADMIN` | Matrix 2.0 clearance console |
-| `APPLICANT` | `DEMO` | Applicant roadmap (or **Continue as an applicant**) |
+| `OFFICER` | `ADMIN` | Matrix 2.0 clearance console — parallel dispatch, conflict protocol, joint inspections, grievance queue |
+| `APPLICANT` | `DEMO` | Applicant roadmap — graph, checklist, documents, workflow, pre-check (or **Continue as an applicant**) |
+
+Run `npm test` for the 67-test suite over the rule base, the matrix state machine and
+the compliance modules.
 
 ---
 

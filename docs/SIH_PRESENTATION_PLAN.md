@@ -54,7 +54,7 @@ The video showed these three words together, which means **three headings on one
 > Put every approval a business needs into a dependency graph, with an evidence type and a citation on each dependency. Compute the critical path, and show the order the law actually allows.
 
 **How it addresses the problem:**
-- The PS asks to *coordinate parallel departmental workflows*. NSWS itself states that it does not re-engineer processes.
+- The PS asks to *coordinate parallel departmental workflows*. No single window in the country sequences them: they route applications, they do not order them.
 - ANUMATI changes nobody's process — **it only tells you the order**.
 - One journey: **524 days in sequence → 255 days in parallel.**
 
@@ -167,7 +167,7 @@ This is the most-ignored slide, and in your case **the most useful one** — bec
 - Food Safety and Standards Act, 2006 — s. 31
 - Maharashtra Right to Public Services Act, 2015
 - MAITRI portal — maitri.maharashtra.gov.in
-- NSWS's own statement that it does not re-engineer processes
+- The MAITRI Act, 2023 — s. 5 (transfer on delay), s. 6 (Empowered Committee), s. 8 (grievance), s. 16 (joint inspection), s. 20 (online wizard)
 - GTFS specification (for the analogy)
 
 **And one line at the bottom:**

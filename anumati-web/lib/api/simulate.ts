@@ -15,8 +15,8 @@ export const LEVERS: Lever[] = [
     label: "Reduce NA / land-use conversion, 60 to 30 days",
     rationale: "The first approval in the chain. Every day cut here moves the whole journey forward." },
   { id: "L4", kind: "enforce_deemed", approval_id: "A10",
-    label: "Enforce deemed approval on Building plan",
-    rationale: "The deemed clock already exists under the Right to Public Services Act. It is simply not honoured." },
+    label: "Honour the MRTP deeming clause on Building plan",
+    rationale: "MRTP Act s. 45(5) already deems a building permission granted if no decision issues in time. The clause exists; it is simply not honoured." },
   { id: "L5", kind: "reduce_timeline", approval_id: "A24", new_days: 30,
     label: "Reduce FSSAI Central Licence, 45 to 30 days",
     rationale: "Last approval on the critical path, so the saving passes straight through to the finish date." },
@@ -32,7 +32,18 @@ export const LEVERS: Lever[] = [
 ];
 
 function totalWith(roadmap: Roadmap, lever: Lever): number {
-  const days = new Map(roadmap.approvals.map((a) => [a.id, a.statutory_days]));
+  // Plan with the days the roadmap was actually built on, not always the
+  // statutory ones — under the observed clock those are different numbers and
+  // a simulator that silently answers the statutory question is worse than no
+  // simulator. earliest_finish minus the batch start is that figure.
+  const startOf = new Map<string, number>();
+  for (const b of roadmap.batches) for (const id of b.approvals) startOf.set(id, b.day);
+  const days = new Map(
+    roadmap.approvals.map((a) => [
+      a.id,
+      (roadmap.earliest_finish[a.id] ?? a.statutory_days) - (startOf.get(a.id) ?? 0),
+    ]),
+  );
   let edges = roadmap.dependencies;
 
   switch (lever.kind) {

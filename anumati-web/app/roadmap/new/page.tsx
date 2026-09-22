@@ -7,7 +7,7 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Label } from "@/components/ui/Card";
-import { CONDITIONS, SECTORS, SIZE_BANDS, STAGES } from "@/lib/constants/sectors";
+import { CONDITIONS, LAND_REGIMES, SECTORS, SIZE_BANDS, STAGES } from "@/lib/constants/sectors";
 import { LOCATIONS } from "@/lib/constants/locations";
 import { localMeta } from "@/lib/api/roadmap";
 import { APPROVALS, DEPENDENCIES } from "@/lib/data/maharashtraFood";
@@ -26,6 +26,7 @@ export default function NewRoadmapPage() {
   const [sector, setSector] = useState<string>(SECTORS[0].id);
   const [location, setLocation] = useState<string>(LOCATIONS[0].id);
   const [size, setSize] = useState<string>(SIZE_BANDS[2].id);
+  const [land, setLand] = useState<string>(LAND_REGIMES[0].id);
   const [stage, setStage] = useState<string>(STAGES[0].id);
   const [on, setOn] = useState<Record<string, boolean>>({ boiler: true });
 
@@ -48,6 +49,7 @@ export default function NewRoadmapPage() {
               {[
                 { label: "Sector", value: sector, set: setSector, options: SECTORS },
                 { label: "Location", value: location, set: setLocation, options: LOCATIONS },
+                { label: "Land", value: land, set: setLand, options: LAND_REGIMES },
                 { label: "Size band", value: size, set: setSize, options: SIZE_BANDS },
                 { label: "Stage", value: stage, set: setStage, options: STAGES },
               ].map((row) => (
@@ -108,6 +110,9 @@ export default function NewRoadmapPage() {
                   onClick={() => {
                     const employees = EMPLOYEES_BY_BAND[size] ?? 72;
                     const params = new URLSearchParams({ employees: String(employees) });
+                    // Drives both the land-use conversion approval and which
+                    // authority sanctions the building plan.
+                    params.set("midc_land", land === "midc" ? "1" : "0");
                     // heightM drives conditions.height (>15m) in the store, so the
                     // slider on the next screen and this toggle stay consistent —
                     // send a metre value, not the boolean, for that one condition.
