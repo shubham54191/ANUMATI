@@ -42,6 +42,7 @@
   --critical-glow: rgba(220, 38, 38, 0.15);
 
   --font-sans:  "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Poppins", "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
   --font-mono:  "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
