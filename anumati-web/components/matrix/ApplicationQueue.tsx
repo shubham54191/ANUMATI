@@ -1,9 +1,8 @@
 "use client";
-import { AlertTriangle, Clock, Scale, ShieldAlert, SlidersHorizontal } from "lucide-react";
+import { AlertTriangle, Clock, FileText, Info, Scale, ShieldAlert, SlidersHorizontal } from "lucide-react";
 import type { ApplicationFile, MatrixRuleKind } from "@/types/matrix";
 import { derive } from "@/lib/matrix/engine";
 import { useMatrixStore } from "@/store/useMatrixStore";
-import { Label } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
 const RULE_ICON: Record<MatrixRuleKind, typeof Scale> = {
@@ -23,45 +22,45 @@ function StatusLine({ app }: { app: ApplicationFile }) {
 
   if (app.resolution) {
     const map = {
-      cleared: ["Phase cleared", "text-state-done-ink"],
-      sent_for_revision: ["Sent for revision", "text-critical"],
-      escalated: ["With the tie-breaker panel", "text-state-deemed-ink"],
-      overruled: ["Rejection overruled — cleared", "text-state-done-ink"],
-      sustained: ["Rejection sustained", "text-critical"],
-      failed_score: ["Phase failed on score", "text-critical"],
+      cleared: ["Phase cleared", "text-db-green"],
+      sent_for_revision: ["Sent for revision", "text-db-red"],
+      escalated: ["With the tie-breaker panel", "text-db-amber"],
+      overruled: ["Rejection overruled — cleared", "text-db-green"],
+      sustained: ["Rejection sustained", "text-db-red"],
+      failed_score: ["Phase failed on score", "text-db-red"],
     } as const;
     const [label, tone] = map[app.resolution.kind];
-    return <span className={cn("font-mono text-[10.5px] font-medium tracking-[0.05em]", tone)}>{label.toUpperCase()}</span>;
+    return <span className={cn("text-[11.5px] font-semibold", tone)}>{label}</span>;
   }
   if (!app.dispatched) {
-    return <span className="font-mono text-[10.5px] tracking-[0.05em] text-muted">AWAITING DISPATCH</span>;
+    return <span className="text-[11.5px] text-db-muted">Awaiting dispatch</span>;
   }
   if (app.tie_breaker_open) {
     return (
-      <span className="flex items-center gap-1 font-mono text-[10.5px] font-medium tracking-[0.05em] text-state-deemed-ink">
-        <Scale className="h-3 w-3" strokeWidth={1.6} />
-        WITH TIE-BREAKER
+      <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-db-amber">
+        <Scale className="h-3.5 w-3.5" strokeWidth={1.8} />
+        With tie-breaker
       </span>
     );
   }
   if (d.conflict) {
     return (
-      <span className="flex items-center gap-1 font-mono text-[10.5px] font-medium tracking-[0.05em] text-critical">
-        <AlertTriangle className="h-3 w-3" strokeWidth={1.6} />
-        CONFLICT DETECTED
+      <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-db-red">
+        <AlertTriangle className="h-3.5 w-3.5" strokeWidth={1.8} />
+        Conflict detected
       </span>
     );
   }
   if (d.breachedSla.length > 0) {
     return (
-      <span className="flex items-center gap-1 font-mono text-[10.5px] font-medium tracking-[0.05em] text-state-deemed-ink">
-        <Clock className="h-3 w-3" strokeWidth={1.6} />
-        {d.breachedSla.length} PAST SLA
+      <span className="flex items-center gap-1.5 rounded-full bg-db-amber-tint px-2 py-1 text-[11px] font-semibold text-db-amber">
+        <Clock className="h-3 w-3" strokeWidth={1.8} />
+        {d.breachedSla.length} past SLA
       </span>
     );
   }
   return (
-    <span className="font-mono text-[10.5px] tracking-[0.05em] text-state-active">
+    <span className="rounded-full bg-db-blue-tint px-2.5 py-1 text-[11px] font-semibold tracking-[0.02em] text-db-blue">
       {d.pending.length} DESK{d.pending.length === 1 ? "" : "S"} REVIEWING
     </span>
   );
@@ -73,65 +72,91 @@ export function ApplicationQueue() {
   const select = useMatrixStore((s) => s.select);
 
   return (
-    <aside className="flex w-[268px] flex-none flex-col border-r border-line bg-surface">
-      <div className="flex h-[52px] flex-none items-center justify-between border-b border-line px-4">
-        <Label>My queue</Label>
-        <span className="font-mono text-[11px] text-muted">{applications.length} files</span>
+    <aside className="flex w-[292px] flex-none flex-col border-r border-db-line bg-surface">
+      <div className="flex h-[54px] flex-none items-center justify-between px-4">
+        <span className="text-[11px] font-semibold tracking-[0.09em] text-db-faint">MY QUEUE</span>
+        <span className="text-[12px] text-db-muted">{applications.length} files</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {applications.map((app) => {
-          const d = derive(app);
-          const Icon = RULE_ICON[app.rule.kind];
-          const active = app.id === selectedId;
-          return (
-            <button
-              key={app.id}
-              onClick={() => select(app.id)}
-              aria-current={active}
-              className={cn(
-                "block w-full border-b border-line px-4 py-3 text-left transition-colors",
-                "hover:bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink",
-                active && "bg-sunk shadow-[inset_3px_0_0_var(--accent)]",
-                !active && d.conflict && !app.resolution && "shadow-[inset_3px_0_0_var(--critical)]",
-              )}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[11px] font-semibold tracking-[0.04em] text-ink">
-                  {app.id}
-                </span>
-                <span
-                  title={app.rule.label}
-                  className="flex items-center gap-1 rounded-sm border border-line px-1.5 py-px font-mono text-[9.5px] tracking-[0.06em] text-muted"
-                >
-                  <Icon className="h-2.5 w-2.5" strokeWidth={1.6} />
-                  {RULE_SHORT[app.rule.kind]}
-                </span>
-              </div>
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        <div className="flex flex-col gap-2.5">
+          {applications.map((app, i) => {
+            const d = derive(app);
+            const Icon = RULE_ICON[app.rule.kind];
+            const active = app.id === selectedId;
+            const conflicted = d.conflict && !app.resolution;
 
-              <div className="mt-1.5 line-clamp-2 text-[12.5px] font-medium leading-snug text-ink">
-                {app.project}
-              </div>
-              <div className="mt-0.5 truncate text-[11.5px] text-muted">{app.applicant}</div>
+            return (
+              <button
+                key={app.id}
+                onClick={() => select(app.id)}
+                aria-current={active}
+                style={{ animationDelay: `${i * 70}ms` }}
+                className={cn(
+                  "db-rise db-lift block w-full rounded-xl border px-3.5 py-3 text-left",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-db-blue",
+                  active && conflicted && "border-db-red/50 bg-db-red-tint ring-1 ring-db-red/25",
+                  active && !conflicted && "border-db-blue/40 bg-db-blue-tint/60 ring-1 ring-db-blue/20",
+                  !active && "border-db-line bg-surface hover:border-db-blue/30",
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className={cn(
+                        "flex h-[18px] w-[18px] flex-none items-center justify-center rounded-full text-[9.5px] font-bold",
+                        conflicted ? "bg-db-red text-white" : "bg-db-blue-tint text-db-blue",
+                      )}
+                    >
+                      {conflicted ? "!" : <FileText className="h-3 w-3" strokeWidth={2} />}
+                    </span>
+                    <span className="truncate font-mono text-[11.5px] font-semibold tracking-[0.02em] text-db-ink">
+                      {app.id}
+                    </span>
+                  </span>
+                  <span
+                    title={app.rule.label}
+                    className={cn(
+                      "flex flex-none items-center gap-1 rounded-full px-2 py-[3px] text-[9.5px] font-bold tracking-[0.05em]",
+                      conflicted ? "bg-db-red/12 text-db-red" : "bg-db-blue-tint text-db-blue",
+                    )}
+                  >
+                    <Icon className="h-2.5 w-2.5" strokeWidth={2} />
+                    {conflicted ? "CONFLICT" : RULE_SHORT[app.rule.kind]}
+                  </span>
+                </div>
 
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <StatusLine app={app} />
-                <span className="font-num font-mono text-[10.5px] text-faint">
-                  day {app.day}
-                </span>
-              </div>
-            </button>
-          );
-        })}
+                <div className="mt-2 line-clamp-2 text-[13px] font-semibold leading-snug text-db-ink">
+                  {app.project}
+                </div>
+                <div className="mt-0.5 truncate text-[11.5px] text-db-muted">{app.applicant}</div>
+
+                <div className="mt-2.5 flex items-center justify-between gap-2">
+                  <StatusLine app={app} />
+                  <span className="font-num flex-none text-[11px] text-db-faint">day {app.day}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="flex-none border-t border-line px-4 py-3">
-        <Label className="mb-1.5 block">Decision matrix in force</Label>
-        <p className="text-[11.5px] leading-relaxed text-muted">
-          Each file carries the governance rule that settles a disagreement
-          between departments. The rule is data, not code — a state that
-          tie-breaks differently edits the row, not the console.
-        </p>
+      <div className="flex-none px-3 pb-3">
+        <div className="rounded-xl border border-db-blue/20 bg-db-blue-tint/60 px-3.5 py-3">
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 flex-none items-center justify-center rounded-lg bg-surface">
+              <Info className="h-3.5 w-3.5 text-db-blue" strokeWidth={1.9} />
+            </span>
+            <span className="text-[10.5px] font-semibold tracking-[0.07em] text-db-ink">
+              DECISION MATRIX IN FORCE
+            </span>
+          </div>
+          <p className="mt-2 text-[11.5px] leading-relaxed text-db-muted">
+            Each file carries the governance rule that settles a disagreement between departments.
+            The rule is data, not code — a state that tie-breaks differently edits the row, not the
+            console.
+          </p>
+        </div>
       </div>
     </aside>
   );

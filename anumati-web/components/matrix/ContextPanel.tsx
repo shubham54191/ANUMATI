@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const TABS: { id: ContextTab; label: string }[] = [
   { id: "thread", label: "Thread" },
-  { id: "data", label: "Data matrix" },
+  { id: "data", label: "Data Matrix" },
   { id: "sla", label: "SLA" },
   { id: "audit", label: "Audit" },
 ];
@@ -38,32 +38,36 @@ export function ContextPanel({
           : null;
 
   return (
-    <aside className="flex w-[392px] flex-none flex-col border-l border-line bg-surface">
-      <div className="flex h-[52px] flex-none items-center gap-1 border-b border-line px-3">
+    <aside className="flex w-[392px] flex-none flex-col border-l border-db-line bg-surface">
+      <div className="flex h-[54px] flex-none items-center gap-5 border-b border-db-line px-4">
         {TABS.map((t) => {
           const count = badge(t.id);
+          const active = tab === t.id;
           return (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              aria-pressed={tab === t.id}
+              aria-selected={active}
+              role="tab"
               className={cn(
-                "flex h-8 items-center gap-1.5 rounded-sm px-2.5 text-[12px] transition-colors",
-                tab === t.id
-                  ? "border border-accent/30 bg-accent-muted font-medium text-accent"
-                  : "text-muted hover:text-accent",
+                "-mb-px flex h-[54px] items-center gap-1.5 border-b-2 text-[13px] transition-colors",
+                active
+                  ? "border-db-blue font-semibold text-db-blue"
+                  : "border-transparent text-db-muted hover:text-db-ink",
               )}
             >
               {t.label}
               {count ? (
                 <span
                   className={cn(
-                    "flex h-[15px] min-w-[15px] items-center justify-center rounded-full px-1 font-mono text-[9.5px] font-medium",
+                    "flex h-[17px] min-w-[17px] items-center justify-center rounded-full px-1 text-[9.5px] font-bold",
                     t.id === "data"
-                      ? "bg-critical text-white"
+                      ? "bg-db-red text-white"
                       : t.id === "sla"
-                        ? "bg-state-deemed text-white"
-                        : "bg-line-strong text-ink",
+                        ? "bg-db-amber text-white"
+                        : active
+                          ? "bg-db-blue text-white"
+                          : "bg-db-bg text-db-muted",
                   )}
                 >
                   {count}
@@ -74,7 +78,7 @@ export function ContextPanel({
         })}
       </div>
 
-      <div className="min-h-0 flex-1">
+      <div key={tab} className="db-rise min-h-0 flex-1">
         {tab === "thread" ? <ClarificationThread app={app} derived={derived} /> : null}
         {tab === "data" ? <DataMatrixPanel app={app} /> : null}
         {tab === "sla" ? <SlaBoard app={app} /> : null}

@@ -2,7 +2,9 @@
 import {
   BookMarked,
   CheckCircle2,
+  Clock,
   Gavel,
+  Lightbulb,
   MessageSquare,
   Scale,
   ShieldAlert,
@@ -14,19 +16,62 @@ import type { ApplicationFile, DerivedMatrixState } from "@/types/matrix";
 import { clockOf, dateOf } from "@/lib/matrix/engine";
 import { RULE_OUTCOME_LABEL } from "@/lib/matrix/rules";
 import { useMatrixStore } from "@/store/useMatrixStore";
-import { Button } from "@/components/ui/Button";
-import { Label } from "@/components/ui/Card";
 import { WeightedScoreCard } from "./WeightedScoreCard";
 import { cn } from "@/lib/utils";
 
 /**
- * The Conflict Resolution Screen.
+ * The Conflict Resolution Screen — three cards, read left to right.
  *
- * Left: why the file was rejected, in the rejecting officer's own words.
- * Right: what the pre-defined decision matrix says happens next, with the
- * clause it comes from. The officer is not being asked to invent a policy at
- * 4pm on a Friday — they are being shown the one that already exists.
+ * What went wrong, what the pre-defined matrix says about it, and what that
+ * means for this file. The officer is not being asked to invent a policy at
+ * 4pm on a Friday; they are being shown the one that already exists, with the
+ * clause it comes from.
  */
+
+function CardShell({
+  tone,
+  Icon,
+  title,
+  meta,
+  children,
+  delay,
+}: {
+  tone: "red" | "blue" | "green";
+  Icon: typeof Clock;
+  title: string;
+  meta?: React.ReactNode;
+  children: React.ReactNode;
+  delay: number;
+}) {
+  const SHELL = {
+    red: "border-db-red-line bg-db-red-tint",
+    blue: "border-db-blue/20 bg-db-blue-tint/70",
+    green: "border-db-green/20 bg-db-green-tint",
+  }[tone];
+  const TILE = {
+    red: "bg-db-red text-white",
+    blue: "bg-db-blue text-white",
+    green: "bg-db-green text-white",
+  }[tone];
+
+  return (
+    <div
+      className={cn("db-rise flex min-w-0 flex-1 flex-col rounded-xl border px-4 py-3.5", SHELL)}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-center gap-2">
+        <span className={cn("flex h-6 w-6 flex-none items-center justify-center rounded-lg", TILE)}>
+          <Icon className="h-3.5 w-3.5" strokeWidth={2.1} />
+        </span>
+        <span className="flex-none whitespace-nowrap text-[10.5px] font-bold tracking-[0.08em] text-db-ink">{title}</span>
+        <div className="flex-1" />
+        {meta}
+      </div>
+      <div className="mt-3 min-w-0 flex-1">{children}</div>
+    </div>
+  );
+}
+
 export function ConflictResolutionScreen({
   app,
   derived,
@@ -47,292 +92,240 @@ export function ConflictResolutionScreen({
     app.rule.kind === "veto" ? ShieldAlert : app.rule.kind === "escalation" ? Scale : SlidersHorizontal;
 
   return (
-    <section className="anim-rise border-b border-line bg-surface">
-      <div className="flex items-center gap-3 border-b border-line bg-sunk px-5 py-2.5">
-        <ShieldAlert className="h-3.5 w-3.5 text-critical" strokeWidth={1.7} />
-        <h2 className="font-serif text-[17px] font-medium text-ink">Conflict resolution</h2>
-        <span className="text-[12px] text-muted">
+    <section className="flex flex-col gap-4">
+      {/* The strip that names the situation and opens the conversation. */}
+      <div className="db-rise flex flex-wrap items-center gap-3 rounded-xl border border-db-red-line bg-db-red-tint px-4 py-3">
+        <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-db-red text-white">
+          <ShieldAlert className="h-4 w-4" strokeWidth={2} />
+        </span>
+        <span className="text-[14px] font-semibold text-db-red">Conflict resolution</span>
+        <span className="min-w-0 flex-1 truncate text-[12.5px] text-db-muted">
           Two departments in the same parallel phase returned opposite decisions.
         </span>
-        <div className="flex-1" />
-        <Button onClick={() => setTab("thread")}>
-          <MessageSquare className="h-3 w-3" strokeWidth={1.5} />
+        <button
+          onClick={() => setTab("thread")}
+          className="flex h-9 flex-none items-center gap-2 rounded-lg border border-db-line bg-surface px-3.5 text-[12.5px] font-medium text-db-ink transition-colors hover:border-db-blue/40 hover:text-db-blue"
+        >
+          <MessageSquare className="h-3.5 w-3.5" strokeWidth={1.8} />
           Open clarification thread
-        </Button>
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 divide-y divide-line lg:grid-cols-2 lg:divide-x lg:divide-y-0">
-        {/* Left — the conflict cause. */}
-        <div className="px-5 py-4">
-          <Label className="mb-2.5 block">The conflict cause</Label>
-
+      <div className="flex flex-wrap items-stretch gap-4">
+        {/* 1 — why the file stopped. */}
+        <CardShell
+          tone="red"
+          Icon={Clock}
+          title="THE CONFLICT CAUSE"
+          delay={60}
+          meta={
+            rejecter?.decided_at ? (
+              <span className="flex-none truncate text-[10px] text-db-muted">
+                {dateOf(rejecter.decided_at)} · {clockOf(rejecter.decided_at)} · day{" "}
+                {rejecter.decided_on_day}
+              </span>
+            ) : null
+          }
+        >
           {rejecter ? (
             <>
-              <div className="rounded border border-critical/45 bg-critical/[0.05] px-3.5 py-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2">
-                    <XCircle className="h-3.5 w-3.5 text-critical" strokeWidth={1.7} />
-                    <span className="font-mono text-[11.5px] font-semibold tracking-[0.05em] text-critical">
-                      {rejecter.dept_short} REJECTED
-                    </span>
-                  </span>
-                  {rejecter.decided_at ? (
-                    <span className="font-mono text-[10.5px] text-muted">
-                      {dateOf(rejecter.decided_at)} · {clockOf(rejecter.decided_at)} · day{" "}
-                      {rejecter.decided_on_day}
-                    </span>
-                  ) : null}
-                </div>
-
-                <p className="mt-2 text-[13px] leading-relaxed text-ink">{rejecter.remarks}</p>
-
-                <dl className="mt-3 grid grid-cols-[92px_1fr] gap-x-3 gap-y-1 border-t border-critical/25 pt-2.5 text-[11.5px]">
-                  <dt className="text-muted">Department</dt>
-                  <dd className="text-ink">{rejecter.dept_name}</dd>
-                  <dt className="text-muted">Officer</dt>
-                  <dd className="text-ink">
-                    {rejecter.officer_name} — {rejecter.officer_designation}
-                  </dd>
-                  <dt className="text-muted">Clearance</dt>
-                  <dd className="text-ink">
-                    <span className="font-mono text-[11px]">{rejecter.approval_id}</span>{" "}
-                    {rejecter.approval_name}
-                  </dd>
-                  {rejecter.score !== null ? (
-                    <>
-                      <dt className="text-muted">Score</dt>
-                      <dd className="font-mono text-ink">{rejecter.score}/100</dd>
-                    </>
-                  ) : null}
-                </dl>
+              <div className="flex items-center gap-2">
+                <XCircle className="h-3.5 w-3.5 flex-none text-db-red" strokeWidth={2} />
+                <span className="text-[11.5px] font-bold tracking-[0.04em] text-db-red">
+                  {rejecter.dept_short} REJECTED
+                </span>
               </div>
 
+              <p className="mt-2 text-[12.5px] leading-relaxed text-db-ink">{rejecter.remarks}</p>
+
+              <dl className="mt-3 grid grid-cols-[84px_1fr] gap-x-3 gap-y-1.5 border-t border-db-red/15 pt-2.5 text-[11.5px]">
+                <dt className="text-db-muted">Department</dt>
+                <dd className="text-db-ink">{rejecter.dept_name}</dd>
+                <dt className="text-db-muted">Officer</dt>
+                <dd className="text-db-ink">
+                  {rejecter.officer_name} — {rejecter.officer_designation}
+                </dd>
+                <dt className="text-db-muted">Clearance</dt>
+                <dd className="text-db-ink">
+                  <span className="font-mono text-[11px]">{rejecter.approval_id}</span>{" "}
+                  {rejecter.approval_name}
+                </dd>
+                {rejecter.score !== null ? (
+                  <>
+                    <dt className="text-db-muted">Score</dt>
+                    <dd className="font-num text-db-ink">{rejecter.score}/100</dd>
+                  </>
+                ) : null}
+              </dl>
+
               {evidence ? (
-                <div className="mt-3 rounded border border-state-deemed/45 bg-state-deemed/[0.06] px-3.5 py-2.5">
-                  <Label className="mb-1 block text-state-deemed-ink">
-                    Evidence pulled from the shared data matrix
-                  </Label>
-                  <p className="text-[12px] leading-relaxed text-ink">
-                    <span className="font-medium">{evidence.label}</span> — {evidence.value}
-                  </p>
-                  <p className="mt-1 font-mono text-[10.5px] text-muted">
-                    {evidence.source_short} · {evidence.endpoint}
+                <div className="mt-3 rounded-lg border border-db-amber-line bg-db-amber-tint px-3 py-2">
+                  <span className="text-[9.5px] font-bold tracking-[0.07em] text-db-amber">
+                    EVIDENCE FROM THE SHARED DATA MATRIX
+                  </span>
+                  <p className="mt-1 text-[11.5px] leading-snug text-db-ink">
+                    <span className="font-semibold">{evidence.label}</span> — {evidence.value}
                   </p>
                 </div>
               ) : null}
             </>
           ) : (
-            <p className="text-[12.5px] text-muted">No rejection recorded on this file.</p>
+            <p className="text-[12.5px] text-db-muted">No rejection recorded on this file.</p>
           )}
+        </CardShell>
 
-          <div className="mt-3 rounded border border-state-done/45 bg-state-done/[0.05] px-3.5 py-2.5">
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-state-done-ink" strokeWidth={1.7} />
-              <span className="font-mono text-[11px] font-semibold tracking-[0.05em] text-state-done-ink">
-                CLEARED IN THE SAME PHASE
-              </span>
+        {/* 2 — the rule that already existed. */}
+        <CardShell
+          tone="blue"
+          Icon={RuleIcon}
+          title="THE SYSTEM RULES"
+          delay={140}
+          meta={
+            <span className="flex-none truncate text-[9px] font-bold tracking-[0.05em] text-db-muted">
+              PRE-DEFINED MATRIX
             </span>
-            <div className="mt-2 flex flex-col gap-1.5">
-              {approvers.map((a) => (
-                <div key={a.dept_id} className="text-[12px] leading-snug text-ink">
-                  <span className="font-mono text-[11px] text-muted">{a.dept_short}</span> — {a.remarks}
-                </div>
-              ))}
-              {approvers.length === 0 ? (
-                <span className="text-[12px] text-muted">None yet.</span>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
-        {/* Right — what the matrix says. */}
-        <div className="px-5 py-4">
-          <Label className="mb-2.5 block">The system rules — pre-defined decision matrix</Label>
-
-          <div className="rounded border border-accent/30 bg-accent-muted/40 px-3.5 py-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2">
-                <RuleIcon className="h-3.5 w-3.5 text-accent" strokeWidth={1.7} />
-                <span className="font-mono text-[11.5px] font-semibold tracking-[0.05em] text-accent">
-                  {app.rule.id}
-                </span>
-              </span>
-              <span className="font-mono text-[10.5px] text-muted">{app.rule.label}</span>
-            </div>
-
-            <p className="mt-2 text-[13px] leading-relaxed text-ink">{app.rule.summary}</p>
-
-            <div className="mt-3 flex items-start gap-2 border-t border-accent/20 pt-2.5">
-              <BookMarked className="mt-0.5 h-3 w-3 flex-none text-muted" strokeWidth={1.6} />
-              <span className="text-[11.5px] leading-snug text-muted">
-                {app.rule.authority} — <span className="font-mono">{app.rule.authority_section}</span>
-              </span>
-            </div>
+          }
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-[11px] font-bold tracking-[0.04em] text-db-blue">
+              <ShieldAlert className="h-3 w-3" strokeWidth={2.2} />
+              {app.rule.id}
+            </span>
+            <span className="text-[11.5px] text-db-muted">{app.rule.label}</span>
           </div>
 
-          <div className="mt-3 rounded border border-line bg-bg px-3.5 py-3">
-            <Label className="mb-1.5 block">What that means for this file</Label>
+          <p className="mt-2.5 text-[12.5px] leading-relaxed text-db-ink">{app.rule.summary}</p>
 
-            {app.rule.kind === "veto" ? (
-              <>
-                <p className="text-[12.5px] leading-relaxed text-ink">
+          <div className="mt-3 flex items-start gap-2 border-t border-db-blue/15 pt-2.5">
+            <BookMarked className="mt-0.5 h-3 w-3 flex-none text-db-muted" strokeWidth={1.8} />
+            <span className="text-[11.5px] leading-snug text-db-muted">
+              {app.rule.authority} — <span className="font-mono">{app.rule.authority_section}</span>
+            </span>
+          </div>
+
+          <div className="mt-2 text-[10.5px] font-semibold tracking-[0.04em] text-db-blue">
+            OUTCOME: {RULE_OUTCOME_LABEL[app.rule.kind].toUpperCase()}
+          </div>
+        </CardShell>
+
+        {/* 3 — what it means here, and the one action it unlocks. */}
+        <CardShell tone="green" Icon={Lightbulb} title="WHAT THAT MEANS" delay={220}>
+          <div className="flex h-full flex-col">
+            <div className="flex-1">
+              {app.rule.kind === "veto" ? (
+                <p className="text-[12.5px] leading-relaxed text-db-ink">
                   {derived.vetoedBy ? (
                     <>
-                      <span className="font-medium">{derived.vetoedBy.dept_short}</span> is a designated
-                      technical authority on this file. Its rejection is a dealbreaker —{" "}
-                      {approvers.map((a) => a.dept_short).join(", ") || "another department"}&apos;s approval
-                      cannot override it, and the stage halts.
+                      <span className="font-semibold">{derived.vetoedBy.dept_short}</span> is a
+                      designated technical authority on this file. Its rejection is a dealbreaker —{" "}
+                      {approvers.map((a) => a.dept_short).join(", ") || "another department"}&apos;s
+                      approval cannot override it, and the stage returns for correction.
                     </>
                   ) : (
                     <>
-                      The rejecting department does not hold a veto on this file, so the phase does not halt
-                      automatically.
+                      The rejecting department does not hold a veto on this file, so the phase does not
+                      halt automatically.
                     </>
                   )}
                 </p>
-                <ul className="mt-2 flex flex-col gap-1 text-[12px] text-muted">
-                  <li>· Master action <span className="font-medium text-ink">Finalise approval</span> is disabled.</li>
-                  <li>· The phase progress bar is held at amber, not red — the file is recoverable.</li>
-                  <li>· Clearances already granted are carried forward on resubmission.</li>
-                </ul>
-                <p className="mt-2 font-mono text-[10.5px] tracking-[0.04em] text-muted">
-                  VETO DEPARTMENTS: {(app.rule.veto_departments ?? []).join(", ").toUpperCase()}
-                </p>
-              </>
-            ) : null}
+              ) : null}
 
-            {app.rule.kind === "escalation" ? (
-              <>
-                <p className="text-[12.5px] leading-relaxed text-ink">
-                  Both departments carry equal weight on this file, so neither may override the other. The
-                  matrix opens an escalation path to{" "}
-                  <span className="font-medium">{app.rule.tie_breaker?.panel}</span>, chaired by{" "}
+              {app.rule.kind === "escalation" ? (
+                <p className="text-[12.5px] leading-relaxed text-db-ink">
+                  Both departments carry equal weight, so neither may override the other. The matrix
+                  opens an escalation path to{" "}
+                  <span className="font-semibold">{app.rule.tie_breaker?.panel}</span>, chaired by{" "}
                   {app.rule.tie_breaker?.chair}, with a {app.rule.tie_breaker?.sla_days}-day window.
                 </p>
-                <ul className="mt-2 flex flex-col gap-1 text-[12px] text-muted">
-                  {(app.rule.tie_breaker?.members ?? []).map((m) => (
-                    <li key={m}>· {m}</li>
-                  ))}
-                </ul>
-              </>
-            ) : null}
+              ) : null}
 
-            {app.rule.kind === "weighted" && derived.weighted ? (
-              <p className="text-[12.5px] leading-relaxed text-ink">
-                Departments score rather than vote. The consolidated weighted average is{" "}
-                <span className="font-mono font-medium">{derived.weighted.score.toFixed(1)}</span> against a
-                passing score of <span className="font-mono font-medium">{derived.weighted.threshold}</span>.{" "}
-                {derived.weighted.complete
-                  ? derived.weighted.pass
-                    ? "The phase passes and can be finalised."
-                    : "The phase fails and the project manager is notified."
-                  : "Remaining departments have yet to score."}
-              </p>
-            ) : null}
+              {app.rule.kind === "weighted" && derived.weighted ? (
+                <p className="text-[12.5px] leading-relaxed text-db-ink">
+                  Departments score rather than vote. The consolidated weighted average is{" "}
+                  <span className="font-num font-semibold">{derived.weighted.score.toFixed(1)}</span>{" "}
+                  against a passing score of{" "}
+                  <span className="font-num font-semibold">{derived.weighted.threshold}</span>.{" "}
+                  {derived.weighted.complete
+                    ? derived.weighted.pass
+                      ? "The phase passes and can be finalised."
+                      : "The phase fails and the project manager is notified."
+                    : "Remaining departments have yet to score."}
+                </p>
+              ) : null}
 
-            <div className="mt-2.5 border-t border-line pt-2 font-mono text-[10.5px] tracking-[0.04em] text-accent">
-              OUTCOME: {RULE_OUTCOME_LABEL[app.rule.kind].toUpperCase()}
+              {approvers.length > 0 ? (
+                <div className="mt-3 rounded-lg border border-db-green/20 bg-surface px-3 py-2">
+                  <span className="flex items-center gap-1.5 text-[9.5px] font-bold tracking-[0.06em] text-db-green">
+                    <CheckCircle2 className="h-3 w-3" strokeWidth={2.2} />
+                    CLEARED IN THE SAME PHASE
+                  </span>
+                  <div className="mt-1.5 flex flex-col gap-1">
+                    {approvers.map((a) => (
+                      <div key={a.dept_id} className="text-[11.5px] leading-snug text-db-muted">
+                        <span className="font-semibold text-db-ink">{a.dept_short}</span> — {a.remarks}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="mt-3.5">
+              {app.rule.kind === "veto" ? (
+                <button
+                  onClick={sendForRevision}
+                  className="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-db-green px-3.5 text-[12.5px] font-semibold text-white transition-colors hover:brightness-95"
+                >
+                  <Undo2 className="h-3.5 w-3.5" strokeWidth={2} />
+                  Send for revision
+                </button>
+              ) : null}
+
+              {app.rule.kind === "escalation" ? (
+                <button
+                  onClick={app.tie_breaker_open ? () => setTieBreakerOpen(true) : escalate}
+                  className="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-db-green px-3.5 text-[12.5px] font-semibold text-white transition-colors hover:brightness-95"
+                >
+                  <Gavel className="h-3.5 w-3.5" strokeWidth={2} />
+                  {app.tie_breaker_open
+                    ? "Open tie-breaker panel"
+                    : `Route to ${app.rule.tie_breaker?.panel ?? "the panel"}`}
+                </button>
+              ) : null}
+
+              {app.rule.kind === "weighted" ? (
+                <p className="text-[11.5px] leading-snug text-db-muted">
+                  {derived.pending.length > 0
+                    ? `${derived.pending.length} desk${derived.pending.length === 1 ? "" : "s"} still to score. The threshold decides on its own — no officer signs a failure into existence.`
+                    : "Every desk has reported. The threshold has decided."}
+                </p>
+              ) : null}
             </div>
           </div>
+        </CardShell>
+      </div>
 
-          {app.rule.kind === "weighted" && derived.weighted ? (
-            <div className="mt-3">
-              <WeightedScoreCard weighted={derived.weighted} />
-            </div>
-          ) : null}
+      {app.rule.kind === "weighted" && derived.weighted ? (
+        <div className="db-rise">
+          <WeightedScoreCard weighted={derived.weighted} />
         </div>
-      </div>
+      ) : null}
 
-      {/* The resolution path the rule unlocks. */}
-      <div className="flex flex-wrap items-center gap-3 border-t border-line bg-sunk px-5 py-3">
-        <Label className="flex-none">Resolution path</Label>
-
-        {app.rule.kind === "veto" ? (
-          <>
-            <Button variant="primary" onClick={sendForRevision}>
-              <Undo2 className="h-3 w-3" strokeWidth={1.5} />
-              Send for revision
-            </Button>
-            <span className="text-[12px] text-muted">
-              Packages {derived.rejected.map((r) => r.dept_short).join(", ")}&apos;s objections with the
-              clearances already granted and returns the file to the applicant.
-            </span>
-          </>
-        ) : null}
-
-        {app.rule.kind === "escalation" ? (
-          <>
-            {app.tie_breaker_open ? (
-              <>
-                <Button variant="primary" onClick={() => setTieBreakerOpen(true)}>
-                  <Gavel className="h-3 w-3" strokeWidth={1.5} />
-                  Open tie-breaker panel
-                </Button>
-                <span className="text-[12px] text-muted">
-                  Routed automatically the moment the deadlock was detected — a temporary node is on the
-                  track and the file is on {app.rule.tie_breaker?.chair}&apos;s dashboard. Nobody had to
-                  forward it.
-                </span>
-              </>
-            ) : (
-              <>
-                <Button variant="primary" onClick={escalate}>
-                  <Scale className="h-3 w-3" strokeWidth={1.5} />
-                  Route to {app.rule.tie_breaker?.panel}
-                </Button>
-                <span className="text-[12px] text-muted">
-                  Adds a temporary tie-breaker node to the parallel track and puts the file on the
-                  panel&apos;s dashboard.
-                </span>
-              </>
-            )}
-          </>
-        ) : null}
-
-        {app.rule.kind === "weighted" && derived.weighted ? (
-          <span className="flex items-center gap-2 text-[12px] text-muted">
-            <XCircle
-              className={cn(
-                "h-3.5 w-3.5 flex-none",
-                derived.weighted.pass ? "text-state-done-ink" : "text-critical",
-              )}
-              strokeWidth={1.6}
-            />
-            {derived.pending.length > 0 ? (
-              <>
-                <span className="font-medium text-ink">
-                  {derived.pending.length} department{derived.pending.length === 1 ? "" : "s"} still to score.
-                </span>{" "}
-                The threshold decides on its own: once every desk has reported, a consolidated average under{" "}
-                {derived.weighted.threshold} marks the phase failed and notifies the project manager. No
-                officer signs a failure into existence.
-              </>
-            ) : (
-              <>
-                Every desk has reported at {derived.weighted.score.toFixed(1)} against a passing score of{" "}
-                {derived.weighted.threshold}.
-              </>
-            )}
-          </span>
-        ) : null}
-
-        <div className="flex-1" />
-        <Button disabled title="Disabled while the phase is in conflict">
-          <CheckCircle2 className="h-3 w-3" strokeWidth={1.5} />
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-db-line bg-surface px-4 py-3">
+        <p className="min-w-0 flex-1 text-[11.5px] leading-relaxed text-db-muted">
+          Nothing on this screen was decided by the console. The rejection is the rejecting
+          officer&apos;s; the tie-break is the matrix row&apos;s. Every step lands in the audit trail
+          with the clause it was taken under.
+        </p>
+        <button
+          disabled
+          title="Disabled while the phase is in conflict"
+          className="flex h-9 flex-none items-center gap-2 rounded-lg border border-db-line px-3.5 text-[12.5px] text-db-faint opacity-60"
+        >
+          <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={1.8} />
           Finalise approval
-        </Button>
+        </button>
       </div>
-
-      <p
-        className={cn(
-          "border-t border-line px-5 py-2 text-[11.5px] leading-relaxed text-muted",
-          "bg-surface",
-        )}
-      >
-        Nothing on this screen was decided by the console. The rejection is the rejecting officer&apos;s;
-        the tie-break is the matrix row&apos;s. Every step lands in the audit trail with the clause it was
-        taken under.
-      </p>
     </section>
   );
 }

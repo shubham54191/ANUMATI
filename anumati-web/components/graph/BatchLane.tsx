@@ -14,12 +14,13 @@ export interface BatchLaneData extends Record<string, unknown> {
 
 export type BatchLaneType = Node<BatchLaneData, "batchLane">;
 
+/** The horizontal band behind one batch. Everything on it starts on the same day. */
 function BatchLaneImpl({ data }: NodeProps<BatchLaneType>) {
   return (
     <div
       className={cn(
-        "anim-rise pointer-events-none relative border-b border-line/70",
-        data.striped && "bg-ink/[0.016]",
+        "anim-rise pointer-events-none relative border-b border-db-line",
+        data.striped && "bg-db-bg/70",
       )}
       style={{
         width: data.width,
@@ -27,13 +28,14 @@ function BatchLaneImpl({ data }: NodeProps<BatchLaneType>) {
         animationDelay: `${Math.min(data.index, 12) * 45}ms`,
       }}
     >
-      <div className="absolute left-4 top-5 w-16">
-        <div className="font-num font-mono text-[10.5px] font-semibold tracking-[0.04em] text-ink">
-          DAY {data.day}
-        </div>
-        <div className="font-mono text-[8.5px] tracking-[0.06em] text-faint">
-          {data.count} PARALLEL
-        </div>
+      <div className="absolute left-3 top-4 flex w-[92px] items-start gap-2">
+        <span className="mt-[5px] h-[7px] w-[7px] flex-none rounded-full bg-db-teal" />
+        <span>
+          <span className="font-num block text-[12px] font-semibold leading-tight text-db-ink">
+            Day {data.day}
+          </span>
+          <span className="block text-[11px] leading-tight text-db-muted">Parallel</span>
+        </span>
       </div>
     </div>
   );

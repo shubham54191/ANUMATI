@@ -17,11 +17,11 @@ import { cn } from "@/lib/utils";
 export function SlaBoard({ app }: { app: ApplicationFile }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-none items-center gap-2 border-b border-line px-4 py-2.5">
-        <Timer className="h-3.5 w-3.5 text-accent" strokeWidth={1.6} />
+      <div className="flex flex-none items-center gap-2 border-b border-db-line px-4 py-2.5">
+        <Timer className="h-3.5 w-3.5 text-db-blue" strokeWidth={1.6} />
         <Label>SLA and escalation</Label>
         <div className="flex-1" />
-        <span className="font-num font-mono text-[10.5px] text-faint">day {app.day}</span>
+        <span className="font-num font-mono text-[10.5px] text-db-faint">day {app.day}</span>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
@@ -37,16 +37,16 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
               <div
                 key={r.dept_id}
                 className={cn(
-                  "rounded border px-3 py-2.5",
+                  "rounded-xl border px-3 py-2.5",
                   overdue
-                    ? "border-state-deemed/50 bg-state-deemed/[0.06]"
+                    ? "border-db-amber/50 bg-db-amber/[0.06]"
                     : warning
-                      ? "border-accent-secondary/40 bg-accent-secondary/[0.04]"
-                      : "border-line bg-surface",
+                      ? "border-db-blue-secondary/40 bg-accent-secondary/[0.04]"
+                      : "border-db-line bg-surface",
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[11px] font-semibold tracking-[0.05em] text-ink">
+                  <span className="font-mono text-[11px] font-semibold tracking-[0.05em] text-db-ink">
                     {r.dept_short}
                   </span>
                   <span className={cn("font-mono text-[9.5px] font-medium tracking-[0.06em]", meta.text)}>
@@ -55,11 +55,11 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
                 </div>
 
                 <div className="mt-1 flex items-center gap-1.5">
-                  <Clock className="h-3 w-3 flex-none text-faint" strokeWidth={1.6} />
+                  <Clock className="h-3 w-3 flex-none text-db-faint" strokeWidth={1.6} />
                   <span
                     className={cn(
                       "font-num font-mono text-[11px]",
-                      overdue ? "font-medium text-state-deemed-ink" : "text-muted",
+                      overdue ? "font-medium text-db-amber" : "text-db-muted",
                     )}
                   >
                     {slaLabel(r, app.day)}
@@ -67,11 +67,11 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
                 </div>
 
                 {open ? (
-                <p className="mt-1.5 text-[11.5px] leading-snug text-muted">
+                <p className="mt-1.5 text-[11.5px] leading-snug text-db-muted">
                   {r.statutory ? (
                     <>
                       Statutory — cannot be deemed. On breach the file goes to{" "}
-                      <span className="text-ink">{r.escalation_tier}</span>.
+                      <span className="text-db-ink">{r.escalation_tier}</span>.
                     </>
                   ) : (
                     <>
@@ -83,16 +83,16 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
                 ) : null}
 
                 {r.escalated_on_day !== null ? (
-                  <div className="mt-2 flex items-center gap-1.5 rounded-sm border border-state-deemed/45 bg-state-deemed/[0.1] px-2 py-1">
-                    <ArrowUpRight className="h-3 w-3 flex-none text-state-deemed-ink" strokeWidth={1.8} />
-                    <span className="font-mono text-[10px] font-medium tracking-[0.05em] text-state-deemed-ink">
+                  <div className="mt-2 flex items-center gap-1.5 rounded-sm border border-db-amber/45 bg-db-amber/[0.1] px-2 py-1">
+                    <ArrowUpRight className="h-3 w-3 flex-none text-db-amber" strokeWidth={1.8} />
+                    <span className="font-mono text-[10px] font-medium tracking-[0.05em] text-db-amber">
                       ESCALATED ON DAY {r.escalated_on_day} → {r.escalation_tier.toUpperCase()}
                     </span>
                   </div>
                 ) : null}
 
                 {r.state === "deemed_approved" ? (
-                  <div className="mt-2 rounded-sm border border-state-deemed/45 bg-state-deemed/[0.1] px-2 py-1 text-[11px] leading-snug text-state-deemed-ink">
+                  <div className="mt-2 rounded-sm border border-db-amber/45 bg-db-amber/[0.1] px-2 py-1 text-[11px] leading-snug text-db-amber">
                     Deemed approved on day {r.decided_on_day} — the window closed with no action and no
                     recorded reason.
                   </div>
@@ -102,9 +102,9 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
           })}
         </div>
 
-        <div className="mt-4 rounded border border-line bg-sunk px-3 py-2.5">
+        <div className="mt-4 rounded-xl border border-db-line bg-db-bg px-3 py-2.5">
           <Label className="mb-1 block">How the ladder works</Label>
-          <ol className="flex flex-col gap-1 text-[11.5px] leading-relaxed text-muted">
+          <ol className="flex flex-col gap-1 text-[11.5px] leading-relaxed text-db-muted">
             <li>1. Two days out, the desk and its supervisor are warned.</li>
             <li>2. On breach, a statutory desk is escalated a tier and the file is flagged.</li>
             <li>3. On breach, a non-critical desk is deemed approved and the phase advances.</li>
