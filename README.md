@@ -307,6 +307,173 @@ Parallel dispatch removes the one useful property of sequential filing: that a f
 
 ---
 
+## Complete Architecture Flow & System Mechanics
+
+ANUMATI operates as a multi-tier regulatory intelligence system engineered for deterministic execution, statutory fidelity, and auditability. The architecture maps directly from verified statutory instruments to mathematical graph algorithms and dual-persona operational consoles.
+
+```mermaid
+flowchart TD
+    subgraph INGESTION["1. Regulatory Ingestion & AI Inference Pipeline"]
+        A1["Gazette Notifications & Acts (PDF)"] --> B1["Document Loader (pdfplumber)"]
+        A2["Departmental Application Forms"] --> B2["Form Parser (Required Attachments)"]
+        B1 --> C1["LLM Approval Extractor (Instructor + Pydantic, Temp=0)"]
+        C1 --> D1["Draft Approvals (Statutory SLA, Deemed Clauses)"]
+        B2 --> D2["Required Input Documents"]
+        D1 & D2 --> E1["Automated Edge Inferencer (Input Doc == Output Cert)"]
+        E1 --> E2["Confidence & Edge Typer (Statutory / Documentary / Physical / Practice)"]
+        E2 --> F1["Human-in-the-Loop Review Queue (Officer Verification)"]
+    end
+
+    subgraph STORAGE["2. Bitemporal Storage & Audit Moat"]
+        F1 -->|"Verified & Cited"| G1[("PostgreSQL 16 Relational Engine")]
+        G1 --- H1["Bitemporal Tables (approval_version, dependency_version)"]
+        G1 --- H2["Strict Citation Foreign Keys (source_document_id NOT NULL)"]
+        G1 --- H3["Append-Only Decision Ledger (DB Trigger: reject_ledger_mutation)"]
+    end
+
+    subgraph COMPUTE["3. Graph Engine & Optimization Core"]
+        G1 -->|"as_of(date) Query"| I1["DAG Builder (NetworkX DiGraph)"]
+        I1 --> I2{"Cycle Detection"}
+        I2 -->|"Cycle Found"| ERR["Raise CyclicDependencyError"]
+        I2 -->|"Valid DAG"| I3["Topological Sort & Longest Path CPM"]
+        I3 --> I4["Compute Critical Path Spine & Float/Slack"]
+        I3 --> I5["Parallel Batch Clustering (Grouped by Earliest Start)"]
+        I4 & I5 --> I6["Dual-Clock Resolver (Statutory SLA vs Observed Median Days)"]
+    end
+
+    subgraph PRESENTATION["4. Dual-Persona Presentation Layer (Next.js 14)"]
+        I6 --> J1{"Role Gate & Auth"}
+        J1 -->|"APPLICANT / DEMO"| K1["Applicant Roadmap Portal"]
+        J1 -->|"OFFICER / ADMIN"| K2["Matrix 2.0 Clearance Console"]
+        
+        K1 --> L1["Interactive DAG Canvas (@xyflow/react)"]
+        K1 --> L2["5-Tab Board View (Graph, Timeline, Register, Documents, Pre-Check)"]
+        K1 --> L3["What-If Reform Simulator (Guarded by IllegalLeverError)"]
+        
+        K2 --> M1["Concurrent Multi-Department Dispatch"]
+        K2 --> M2["Independent SLA Tracking & Deemed Clocks"]
+        K2 --> M3["Shared Data Matrix (Background Pre-Validation)"]
+        K2 --> M4["Conflict Resolution Engine (Pre-Defined Decision Matrix)"]
+    end
+```
+
+### 1. Ingestion & Automated Documentary Edge Inference Pipeline
+The primary technical barrier in single-window portals is manual graph construction. ANUMATI automates regulatory graph construction directly from primary government sources while strictly prohibiting unverified auto-publishing:
+
+1. **Extraction**: Gazette PDFs and notifications are parsed via `pdfplumber` into text with exact page coordinate mappings. `Instructor` with structured Pydantic schemas extracts statutory SLAs, deemed approval clauses, and citations at temperature 0.
+2. **Form Parsing**: Departmental application forms are analyzed to extract their list of mandatory attachments (`required_documents[]`).
+3. **Automated Edge Inference**:
+   The core mathematical discovery: If approval $B$'s application form requires a document that approval $A$ produces, then approval $A$ is an indisputable prerequisite for approval $B$:
+   $$\forall B \in \text{Approvals}, \forall d \in B.\text{required\_documents}: \text{If } \exists A \text{ s.t. } A.\text{produces\_document} = d \implies \text{Edge}(A \to B, \text{type}=\text{DOCUMENTARY}, \text{confidence}=0.90)$$
+4. **Human-in-the-Loop Sign-off**: Every extracted approval and edge lands as `ReviewStatus.DRAFT`. A facilitation officer must verify the section citation and effective date before it is `PUBLISHED`. The database enforces `source_document_id NOT NULL` and `source_section NOT NULL`.
+
+---
+
+### 2. Mathematical Optimization & Dual-Clock Critical Path Method (CPM)
+
+ANUMATI models the regulatory landscape as a directed acyclic graph $G = (V, E)$. 
+
+1. **Topological Sort & Cycle Detection**:
+   The graph is traversed in topological order. If a cycle is introduced, `CyclicDependencyError` is raised immediately to halt corrupt sequences.
+2. **Earliest Finish & Critical Path**:
+   For every node $i$ with statutory or observed duration $D_i$:
+   $$\text{EarliestStart}(i) = \max_{p \in \text{Predecessors}(i)} \text{EarliestFinish}(p), \quad \text{EarliestFinish}(i) = \text{EarliestStart}(i) + D_i$$
+   The critical path spine is the longest path from entry node to project completion with zero float ($Float_i = \text{LatestStart}_i - \text{EarliestStart}_i = 0$).
+3. **Parallel Batch Clustering**:
+   Approvals are grouped into concurrent processing lanes based on identical Earliest Start milestones:
+   $$\text{Batch}(t) = \{ v \in V \mid \text{EarliestStart}(v) = t \}$$
+4. **Dual-Clock Architecture**:
+   - **Statutory Clock**: Exact notified days allowable under each sectoral Act (Total Series: 524 days $\to$ Critical Path: 255 days on private land; 464 days $\to$ 223 days in MIDC plots).
+   - **Observed Clock**: Empirical field-reported medians aggregated per approval ($Sample \ge 1$), revealing actual bureaucratic wait times (e.g. Building Plan taking 92 days vs 60 days statutory SLA).
+
+---
+
+### 3. Matrix 2.0: Concurrent Dispatch & Conflict Resolution State Machine
+
+Under sequential filing, conflicts are impossible because a file only sits on one desk at a time. ANUMATI's concurrent multi-departmental dispatch creates parallel processing lanes from Day 0, requiring a deterministic conflict resolution engine when departments disagree:
+
+```mermaid
+flowchart TD
+    DISPATCH["File Dispatched on Day 0"] --> LANES["Broadcast to All Stakeholder Departments Concurrently"]
+    
+    subgraph PARALLEL_LANE["Parallel Processing Lanes"]
+        LANES --> L_MPCB["MPCB (Pollution Control)"]
+        LANES --> L_MIDC["MIDC (Industrial Dev)"]
+        LANES --> L_FIRE["Fire Department"]
+        LANES --> L_DISCOM["MSEDCL (Power)"]
+    end
+
+    subgraph SLA_WATCH["SLA Engine & Escalation Ladder"]
+        L_MPCB & L_MIDC & L_FIRE & L_DISCOM --> CLK{"SLA Window Breach?"}
+        CLK -->|"No Breach"| EVAL["Department Decisions Recorded"]
+        CLK -->|"Breached & Parent Act Deeming"| DEEM["Deemed Approved under Parent Act (e.g. MRTP s. 45(5), Water Act s. 25(7))"]
+        CLK -->|"Breached & No Deeming Clause"| ESC["Competent Authority Ceases Power -> Transferred to Empowered Committee (MAITRI Act s. 5)"]
+    end
+
+    EVAL & DEEM & ESC --> GATE{"Phase Gate Evaluation"}
+    
+    GATE -->|"All Lanes Approved / Deemed"| PASS["Phase Cleared -> Advance to Pre-Operation"]
+    GATE -->|"Clash: Opposite Decisions (e.g., Approved vs Rejected)"| CONFLICT["Conflict Banner Triggered: Phase Bar Amber, Finalize Disabled"]
+    
+    CONFLICT --> RESOLVE{"Pre-Defined Decision Matrix Protocol"}
+    
+    RESOLVE -->|"MX-VETO-TECH (Technical Veto)"| VETO["Hard Block: Stage Halts -> Revision Packet Generated (Clearances Retained)"]
+    RESOLVE -->|"MX-ESCALATE-EQUAL (Equal Authority)"| TIE["Temporary Tie-Breaker Node Appears -> Steering Committee Decides"]
+    RESOLVE -->|"MX-RISK-SCRUTINY (Risk-Based)"| RISK["Consolidated Score Evaluates Scrutiny Depth (Document Only vs Joint Inspection)"]
+    
+    VETO & TIE & RISK --> LEDGER[("Immutable Append-Only Decision Ledger")]
+```
+
+#### The Three Governance Rules:
+- **`MX-VETO-TECH` (Technical Veto)**: A designated technical authority (e.g. MPCB on pollution or DISCOM on electrical capacity) holds statutory veto power. Its rejection halts the stage. **Send for Revision** packages only the objection and retains all approved clearances so nothing is re-filed.
+- **`MX-ESCALATE-EQUAL` (Equal Authority)**: Two departments have equal standing with no legal hierarchy (e.g. Town Planning vs Heritage). Neither may overrule the other; the system dynamically renders a temporary **Tie-Breaker Panel** node and routes the file to the Empowered Committee.
+- **`MX-RISK-SCRUTINY` (Risk-Based Scrutiny)**: Departments submit risk scores ($0 - 100$) instead of voting. A weighted consolidated score determines the depth of inspection (documents-only vs joint physical inspection). **The score never grants or denies a statutory clearance.**
+
+---
+
+### 4. Data Layer Architecture: Bitemporal Versioning & Append-Only Ledger
+
+The data model is engineered around two core principles:
+
+1. **Bitemporal Rule Versioning**:
+   Every regulatory approval and dependency edge carries valid time (`effective_from`, `effective_to`) and system transaction time (`recorded_at`, `superseded_at`). All engine queries execute against `as_of(date)` snapshots:
+   ```python
+   # Guarantees roadmaps generated in 2026 remain bit-for-bit reproducible in 2030
+   select(ApprovalVersion).where(
+       ApprovalVersion.effective_from <= as_of_date,
+       or_(ApprovalVersion.effective_to.is_(None), ApprovalVersion.effective_to > as_of_date),
+       ApprovalVersion.review_status == ReviewStatus.PUBLISHED
+   )
+   ```
+2. **Append-Only Decision Ledger**:
+   Every administrative decision, SLA escalation, deemed approval, and committee intervention is written to an immutable `decision_ledger` table with database triggers that physically reject `UPDATE` and `DELETE` queries:
+   ```sql
+   CREATE OR REPLACE FUNCTION reject_ledger_mutation() RETURNS trigger AS $$
+   BEGIN
+     RAISE EXCEPTION 'decision_ledger is append-only';
+   END; $$ LANGUAGE plpgsql;
+
+   CREATE TRIGGER ledger_no_update BEFORE UPDATE OR DELETE ON decision_ledger
+   FOR EACH ROW EXECUTE FUNCTION reject_ledger_mutation();
+   ```
+
+---
+
+### 5. Policy Reform Simulator with Statutory Guardrails
+
+ANUMATI provides policymakers with an evidence-based sandbox to test reforms before notifying them:
+- **`REDUCE_TIMELINE`**: Models the macro impact of shortening an approval's statutory SLA window.
+- **`PARALLELISE`**: Eliminates practice-based conventions or inter-departmental bottlenecks.
+- **`ENFORCE_DEEMED`**: Simulates automated deemed approvals for silent counters.
+- **Statutory Guardrail (`IllegalLeverError`)**:
+  ```python
+  if edge["edge_type"] == EdgeType.STATUTORY:
+      raise IllegalLeverError("Cannot parallelise a statutory dependency")
+  ```
+  The simulator structurally refuses to bypass binding statutory requirements written into parent Acts. Reforms can only target bureaucratic practice conventions and notified timelines.
+
+---
+
 ## Strategic Implementation Plan
 
 Our vision is to transform ANUMATI from an award-winning prototype into an institutional public digital infrastructure powering single-window facilitation nationwide.
