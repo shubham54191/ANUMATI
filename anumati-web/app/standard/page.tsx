@@ -37,17 +37,17 @@ export default function StandardPage() {
     {
       rule: "--edge-statutory",
       title: "A dependency has a type",
-      body: "Statutory, documentary, physical, practice. A list of approvals tells you nothing about order; a typed edge tells you whether the order is law, paperwork, physics, or just how the office does it.",
+      body: "Statutory, documentary, physical, practice. A typed edge says whether an order is law, paperwork, physics, or just how the office does it.",
     },
     {
       rule: "--edge-documentary",
       title: "A rule cannot exist without a citation",
-      body: "Source document, section and URL are required fields, not recommended ones. A file that omits them fails validation, so nobody has to take the publisher's word for anything.",
+      body: "Source document, section and URL are required fields. A file that omits them fails validation.",
     },
     {
       rule: "--edge-practice",
       title: "Uncertainty is a field, not a footnote",
-      body: "Every edge carries a confidence and a rationale. A practice-based edge at 0.50 is published as one — visible to the applicant, and reformable without touching the statute.",
+      body: "Every edge carries a confidence. A practice-based edge at 0.50 is published as one — visible, and reformable without touching the statute.",
     },
   ];
 
@@ -121,18 +121,15 @@ export default function StandardPage() {
                 style={{ animationDelay: "120ms" }}
                 className="anim-rise mb-4 max-w-[620px] text-[16px] leading-relaxed text-ink"
               >
-                Every state has the same problem and solves it in a different
-                spreadsheet. OAGS is a small JSON schema for approvals, their
-                statutory timelines, and — the part nobody writes down — the
-                dependencies between them, each carrying the section of the act
-                it comes from and how sure we are.
+                A small JSON schema for approvals, their statutory timelines,
+                and — the part nobody writes down — the dependencies between
+                them, each citing the section it comes from.
               </p>
               <p
                 style={{ animationDelay: "160ms" }}
                 className="anim-rise mb-8 max-w-[620px] text-sm leading-relaxed text-muted"
               >
-                Our Maharashtra rule base is published in it. So is the
-                validator. Neither is the point: the schema is.
+                Our Maharashtra rule base and the validator are published in it.
               </p>
               <div style={{ animationDelay: "220ms" }} className="anim-rise flex items-center gap-3">
                 <Button size="md" variant="primary">
@@ -207,9 +204,8 @@ export default function StandardPage() {
                 <FileText className="mt-1 h-3 w-3 flex-none text-faint" strokeWidth={1.3} />
                 <p className="text-[12.5px] leading-relaxed text-muted">
                   <span className="text-ink">The rationale field is the interesting one.</span>{" "}
-                  It is written by the extractor that found the edge in the
-                  department&apos;s own form, and it is what an applicant reads when
-                  they ask why one approval is waiting on another.
+                  It is what an applicant reads when they ask why one approval is
+                  waiting on another.
                 </p>
               </div>
             </div>
@@ -275,10 +271,9 @@ export default function StandardPage() {
                   Adopting it costs a state one export script
                 </h2>
                 <p className="text-[12.5px] leading-relaxed text-muted">
-                  The schema does not ask anyone to change how they store rules —
-                  only how they publish them. MAITRI keeps its portal and its
-                  processes. Once two states publish OAGS, a single window can
-                  read both without a bespoke integration.
+                  It changes how rules are published, not how they are stored.
+                  Once two states publish OAGS, one window reads both without a
+                  bespoke integration.
                 </p>
               </div>
             </div>

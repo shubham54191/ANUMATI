@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { ExplainToggle } from "@/components/ui/Explain";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMatrixStore } from "@/store/useMatrixStore";
 import { derive } from "@/lib/matrix/engine";
@@ -68,6 +69,8 @@ export function OfficerTopBar() {
           {breaches} past SLA
         </span>
       </div>
+
+      <ExplainToggle />
 
       <span className="h-[18px] w-px bg-line" />
 

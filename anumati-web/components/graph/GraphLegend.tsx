@@ -1,5 +1,5 @@
 import { EDGE_SPEC } from "@/lib/constants/edgeTypes";
-import { EDGE_TYPES } from "@/types/dependency";
+import { EDGE_TYPES, type Dependency } from "@/types/dependency";
 import { Label } from "@/components/ui/Card";
 
 function Line({ color, width, dashed }: { color: string; width: number; dashed: boolean }) {
@@ -15,19 +15,26 @@ function Line({ color, width, dashed }: { color: string; width: number; dashed: 
   );
 }
 
-export function GraphLegend() {
+/**
+ * One legend for the graph. It also carries the edge counts, which used to sit
+ * in a second block in the page header saying the same thing twice.
+ */
+export function GraphLegend({ dependencies = [] }: { dependencies?: Dependency[] }) {
   return (
     <div className="rounded border border-line bg-surface px-3 py-2.5">
-      <Label className="mb-2 block">Dependency type</Label>
+      <Label className="mb-2 block">
+        Dependency type{dependencies.length ? ` · ${dependencies.length} edges` : ""}
+      </Label>
       <div className="flex flex-col gap-1.5">
         {EDGE_TYPES.map((t) => {
           const spec = EDGE_SPEC[t];
+          const n = dependencies.filter((d) => d.edge_type === t).length;
           return (
             <div key={t} className="flex items-center gap-2" title={spec.blurb}>
               <Line color={`var(${spec.colorVar})`} width={spec.strokeWidth} dashed={spec.dashed} />
               <span className="text-[11.5px] text-ink">{spec.label}</span>
               <span className="font-num ml-auto font-mono text-[10px] text-faint">
-                {spec.confidence.toFixed(2)}
+                {dependencies.length ? n : spec.confidence.toFixed(2)}
               </span>
             </div>
           );

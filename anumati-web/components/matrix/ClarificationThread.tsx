@@ -6,6 +6,7 @@ import { clockOf } from "@/lib/matrix/engine";
 import { useMatrixStore } from "@/store/useMatrixStore";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Card";
+import { Explain } from "@/components/ui/Explain";
 import { cn } from "@/lib/utils";
 
 /**
@@ -48,17 +49,18 @@ export function ClarificationThread({
     <div className="flex h-full flex-col">
       <div className="flex-none border-b border-line px-4 py-2.5">
         <Label className="mb-1 block">Cross-departmental clarification</Label>
-        <p className="text-[11.5px] leading-relaxed text-muted">
-          Attached to {app.id}. Everything said here is part of the file.
-        </p>
+        <p className="text-[11.5px] text-muted">Attached to {app.id}</p>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
         {app.thread.length === 0 ? (
-          <p className="text-[12px] leading-relaxed text-muted">
-            The thread opens by itself when two departments disagree on this file. It can also be used
-            before that, to ask a question rather than reject.
-          </p>
+          <>
+            <p className="text-[12px] text-muted">No messages yet.</p>
+            <Explain className="mt-1.5">
+              The thread opens by itself when two departments disagree. It can also be used before that, to
+              ask a question rather than reject.
+            </Explain>
+          </>
         ) : null}
 
         <div className="flex flex-col gap-3">

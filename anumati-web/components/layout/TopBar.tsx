@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Meta } from "@/types/api";
+import { ExplainToggle } from "@/components/ui/Explain";
 import { ViewToggle } from "./ViewToggle";
 import { VersionBanner } from "./VersionBanner";
 import { SessionChip } from "./SessionChip";
@@ -66,6 +67,7 @@ export function TopBar({ active, meta }: { active?: string; meta?: Meta }) {
 
       <div className="flex-1" />
       <ViewToggle />
+      <ExplainToggle className="flex-none" />
       {meta ? <VersionBanner meta={meta} /> : null}
       <SessionChip />
     </header>

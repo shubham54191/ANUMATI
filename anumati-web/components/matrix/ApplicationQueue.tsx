@@ -125,14 +125,6 @@ export function ApplicationQueue() {
         })}
       </div>
 
-      <div className="flex-none border-t border-line px-4 py-3">
-        <Label className="mb-1.5 block">Decision matrix in force</Label>
-        <p className="text-[11.5px] leading-relaxed text-muted">
-          Each file carries the governance rule that settles a disagreement
-          between departments. The rule is data, not code — a state that
-          tie-breaks differently edits the row, not the console.
-        </p>
-      </div>
     </aside>
   );
 }

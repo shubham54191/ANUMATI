@@ -1,12 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Label } from "@/components/ui/Card";
+import { Explain } from "@/components/ui/Explain";
 import { CONDITIONS, LAND_REGIMES, SECTORS, SIZE_BANDS, STAGES } from "@/lib/constants/sectors";
 import { LOCATIONS } from "@/lib/constants/locations";
 import { localMeta } from "@/lib/api/roadmap";
@@ -41,8 +42,7 @@ export default function NewRoadmapPage() {
               What are you setting up?
             </h1>
             <p style={{ animationDelay: "120ms" }} className="anim-rise mb-7 max-w-[520px] text-[14.5px] leading-relaxed text-muted">
-              Four answers. We return every approval you need, in the order the law actually
-              requires — with the section of the act each one comes from.
+              Five answers. You get every approval you need, in the order the law requires.
             </p>
 
             <div style={{ animationDelay: "180ms" }} className="anim-rise rounded border border-line bg-surface">
@@ -126,20 +126,13 @@ export default function NewRoadmapPage() {
                   Generate roadmap
                   <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
                 </Button>
-                <span className="font-mono text-[11px] text-faint">
-                  Typically 32 approvals · computes in under 2 s
-                </span>
               </div>
             </div>
 
-            <div className="mt-4 flex max-w-[560px] items-start gap-2">
-              <Info className="mt-[3px] h-3 w-3 flex-none text-faint" strokeWidth={1.3} />
-              <span className="text-xs leading-relaxed text-muted">
-                Every roadmap is stored immutably against the rule version used to build it. Re-open
-                this ID in a year and you will see the rules as they stood today, not as they stand
-                then.
-              </span>
-            </div>
+            <Explain className="mt-4">
+              Every roadmap is stored against the rule version used to build it. Re-open this ID in a year
+              and you will see the rules as they stood today, not as they stand then.
+            </Explain>
           </section>
 
           <aside style={{ animationDelay: "260ms" }} className="anim-rise flex w-[268px] flex-none flex-col gap-4 pt-10">
@@ -180,9 +173,7 @@ export default function NewRoadmapPage() {
 
             <div className="rounded border border-line bg-sunk px-4 py-3.5">
               <Label className="mb-2 block text-ink">Open standard</Label>
-              <p className="mb-2.5 text-xs leading-relaxed text-muted">
-                This rule base is published as OAGS — an open schema any state or portal can adopt.
-              </p>
+              <p className="mb-2.5 text-xs text-muted">Published as OAGS.</p>
               <span className="text-xs text-state-active">View the schema →</span>
             </div>
           </aside>

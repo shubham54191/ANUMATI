@@ -3,6 +3,7 @@ import { ArrowUpRight, Gavel, ShieldAlert } from "lucide-react";
 import type { ApplicationFile, DeptReview, DerivedMatrixState } from "@/types/matrix";
 import { REVIEW_META, slaFraction, slaLabel } from "@/lib/matrix/display";
 import { Label } from "@/components/ui/Card";
+import { Explain } from "@/components/ui/Explain";
 import { cn } from "@/lib/utils";
 
 /**
@@ -117,11 +118,14 @@ export function ParallelTrack({
 
   return (
     <section className="border-b border-line bg-bg px-5 py-4">
-      <div className="mb-3 flex items-center gap-3">
-        <Label>Parallel review track</Label>
-        <span className="text-[11.5px] text-muted">
+      <div className="mb-3">
+        <div className="flex items-center gap-3">
+          <Label>Parallel review track</Label>
+          <span className="font-mono text-[11px] text-muted">{n} departments</span>
+        </div>
+        <Explain className="mt-1.5">
           One file, {n} departments, dispatched together. Each lane runs its own clock.
-        </span>
+        </Explain>
       </div>
 
       <div className="overflow-x-auto pb-1">
