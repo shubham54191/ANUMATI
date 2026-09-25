@@ -2,19 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------
+   Design tokens — ANUMATI_FRONTEND_ARCHITECTURE_1.md §5.
+   Three values are additions to that list and are marked. Everything else is
+   verbatim. If you need a new colour, add it HERE, then name it in
+   tailwind.config.ts. Never write a hex inside a component.
+--------------------------------------------------------------------------- */
 :root {
-
+  /* surfaces */
   --bg:            #FAFAF9;
   --surface:       #FFFFFF;
   --surface-sunk:  #F4F4F2;
   --border:        #E4E4E2;
-  --border-strong: #D4D4D0;
+  --border-strong: #D4D4D0;   /* ADDED — emphasis rules, chart baselines */
 
+  /* text */
   --text:          #1A1A18;
   --text-muted:    #55554F;
-  --text-faint:    #6F6F68;
-  --border-control: #949490;
+  --text-faint:    #6F6F68;   /* ADDED — mono labels, disabled data.
+                                  Was #93938C, which measured 2.8:1 on the sunk
+                                  ground and failed WCAG AA on the small mono
+                                  labels that carry most of the field names on
+                                  this product. Darkened until it passes on the
+                                  worst ground we put it on. */
+  --border-control: #949490;  /* ADDED — the boundary of an input, a select or a
+                                  toggle has to be findable (WCAG 1.4.11, 3:1).
+                                  Card hairlines stay --border; only controls
+                                  use this. */
 
+  /* official accent — used for primary actions, active nav, trusted links */
   --accent:           #1E3A5F;
   --accent-hover:     #162B47;
   --accent-ink:       #FFFFFF;
@@ -22,30 +38,66 @@
   --accent-ring:      rgba(30, 58, 95, 0.22);
   --link:             #1E4D7A;
 
+  /* secondary accent — saffron/gold for high-priority flags (rare) */
   --accent-secondary: #B45309;
 
+  /* semantic — approval states */
   --state-pending:   #94A3B8;
   --state-active:    #2563EB;
   --state-done:      #16A34A;
   --state-blocked:   #DC2626;
   --state-deemed:    #D97706;
-
+  /* Text-weight variants. The fills, borders and bars above are the brief's
+     values and keep them; these are used only where the colour carries WORDS,
+     because #D97706 and #16A34A measure 3.2:1 and 3.3:1 on white. */
   --state-deemed-ink: #B55C06;
   --state-done-ink:   #16873C;
 
-  --edge-statutory:   #1E293B;
-  --edge-documentary: #2563EB;
-  --edge-physical:    #7C3AED;
-  --edge-practice:    #94A3B8;
+  /* edge types — MUST be visually distinct */
+  --edge-statutory:   #1E293B;   /* solid, thick   */
+  --edge-documentary: #2563EB;   /* solid, medium  */
+  --edge-physical:    #7C3AED;   /* solid, medium  */
+  --edge-practice:    #94A3B8;   /* DASHED, thin   */
 
+  /* critical path */
   --critical:      #DC2626;
   --critical-glow: rgba(220, 38, 38, 0.15);
 
+  /* ── board skin ──────────────────────────────────────────────────────────
+     The Project Roadmap board. A lighter, rounder surface than the dense
+     document chrome above. It restates the same semantics as tints, so a
+     card can carry a colour without shouting. */
+  --db-bg:           #F6F8FC;
+  --db-line:         #E6EBF2;
+  --db-ink:          #0F172A;
+  --db-muted:        #64748B;
+  --db-faint:        #94A3B8;
+  --db-navy:         #1E293B;
+  --db-blue:         #2563EB;
+  --db-blue-tint:    #EFF5FF;
+  --db-green:        #16A34A;
+  --db-green-tint:   #EFFBF3;
+  --db-purple:       #7C3AED;
+  --db-purple-tint:  #F4F1FE;
+  --db-emerald:      #059669;
+  --db-emerald-tint: #ECFDF5;
+  --db-red:          #DC2626;
+  --db-red-tint:     #FEF3F2;
+  --db-red-line:     #F8D7D4;
+  --db-teal:         #0D9488;
+  --db-teal-tint:    #ECFDFA;
+  --db-amber:        #D97706;
+  --db-amber-strong: #F59E0B;
+  --db-amber-tint:   #FFFBEB;
+  --db-amber-line:   #FCE4BE;
+
+  /* type */
   --font-sans:  "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --font-display: "Poppins", "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
   --font-mono:  "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
+  /* stroke widths for dependency edges — read by lib/graph/edgeStyles.ts */
   --stroke-statutory:   2.2;
   --stroke-documentary: 1.6;
   --stroke-physical:    1.6;
@@ -55,6 +107,11 @@
   color-scheme: light;
 }
 
+/* The brief says: pick one theme and make it good. No dark mode toggle. */
+
+/* One visible focus ring for everything, in the official accent rather than the
+   browser's blue, so keyboard users get the same affordance on a nav link, a
+   register row and a slider. */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -77,14 +134,24 @@ html, body {
 
 .font-num { font-variant-numeric: tabular-nums; }
 
+/* Field label — the caption over a form row or a data block. */
 .label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.075em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--db-muted);
 }
 
+/* ---------------------------------------------------------------------------
+   MOTION
+   The budget is spent in one place: the collapse band in the roadmap header,
+   which is the product's whole argument delivered in about a second. Everything
+   else moves only when movement carries information — a lane arriving, a
+   dependency lighting up, a panel coming from the edge it belongs to.
+   Nothing loops. Nothing moves on scroll. Nothing moves twice.
+--------------------------------------------------------------------------- */
 :root {
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-collapse: cubic-bezier(0.22, 1, 0.36, 1);
@@ -114,6 +181,7 @@ html, body {
 .anim-node { animation: node-in 320ms var(--ease-out-expo) both; }
 .anim-panel { animation: panel-in var(--t-base) var(--ease-out-expo) both; }
 
+/* React Flow overrides: the canvas is our paper, not theirs. */
 .react-flow__attribution { display: none; }
 .react-flow__node { cursor: pointer; }
 .react-flow__handle { opacity: 0; pointer-events: none; }
@@ -123,6 +191,7 @@ html, body {
 }
 .react-flow__node-approvalNode { transition: opacity var(--t-base) ease; }
 
+/* The critical path draws itself in — the last beat of the load sequence. */
 @keyframes draw-critical {
   from { stroke-dashoffset: 1400; }
   to   { stroke-dashoffset: 0; }
@@ -132,6 +201,7 @@ html, body {
   animation: draw-critical 900ms var(--ease-out-expo) 700ms both;
 }
 
+/* Reduced motion: every arrival happens, none of it animates. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -143,13 +213,21 @@ html, body {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   PRINT
+   The register prints as the thing a person actually carries into an office:
+   one sheet per stage, every row with its citation, a box to tick. Chrome —
+   nav, filters, the panel — does not exist on paper.
+--------------------------------------------------------------------------- */
 @page {
   size: A4;
   margin: 14mm 12mm;
 }
 
 @media print {
-
+  /* One visible focus ring for everything, in the official accent rather than the
+   browser's blue, so keyboard users get the same affordance on a nav link, a
+   register row and a slider. */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -163,6 +241,7 @@ html, body {
   }
   header[data-chrome], aside, .print\:hidden { display: none !important; }
 
+  /* the app is a fixed-height flex shell on screen; on paper it must flow */
   .print-flow, .print-flow * {
     overflow: visible !important;
     height: auto !important;
@@ -172,6 +251,7 @@ html, body {
   section { break-inside: auto; }
   [role="row"] { break-inside: avoid; page-break-inside: avoid; }
 
+  /* a tick box in front of every approval — this is why it is printed at all */
   [role="row"][data-approval]::before {
     content: "";
     display: inline-block;
@@ -184,4 +264,77 @@ html, body {
   }
 
   a[href]::after { content: ""; }
+}
+
+
+/* ── board motion ─────────────────────────────────────────────────────────
+   Entrances only, plus two loops that mean something: a phase that is
+   actively running, and a lane still waiting on a desk. Nothing here loops
+   for decoration, and everything here stops under prefers-reduced-motion. */
+
+@keyframes db-rise {
+  from { opacity: 0; transform: translateY(9px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes db-pop {
+  from { opacity: 0; transform: scale(0.965); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes db-drop {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes db-draw {
+  from { stroke-dashoffset: var(--draw-len, 480); }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes db-crawl {
+  to { stroke-dashoffset: -20; }
+}
+@keyframes db-halo {
+  0%   { box-shadow: 0 0 0 0 var(--halo, rgba(217, 119, 6, 0.35)); }
+  70%  { box-shadow: 0 0 0 7px rgba(0, 0, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+}
+@keyframes db-count {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.db-rise  { animation: db-rise  460ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.db-pop   { animation: db-pop   340ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.db-drop  { animation: db-drop  380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.db-count { animation: db-count 260ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* The connector draws itself in once, left to right, in reading order. */
+.db-edge {
+  stroke-dasharray: var(--draw-len, 480);
+  animation: db-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* A lane still with a desk keeps its dashes crawling — the one loop that is
+   load-bearing: it says the clock on that lane is still running. */
+.db-edge-open {
+  stroke-dasharray: 5 4;
+  animation: db-crawl 900ms linear infinite;
+}
+/* The phase currently carrying the file. */
+.db-halo { animation: db-halo 2400ms ease-out infinite; }
+
+.db-lift {
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 180ms ease;
+}
+.db-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .db-rise, .db-pop, .db-drop, .db-count, .db-edge, .db-edge-open, .db-halo {
+    animation: none !important;
+  }
+  .db-edge { stroke-dasharray: none; }
+  .db-edge-open { stroke-dasharray: 5 4; }
+  .db-lift:hover { transform: none; }
 }

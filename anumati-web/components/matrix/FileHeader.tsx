@@ -2,33 +2,14 @@
 import { ChevronsRight, Pause, Play, RotateCcw, Send } from "lucide-react";
 import type { ApplicationFile, DerivedMatrixState } from "@/types/matrix";
 import { useMatrixStore } from "@/store/useMatrixStore";
-import { Button } from "@/components/ui/Button";
-import { Label } from "@/components/ui/Card";
+import { PhaseStepper } from "./PhaseStepper";
 import { cn } from "@/lib/utils";
 
-const TONE_BAR: Record<DerivedMatrixState["tone"], string> = {
-  neutral: "bg-line-strong",
-  active: "bg-state-active",
-  orange: "bg-state-deemed",
-  red: "bg-critical",
-  green: "bg-state-done",
-};
-
-const VERDICT_LABEL: Record<DerivedMatrixState["verdict"], string> = {
-  awaiting_dispatch: "Not yet dispatched",
-  in_progress: "Parallel review running",
-  conflict_halted: "Halted — technical veto",
-  conflict_escalation: "Suspended — equal weight",
-  conflict_scored: "Scored — under evaluation",
-  awaiting_tie_breaker: "With the tie-breaker panel",
-  cleared: "All departments cleared",
-  settled: "Phase settled",
-};
-
 /**
- * The file's masthead, the overarching progress bar, and the clock. The bar
- * turns orange the moment the phase stops being able to finish on its own —
- * that colour is the difference between "still working" and "stuck".
+ * The file's masthead, its clock, and the three-stop phase stepper. The
+ * stepper replaced a thin progress bar: a bar answers "how far along", and the
+ * question an officer actually has is "which stage is this in, and is it still
+ * moving".
  */
 export function FileHeader({
   app,
@@ -48,33 +29,47 @@ export function FileHeader({
   const settled = Boolean(app.resolution);
 
   return (
-    <div className="flex-none border-b border-line bg-surface">
-      <div className="flex items-start gap-4 px-5 pb-3 pt-3.5">
+    <div className="db-rise rounded-xl border border-db-line bg-surface px-5 py-4">
+      <div className="flex flex-wrap items-start gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2.5">
-            <span className="font-mono text-[11.5px] font-semibold tracking-[0.04em] text-ink">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="font-mono text-[11.5px] font-semibold tracking-[0.03em] text-db-ink">
               {app.id}
             </span>
-            <span className="h-[14px] w-px bg-line" />
-            <span className="truncate text-[12.5px] text-muted">{app.applicant}</span>
-            <span className="h-[14px] w-px bg-line" />
-            <span className="truncate text-[12.5px] text-muted">{app.location}</span>
+            <span className="h-[14px] w-px bg-db-line" />
+            <span className="truncate text-[12.5px] text-db-muted">{app.applicant}</span>
+            <span className="h-[14px] w-px bg-db-line" />
+            <span className="truncate text-[12.5px] text-db-muted">{app.location}</span>
           </div>
-          <h1 className="mt-1 font-serif text-[20px] font-medium leading-tight text-ink">
+
+          <h1 className="mt-1.5 text-[23px] font-semibold leading-tight tracking-[-0.01em] text-db-ink">
             {app.project}
           </h1>
-          <p className="mt-0.5 text-[12px] text-muted">{app.phase}</p>
+          <p className="mt-1 text-[13px] text-db-muted">{app.phase}</p>
         </div>
 
         <div className="flex flex-none items-center gap-2">
           {!app.dispatched ? (
-            <Button variant="primary" onClick={dispatchAll}>
-              <Send className="h-3 w-3" strokeWidth={1.5} />
+            <button
+              onClick={dispatchAll}
+              className="flex h-10 items-center gap-2 rounded-xl bg-db-blue px-4 text-[13px] font-semibold text-white transition-colors hover:brightness-95"
+            >
+              <Send className="h-4 w-4" strokeWidth={1.9} />
               Dispatch to all {app.reviews.length} departments
-            </Button>
+            </button>
           ) : (
             <>
-              <div className="flex items-center gap-1.5 rounded border border-line bg-sunk p-0.5">
+              <div className="flex h-11 flex-col items-center justify-center rounded-xl border border-db-line bg-db-bg px-4">
+                <span className="text-[9.5px] font-bold tracking-[0.09em] text-db-faint">DAY</span>
+                <span
+                  key={app.day}
+                  className="db-count font-num text-[16px] font-bold leading-none text-db-ink"
+                >
+                  {app.day}
+                </span>
+              </div>
+
+              <div className="flex h-11 items-center gap-1 rounded-xl border border-db-line bg-surface px-1.5">
                 <button
                   onClick={toggleClock}
                   aria-pressed={clockRunning}
@@ -87,69 +82,47 @@ export function FileHeader({
                         : "Run the SLA clock"
                   }
                   className={cn(
-                    "flex h-8 items-center gap-1.5 rounded-sm px-2.5 font-mono text-[11px] transition-colors",
+                    "flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[11.5px] font-semibold transition-colors",
                     "disabled:pointer-events-none disabled:opacity-40",
                     clockRunning
-                      ? "border border-accent/30 bg-accent-muted font-medium text-accent"
-                      : "text-muted hover:text-accent",
+                      ? "bg-db-blue-tint text-db-blue"
+                      : "text-db-muted hover:bg-db-bg hover:text-db-ink",
                   )}
                 >
                   {clockRunning ? (
-                    <Pause className="h-3 w-3" strokeWidth={1.6} />
+                    <Pause className="h-3.5 w-3.5" strokeWidth={2} />
                   ) : (
-                    <Play className="h-3 w-3" strokeWidth={1.6} />
+                    <Play className="h-3.5 w-3.5" strokeWidth={2} />
                   )}
                   CLOCK
                 </button>
+                <span className="h-5 w-px bg-db-line" />
                 <button
                   onClick={() => advance(1)}
                   disabled={settled}
                   title={settled ? "The phase is settled — the clock has stopped" : "Advance one day"}
-                  className="flex h-8 items-center gap-1 rounded-sm px-2.5 font-mono text-[11px] text-muted transition-colors hover:text-accent disabled:pointer-events-none disabled:opacity-40"
+                  className="flex h-8 items-center gap-1 rounded-lg px-2.5 text-[11.5px] font-semibold text-db-muted transition-colors hover:bg-db-bg hover:text-db-ink disabled:pointer-events-none disabled:opacity-40"
                 >
-                  <ChevronsRight className="h-3 w-3" strokeWidth={1.6} />
+                  <ChevronsRight className="h-3.5 w-3.5" strokeWidth={2} />
                   +1 D
                 </button>
               </div>
-              <div className="rounded border border-line bg-sunk px-3 py-1 text-center">
-                <Label className="block">Day</Label>
-                <span className="font-num font-mono text-[15px] font-semibold text-ink">
-                  {app.day}
-                </span>
-              </div>
             </>
           )}
-          <Button variant="ghost" onClick={resetFile} title="Reset this file to its filed state">
-            <RotateCcw className="h-3 w-3" strokeWidth={1.5} />
+
+          <button
+            onClick={resetFile}
+            title="Reset this file to its filed state"
+            className="flex h-11 items-center gap-2 rounded-xl border border-db-line bg-surface px-3.5 text-[12.5px] text-db-muted transition-colors hover:border-db-blue/40 hover:text-db-ink"
+          >
+            <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.8} />
             Reset
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Overarching pipeline progress. */}
-      <div className="flex items-center gap-3 border-t border-line px-5 py-2">
-        <span className="label flex-none">Phase</span>
-        <div className="h-[6px] flex-1 overflow-hidden rounded-sm bg-sunk">
-          <div
-            className={cn("h-full rounded-sm transition-[width,background-color] duration-500", TONE_BAR[derived.tone])}
-            style={{ width: `${Math.max(derived.progress, derived.conflict ? 100 : derived.progress)}%` }}
-          />
-        </div>
-        <span
-          className={cn(
-            "flex-none font-mono text-[11px] font-medium tracking-[0.04em]",
-            derived.tone === "orange" && "text-state-deemed-ink",
-            derived.tone === "red" && "text-critical",
-            derived.tone === "green" && "text-state-done-ink",
-            (derived.tone === "active" || derived.tone === "neutral") && "text-muted",
-          )}
-        >
-          {VERDICT_LABEL[derived.verdict].toUpperCase()}
-        </span>
-        <span className="flex-none font-num font-mono text-[11px] text-muted">
-          {derived.approved.length + derived.deemed.length} cleared · {derived.rejected.length} rejected ·{" "}
-          {derived.pending.length} open
-        </span>
+      <div className="mt-4">
+        <PhaseStepper derived={derived} />
       </div>
     </div>
   );

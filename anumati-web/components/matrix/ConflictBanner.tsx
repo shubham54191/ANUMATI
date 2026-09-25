@@ -1,5 +1,5 @@
 "use client";
-import { AlertTriangle, ArrowDown } from "lucide-react";
+import { AlertTriangle, Scale } from "lucide-react";
 import type { ApplicationFile, DerivedMatrixState } from "@/types/matrix";
 import { clockOf } from "@/lib/matrix/engine";
 import { cn } from "@/lib/utils";
@@ -21,53 +21,50 @@ export function ConflictBanner({
   if (app.resolution) return null;
   if (!derived.conflict && !app.tie_breaker_open) return null;
 
+  const tie = app.tie_breaker_open;
   const at = derived.rejected[0]?.decided_at;
   const rejecters = derived.rejected.map((r) => r.dept_short).join(", ");
   const approvers = [...derived.approved, ...derived.deemed].map((r) => r.dept_short).join(", ");
+  const Icon = tie ? Scale : AlertTriangle;
 
   return (
     <div
       role="alert"
       className={cn(
-        "anim-rise flex flex-none items-center gap-3 border-b px-5 py-2.5",
-        app.tie_breaker_open
-          ? "border-state-deemed/50 bg-state-deemed/[0.09]"
-          : "border-critical/45 bg-critical/[0.07]",
+        "db-drop flex items-start gap-3 rounded-xl border px-4 py-3.5",
+        tie ? "border-db-amber-line bg-db-amber-tint" : "border-db-red-line bg-db-red-tint",
       )}
     >
-      <AlertTriangle
-        className={cn("h-4 w-4 flex-none", app.tie_breaker_open ? "text-state-deemed-ink" : "text-critical")}
-        strokeWidth={1.7}
-      />
-      <div className="min-w-0 flex-1">
-        <div
-          className={cn(
-            "text-[13px] font-semibold leading-tight",
-            app.tie_breaker_open ? "text-state-deemed-ink" : "text-critical",
-          )}
-        >
-          {app.tie_breaker_open
-            ? "Escalated: awaiting tie-breaker panel"
-            : `Conflict detected — technical rejection during parallel review phase`}
+      <span
+        className={cn(
+          "flex h-9 w-9 flex-none items-center justify-center rounded-full",
+          tie ? "bg-db-amber text-white" : "bg-db-red text-white",
+        )}
+      >
+        <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+      </span>
+
+      <div className="min-w-0 flex-1 pt-0.5">
+        <div className={cn("text-[14px] font-semibold leading-tight", tie ? "text-db-amber" : "text-db-red")}>
+          {tie
+            ? "Escalated — awaiting tie-breaker panel"
+            : "Conflict detected — technical rejection during parallel review phase"}
         </div>
-        <div className="mt-0.5 truncate text-[12px] text-ink">
+        <div className="mt-1 text-[12.5px] leading-snug text-db-muted">
           {approvers || "—"} approved while {rejecters || "—"} rejected
           {derived.simultaneous && at ? (
             <>
               {" "}
-              at the same instant — <span className="font-mono">{clockOf(at)}</span> on day{" "}
+              at the same instant — <span className="font-mono text-db-ink">{clockOf(at)}</span> on day{" "}
               {derived.rejected[0]?.decided_on_day}
             </>
           ) : (
             <> inside the same parallel phase</>
           )}
-          . Resolution rule <span className="font-mono">{app.rule.id}</span> — {app.rule.label}.
+          . Resolution rule <span className="font-mono text-db-ink">{app.rule.id}</span> —{" "}
+          {app.rule.label}.
         </div>
       </div>
-      <span className="hidden items-center gap-1.5 font-mono text-[10.5px] tracking-[0.06em] text-muted lg:flex">
-        RESOLUTION BELOW
-        <ArrowDown className="h-3 w-3" strokeWidth={1.6} />
-      </span>
     </div>
   );
 }

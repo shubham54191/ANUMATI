@@ -1,37 +1,59 @@
 import type { DataRecordState, DeptReview, ReviewState } from "@/types/matrix";
 
-/** One place where a review state becomes a colour and a word. */
+/**
+ * One place where a review state becomes a colour and a word.
+ *
+ * `colorVar` still drives the SVG connectors in the review flow, so it stays a
+ * raw custom property. Everything else is board-skin classes: tinted pill,
+ * hairline border, and a matching icon tile.
+ */
 export const REVIEW_META: Record<
   ReviewState,
-  { label: string; colorVar: string; text: string; bg: string; border: string }
+  {
+    label: string;
+    colorVar: string;
+    text: string;
+    bg: string;
+    border: string;
+    tile: string;
+    dot: string;
+  }
 > = {
   queued: {
-    label: "QUEUED",
-    colorVar: "--state-pending",
-    text: "text-muted",
-    bg: "bg-sunk",
-    border: "border-line",
+    label: "OPEN",
+    colorVar: "--db-faint",
+    text: "text-db-muted",
+    bg: "bg-db-bg",
+    border: "border-db-line",
+    tile: "bg-db-bg text-db-muted",
+    dot: "bg-db-faint",
   },
   in_review: {
     label: "PROCESSING",
-    colorVar: "--state-active",
-    text: "text-state-active",
-    bg: "bg-state-active/[0.05]",
-    border: "border-state-active/40",
+    colorVar: "--db-blue",
+    text: "text-db-blue",
+    bg: "bg-db-blue-tint",
+    border: "border-db-blue/35",
+    tile: "bg-db-blue-tint text-db-blue",
+    dot: "bg-db-blue",
   },
   approved: {
     label: "APPROVED",
-    colorVar: "--state-done",
-    text: "text-state-done-ink",
-    bg: "bg-state-done/[0.06]",
-    border: "border-state-done/45",
+    colorVar: "--db-green",
+    text: "text-db-green",
+    bg: "bg-db-green-tint",
+    border: "border-db-green/40",
+    tile: "bg-db-green-tint text-db-green",
+    dot: "bg-db-green",
   },
   rejected: {
     label: "REJECTED",
-    colorVar: "--state-blocked",
-    text: "text-critical",
-    bg: "bg-critical/[0.06]",
-    border: "border-critical/45",
+    colorVar: "--db-red",
+    text: "text-db-red",
+    bg: "bg-db-red-tint",
+    border: "border-db-red/40",
+    tile: "bg-db-red-tint text-db-red",
+    dot: "bg-db-red",
   },
   transferred_to_committee: {
     label: "WITH COMMITTEE",
@@ -39,22 +61,59 @@ export const REVIEW_META: Record<
     text: "text-accent",
     bg: "bg-accent-muted",
     border: "border-accent/45",
+    tile: "bg-accent-muted text-accent",
+    dot: "bg-accent",
   },
   deemed_approved: {
     label: "DEEMED APPROVED",
-    colorVar: "--state-deemed",
-    text: "text-state-deemed-ink",
-    bg: "bg-state-deemed/[0.07]",
-    border: "border-state-deemed/45",
+    colorVar: "--db-amber",
+    text: "text-db-amber",
+    bg: "bg-db-amber-tint",
+    border: "border-db-amber/40",
+    tile: "bg-db-amber-tint text-db-amber",
+    dot: "bg-db-amber",
   },
 };
 
-export const RECORD_META: Record<DataRecordState, { label: string; text: string; dot: string }> = {
-  idle: { label: "NOT FETCHED", text: "text-faint", dot: "bg-line-strong" },
-  fetching: { label: "FETCHING", text: "text-state-active", dot: "bg-state-active" },
-  verified: { label: "VERIFIED", text: "text-state-done-ink", dot: "bg-state-done" },
-  mismatch: { label: "MISMATCH", text: "text-critical", dot: "bg-critical" },
-  unavailable: { label: "UNAVAILABLE", text: "text-state-deemed-ink", dot: "bg-state-deemed" },
+export const RECORD_META: Record<
+  DataRecordState,
+  { label: string; text: string; dot: string; tile: string; card: string }
+> = {
+  idle: {
+    label: "NOT FETCHED",
+    text: "text-db-faint",
+    dot: "bg-db-faint",
+    tile: "bg-db-bg text-db-faint",
+    card: "border-db-line bg-surface",
+  },
+  fetching: {
+    label: "FETCHING",
+    text: "text-db-blue",
+    dot: "bg-db-blue",
+    tile: "bg-db-blue-tint text-db-blue",
+    card: "border-db-blue/30 bg-surface",
+  },
+  verified: {
+    label: "VERIFIED",
+    text: "text-db-green",
+    dot: "bg-db-green",
+    tile: "bg-db-green-tint text-db-green",
+    card: "border-db-line bg-surface",
+  },
+  mismatch: {
+    label: "FLAGGED",
+    text: "text-db-red",
+    dot: "bg-db-red",
+    tile: "bg-db-red-tint text-db-red",
+    card: "border-db-red/35 bg-surface",
+  },
+  unavailable: {
+    label: "UNAVAILABLE",
+    text: "text-db-amber",
+    dot: "bg-db-amber",
+    tile: "bg-db-amber-tint text-db-amber",
+    card: "border-db-amber/35 bg-surface",
+  },
 };
 
 /** How much of a department's window has been used, capped for the bar. */
@@ -77,7 +136,7 @@ export function slaLabel(review: DeptReview, day: number): string {
   const left = review.sla_days - day;
   if (left < 0) return `overdue by ${Math.abs(left)} d`;
   if (left === 0) return "due today";
-  return `${left} d left of ${review.sla_days}`;
+  return `${left} d left`;
 }
 
 export const dayStamp = (day: number) => `d${day}`;

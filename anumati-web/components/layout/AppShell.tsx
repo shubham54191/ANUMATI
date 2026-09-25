@@ -7,10 +7,14 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 export function AppShell({
   active,
   meta,
+  variant,
+  subtitle,
   children,
 }: {
   active?: string;
   meta?: Meta;
+  variant?: "default" | "board";
+  subtitle?: string;
   children: React.ReactNode;
 }) {
   useKeyboardShortcuts();
@@ -22,8 +26,7 @@ export function AppShell({
       >
         Skip to main content
       </a>
-      <TopBar active={active} meta={meta} />
-      {}
+      <TopBar active={active} meta={meta} variant={variant} subtitle={subtitle} />
       <div id="main" className="flex min-h-0 flex-1 flex-col">
         {children}
       </div>

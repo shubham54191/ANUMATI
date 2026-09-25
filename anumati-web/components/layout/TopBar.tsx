@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronDown, UserRound } from "lucide-react";
 import type { Meta } from "@/types/api";
 import { ExplainToggle } from "@/components/ui/Explain";
 import { ViewToggle } from "./ViewToggle";
@@ -25,18 +26,50 @@ function Mark() {
   );
 }
 
-export function TopBar({ active, meta }: { active?: string; meta?: Meta }) {
+/**
+ * `variant="board"` is the Project Roadmap chrome: the context line rides next
+ * to the wordmark and the right-hand side is the account chip, because the
+ * board carries its own role switch and its own rule-version line.
+ */
+export function TopBar({
+  active,
+  meta,
+  variant = "default",
+  subtitle,
+}: {
+  active?: string;
+  meta?: Meta;
+  variant?: "default" | "board";
+  subtitle?: string;
+}) {
+  const board = variant === "board";
+
   return (
-    <header data-chrome className="flex h-14 flex-none items-center gap-7 border-b border-line bg-surface px-5">
-      <Link href="/roadmap/new" className="flex items-center gap-2.5 no-underline">
+    <header
+      data-chrome
+      className={cn(
+        "flex h-14 flex-none items-center gap-6 border-b bg-surface px-6",
+        board ? "border-db-line" : "border-line",
+      )}
+    >
+      <Link href="/roadmap/new" className="flex flex-none items-center gap-2.5 no-underline">
         <Mark />
-        <span className="text-sm font-semibold tracking-[0.16em] text-ink">ANUMATI</span>
-        <span className="hidden rounded-sm bg-accent-muted px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-wider text-accent lg:inline-block">
-          OFFICIAL
-        </span>
+        <span className="text-sm font-semibold tracking-[0.16em] text-db-ink">ANUMATI</span>
       </Link>
 
-      <nav className="flex h-14 items-center gap-[22px]">
+      {board && subtitle ? (
+        <>
+          <span className="h-5 w-px flex-none bg-db-line" />
+          <span className="hidden truncate text-[13px] text-db-muted xl:block">{subtitle}</span>
+        </>
+      ) : null}
+
+      <div className="flex-1" />
+
+      <nav className="flex h-14 items-center gap-5">
+        <span className="hidden rounded-full bg-db-blue-tint px-2.5 py-1 text-[11px] font-semibold tracking-[0.04em] text-db-blue lg:inline-block">
+          Official
+        </span>
         {NAV.map((n) =>
           n.ready ? (
             <Link
@@ -45,8 +78,8 @@ export function TopBar({ active, meta }: { active?: string; meta?: Meta }) {
               className={cn(
                 "flex h-14 items-center text-[13px] no-underline transition-colors",
                 active === n.match
-                  ? "font-semibold text-accent shadow-[inset_0_-2.5px_0_var(--accent)]"
-                  : "text-muted hover:text-accent",
+                  ? "font-semibold text-db-blue shadow-[inset_0_-2px_0_var(--db-blue)]"
+                  : "text-db-muted hover:text-db-ink",
               )}
             >
               {n.label}
@@ -56,10 +89,10 @@ export function TopBar({ active, meta }: { active?: string; meta?: Meta }) {
               key={n.href}
               title="Designed, not built yet"
               aria-disabled="true"
-              className="flex h-14 cursor-default items-center gap-1.5 text-[13px] text-faint"
+              className="flex h-14 cursor-default items-center gap-1.5 text-[13px] text-db-faint"
             >
               {n.label}
-              <span className="h-[3px] w-[3px] rounded-full bg-line-strong" />
+              <span className="h-[3px] w-[3px] rounded-full bg-db-line" />
             </span>
           ),
         )}

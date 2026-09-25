@@ -19,6 +19,12 @@ interface RoadmapState {
    *  view. Gates write actions in the Workflow pane (read all, write your own). */
   activeDepartmentId: string | null;
   clockBasis: ClockBasis;
+  /** Board view switch: the critical chain alone, or every dependency drawn. */
+  graphView: "critical" | "all";
+  /** Bumped by the board's Fit to screen / Expand all buttons; the canvas
+   *  watches the counter rather than the board reaching into React Flow. */
+  fitSignal: number;
+  expandSignal: number;
   select: (id: string | null) => void;
   hover: (id: string | null) => void;
   setViewMode: (m: ViewMode) => void;
@@ -28,6 +34,9 @@ interface RoadmapState {
   setHeight: (n: number) => void;
   setActiveDepartmentId: (id: string | null) => void;
   setClockBasis: (b: ClockBasis) => void;
+  setGraphView: (v: "critical" | "all") => void;
+  fitGraph: () => void;
+  expandGraph: () => void;
   hydrateFromSetup: (patch: { employees?: number; heightM?: number; on?: Record<string, boolean> }) => void;
 }
 
@@ -55,6 +64,9 @@ export const useRoadmapStore = create<RoadmapState>((set) => ({
   heightM: 11,
   activeDepartmentId: null,
   clockBasis: "statutory",
+  graphView: "all",
+  fitSignal: 0,
+  expandSignal: 0,
   select: (id) => set({ selectedApprovalId: id }),
   setClockBasis: (clockBasis) => set({ clockBasis }),
   hover: (id) => set({ hoveredApprovalId: id }),
@@ -75,6 +87,9 @@ export const useRoadmapStore = create<RoadmapState>((set) => ({
   setHeight: (heightM) =>
     set((s) => ({ heightM, conditions: { ...s.conditions, height: heightM > 15 } })),
   setActiveDepartmentId: (activeDepartmentId) => set({ activeDepartmentId }),
+  setGraphView: (graphView) => set({ graphView }),
+  fitGraph: () => set((s) => ({ fitSignal: s.fitSignal + 1 })),
+  expandGraph: () => set((s) => ({ expandSignal: s.expandSignal + 1 })),
 
   hydrateFromSetup: ({ employees, heightM, on }) =>
     set((s) => {
