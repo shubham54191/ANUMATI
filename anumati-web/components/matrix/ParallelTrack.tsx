@@ -31,6 +31,7 @@ const STATE_ICON: Record<ReviewState, typeof FileText> = {
   approved: CheckCircle2,
   rejected: XCircle,
   deemed_approved: TriangleAlert,
+  transferred_to_committee: ArrowUpRight,
 };
 
 function laneColor(review: DeptReview): string {
