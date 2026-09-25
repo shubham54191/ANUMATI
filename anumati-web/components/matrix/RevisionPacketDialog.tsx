@@ -24,48 +24,48 @@ export function RevisionPacketDialog({ app }: { app: ApplicationFile }) {
       <div className="flex flex-col gap-4">
         <div>
           <div className="flex items-baseline justify-between">
-            <span className="font-mono text-[11px] font-semibold tracking-[0.04em] text-ink">
+            <span className="font-mono text-[11px] font-semibold tracking-[0.04em] text-db-ink">
               {packet.id}
             </span>
-            <span className="font-mono text-[10.5px] text-muted">
+            <span className="font-mono text-[10.5px] text-db-muted">
               raised by {packet.raised_by.join(", ")} · day {resolution.day}
             </span>
           </div>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-muted">
+          <p className="mt-1 text-[12.5px] leading-relaxed text-db-muted">
             Returned to {app.applicant} against {app.id}. The applicant has {packet.reply_days} days to
             correct and resubmit; the phase resumes where it stopped rather than starting again.
           </p>
         </div>
 
         <div>
-          <Label className="mb-1.5 block text-critical">To be corrected</Label>
+          <Label className="mb-1.5 block text-db-red">To be corrected</Label>
           <div className="flex flex-col gap-2">
             {packet.objections.map((o, i) => (
-              <div key={i} className="rounded border border-critical/40 bg-critical/[0.04] px-3 py-2">
-                <span className="font-mono text-[10.5px] font-semibold tracking-[0.05em] text-critical">
+              <div key={i} className="rounded-xl border border-db-red/40 bg-db-red/[0.04] px-3 py-2">
+                <span className="font-mono text-[10.5px] font-semibold tracking-[0.05em] text-db-red">
                   {o.dept_short}
                 </span>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-ink">{o.body}</p>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-db-ink">{o.body}</p>
               </div>
             ))}
           </div>
         </div>
 
         <div>
-          <Label className="mb-1.5 block text-state-done-ink">Carried forward — do not re-file</Label>
+          <Label className="mb-1.5 block text-db-green">Carried forward — do not re-file</Label>
           <ul className="flex flex-col gap-1">
             {packet.carried_forward.map((c) => (
-              <li key={c} className="text-[12.5px] leading-snug text-ink">
+              <li key={c} className="text-[12.5px] leading-snug text-db-ink">
                 · {c}
               </li>
             ))}
             {packet.carried_forward.length === 0 ? (
-              <li className="text-[12.5px] text-muted">Nothing had cleared when the file was returned.</li>
+              <li className="text-[12.5px] text-db-muted">Nothing had cleared when the file was returned.</li>
             ) : null}
           </ul>
         </div>
 
-        <div className="flex items-center gap-2 border-t border-line pt-3">
+        <div className="flex items-center gap-2 border-t border-db-line pt-3">
           <Button onClick={() => window.print()}>
             <Printer className="h-3 w-3" strokeWidth={1.5} />
             Print the packet

@@ -31,33 +31,33 @@ export function PhaseSummary({
   const resolution = app.resolution;
 
   return (
-    <section className="border-b border-line bg-surface px-5 py-4">
+    <section className="border-b border-db-line bg-surface px-5 py-4">
       {resolution ? (
         <div
           className={cn(
-            "anim-rise mb-4 rounded border px-4 py-3",
+            "anim-rise mb-4 rounded-xl border px-4 py-3",
             resolution.kind === "cleared" || resolution.kind === "overruled"
-              ? "border-state-done/45 bg-state-done/[0.06]"
-              : "border-critical/45 bg-critical/[0.05]",
+              ? "border-db-green/45 bg-db-green/[0.06]"
+              : "border-db-red/45 bg-db-red/[0.05]",
           )}
         >
           <div className="flex items-center gap-2">
             {resolution.kind === "cleared" || resolution.kind === "overruled" ? (
-              <CheckCircle2 className="h-4 w-4 text-state-done-ink" strokeWidth={1.7} />
+              <CheckCircle2 className="h-4 w-4 text-db-green" strokeWidth={1.7} />
             ) : (
-              <FileWarning className="h-4 w-4 text-critical" strokeWidth={1.7} />
+              <FileWarning className="h-4 w-4 text-db-red" strokeWidth={1.7} />
             )}
-            <h2 className="font-serif text-[17px] font-medium text-ink">
+            <h2 className="text-[15px] font-bold text-db-ink">
               {RESOLUTION_TITLE[resolution.kind]}
             </h2>
-            <span className="font-mono text-[10.5px] text-muted">day {resolution.day}</span>
+            <span className="font-mono text-[10.5px] text-db-muted">day {resolution.day}</span>
           </div>
-          <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink">{resolution.note}</p>
+          <p className="mt-1.5 text-[12.5px] leading-relaxed text-db-ink">{resolution.note}</p>
 
           {resolution.kind === "failed_score" ? (
-            <div className="mt-2.5 flex items-start gap-2 rounded-sm border border-critical/40 bg-surface px-2.5 py-2">
-              <BellRing className="mt-0.5 h-3.5 w-3.5 flex-none text-critical" strokeWidth={1.7} />
-              <div className="text-[12px] leading-snug text-ink">
+            <div className="mt-2.5 flex items-start gap-2 rounded-sm border border-db-red/40 bg-surface px-2.5 py-2">
+              <BellRing className="mt-0.5 h-3.5 w-3.5 flex-none text-db-red" strokeWidth={1.7} />
+              <div className="text-[12px] leading-snug text-db-ink">
                 <span className="font-medium">Project manager notified automatically</span> — consolidated
                 score {resolution.score.toFixed(1)} against a passing score of{" "}
                 {app.rule.passing_score ?? 75}, on day {resolution.day}. Nobody had to declare the failure;
@@ -74,7 +74,7 @@ export function PhaseSummary({
               </Button>
             ) : null}
             {resolution.kind === "overruled" || resolution.kind === "sustained" ? (
-              <span className="font-mono text-[11px] text-muted">Decided by {resolution.by}</span>
+              <span className="font-mono text-[11px] text-db-muted">Decided by {resolution.by}</span>
             ) : null}
           </div>
         </div>
@@ -85,21 +85,21 @@ export function PhaseSummary({
           <Label className="mb-2 block">Where the file stands</Label>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {[
-              ["Approved", derived.approved.length, "text-state-done-ink"],
-              ["Deemed approved", derived.deemed.length, "text-state-deemed-ink"],
-              ["Rejected", derived.rejected.length, "text-critical"],
-              ["Still open", derived.pending.length, "text-state-active"],
+              ["Approved", derived.approved.length, "text-db-green"],
+              ["Deemed approved", derived.deemed.length, "text-db-amber"],
+              ["Rejected", derived.rejected.length, "text-db-red"],
+              ["Still open", derived.pending.length, "text-db-blue"],
             ].map(([label, value, tone]) => (
-              <div key={label as string} className="rounded border border-line bg-bg px-3 py-2.5">
+              <div key={label as string} className="rounded-xl border border-db-line bg-bg px-3 py-2.5">
                 <Label className="mb-0.5 block">{label as string}</Label>
-                <span className={cn("font-num font-serif text-[24px] font-medium", tone as string)}>
+                <span className={cn("font-num font-sans text-[24px] font-medium", tone as string)}>
                   {value as number}
                 </span>
               </div>
             ))}
           </div>
 
-          <p className="mt-3 max-w-2xl text-[12.5px] leading-relaxed text-muted">
+          <p className="mt-3 max-w-2xl text-[12.5px] leading-relaxed text-db-muted">
             {app.dispatched ? (
               <>
                 All {app.reviews.length} departments received this file on day 0 and are running their own
@@ -117,10 +117,10 @@ export function PhaseSummary({
           </p>
 
           {derived.escalated.length > 0 ? (
-            <div className="mt-3 rounded border border-state-deemed/45 bg-state-deemed/[0.06] px-3.5 py-2.5">
-              <Label className="mb-1 block text-state-deemed-ink">Auto-escalated</Label>
+            <div className="mt-3 rounded-xl border border-db-amber/45 bg-db-amber/[0.06] px-3.5 py-2.5">
+              <Label className="mb-1 block text-db-amber">Auto-escalated</Label>
               {derived.escalated.map((r) => (
-                <p key={r.dept_id} className="text-[12px] leading-snug text-ink">
+                <p key={r.dept_id} className="text-[12px] leading-snug text-db-ink">
                   {r.dept_short} missed its {r.sla_days}-day window on day {r.escalated_on_day} — now with{" "}
                   {r.escalation_tier}.
                 </p>
@@ -154,7 +154,7 @@ export function PhaseSummary({
             Finalise approval
           </Button>
           {!derived.canFinalise && !resolution ? (
-            <p className="text-[11.5px] leading-relaxed text-muted">
+            <p className="text-[11.5px] leading-relaxed text-db-muted">
               Disabled until every lane clears. The master action never enables itself around an open
               rejection — that is the point of the gate.
             </p>

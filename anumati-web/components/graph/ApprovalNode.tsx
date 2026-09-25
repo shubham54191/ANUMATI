@@ -17,57 +17,62 @@ export interface ApprovalNodeData extends Record<string, unknown> {
 
 export type ApprovalNodeType = Node<ApprovalNodeData, "approvalNode">;
 
+/**
+ * 200 × 76, board skin. Three rows, fixed: identity, name, duration and one
+ * signal. Nothing else earns a place at this size — a fourth row belongs in
+ * the detail panel.
+ */
 function ApprovalNodeImpl({ data }: NodeProps<ApprovalNodeType>) {
   const { approval, planningDays, onCriticalPath, selected, related, focused, laneIndex } = data;
   const conditional = Boolean(approval.conditional_on);
   const days = planningDays ?? approval.statutory_days;
   const drift = days - approval.statutory_days;
 
+  const pill = onCriticalPath
+    ? { text: "CRITICAL", className: "bg-db-red-tint text-db-red" }
+    : approval.deemed_exists
+      ? { text: `DEEMED ${approval.deemed_days}d`, className: "bg-db-emerald-tint text-db-emerald" }
+      : conditional
+        ? { text: "CONDITIONAL", className: "bg-db-blue-tint text-db-blue" }
+        : null;
+
   return (
     <div
       className={cn(
-        "anim-node group flex h-[76px] w-[200px] flex-col justify-between rounded border bg-surface px-[9px] py-[7px]",
+        "anim-node group flex h-[76px] w-[200px] flex-col justify-between rounded-lg border bg-surface px-3 py-2",
         "transition-[opacity,box-shadow,border-color,transform] duration-200",
-        "hover:-translate-y-[2px] hover:shadow-[0_4px_14px_rgba(26,26,24,0.09)]",
-        conditional && "border-dashed",
-        onCriticalPath
-          ? "border-[1.5px] border-critical shadow-critical"
-          : "border-line hover:border-line-strong",
-        selected && !onCriticalPath && "border-[1.5px] border-ink",
-
-        selected && "ring-2 ring-offset-1 ring-ink",
-        related && "ring-2 ring-ink/15",
-        focused && "-translate-y-[2px] shadow-[0_4px_14px_rgba(26,26,24,0.09)]",
+        "hover:-translate-y-[2px] hover:shadow-[0_6px_18px_rgba(15,23,42,0.08)]",
+        conditional && !onCriticalPath && "border-dashed",
+        onCriticalPath ? "border-[1.5px] border-db-red" : "border-db-line hover:border-db-blue/40",
+        selected && "ring-2 ring-offset-1 ring-db-blue",
+        related && "ring-2 ring-db-blue/15",
+        focused && "-translate-y-[2px] shadow-[0_6px_18px_rgba(15,23,42,0.08)]",
       )}
       style={{ animationDelay: `${Math.min(laneIndex, 12) * 45 + 60}ms` }}
     >
       <Handle type="target" position={Position.Top} />
-      <div className="flex items-center justify-between">
-        <span
-          className={cn(
-            "font-mono text-[10px] font-semibold tracking-[0.06em]",
-            onCriticalPath ? "text-critical" : "text-muted",
-          )}
-        >
-          {approval.id}
-        </span>
-        <span className="truncate pl-2 font-mono text-[10px] tracking-[0.06em] text-faint">
-          {approval.department_short}
-        </span>
-      </div>
 
-      <div className="line-clamp-2 text-[11.5px] font-medium leading-[1.2] text-ink">
+      <span
+        className={cn(
+          "font-mono text-[10px] font-semibold tracking-[0.05em]",
+          onCriticalPath ? "text-db-red" : "text-db-faint",
+        )}
+      >
+        {approval.id}
+      </span>
+
+      <span className="line-clamp-2 text-[11px] font-medium leading-[1.2] text-db-ink">
         {approval.name}
-      </div>
+      </span>
 
-      <div className="flex items-center justify-between">
+      <span className="flex items-center justify-between">
         <span className="flex items-baseline gap-1">
-          <span className="font-num font-mono text-[11px] font-semibold text-ink">{days} d</span>
+          <span className="font-num text-[11.5px] font-semibold text-db-ink">{days} d</span>
           {drift !== 0 ? (
             <span
               className={cn(
                 "font-num font-mono text-[9.5px] font-medium",
-                drift > 0 ? "text-critical" : "text-state-done-ink",
+                drift > 0 ? "text-db-red" : "text-db-emerald",
               )}
               title={`Statutory window is ${approval.statutory_days} days`}
             >
@@ -76,31 +81,22 @@ function ApprovalNodeImpl({ data }: NodeProps<ApprovalNodeType>) {
             </span>
           ) : null}
         </span>
-        <span className="flex items-center gap-1.5">
-          {approval.deemed_exists && !onCriticalPath ? (
-            <span className="font-mono text-[10px] font-medium tracking-[0.05em] text-state-deemed-ink">
-              DEEMED {approval.deemed_days}d
-            </span>
-          ) : null}
-          {conditional && !onCriticalPath && !approval.deemed_exists ? (
-            <span className="font-mono text-[10px] font-medium tracking-[0.05em] text-state-active">
-              CONDITIONAL
-            </span>
-          ) : null}
-          {onCriticalPath ? (
-            <>
-              {approval.deemed_exists ? (
-                <span className="h-[5px] w-[5px] rounded-full bg-state-deemed" />
-              ) : null}
-              <span className="font-mono text-[10px] font-medium tracking-[0.06em] text-critical">
-                CRITICAL
-              </span>
-            </>
-          ) : null}
-          {/* No fourth signal. A grey dot that means "none of the above" is
-              not information, and at 2.6:1 it was not visible either. */}
-        </span>
-      </div>
+        {pill ? (
+          <span
+            className={cn(
+              "rounded-full px-1.5 py-[1px] font-mono text-[9px] font-semibold tracking-[0.05em]",
+              pill.className,
+            )}
+          >
+            {pill.text}
+          </span>
+        ) : (
+          <span className="font-mono text-[9px] tracking-[0.05em] text-db-faint">
+            {approval.department_short}
+          </span>
+        )}
+      </span>
+
       <Handle type="source" position={Position.Bottom} />
     </div>
   );

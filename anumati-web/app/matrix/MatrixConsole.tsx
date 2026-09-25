@@ -52,23 +52,24 @@ export function MatrixConsole() {
   }, [clockRunning, idle, advance, toggleClock]);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-bg">
+    <div className="flex h-screen flex-col overflow-hidden bg-db-bg">
       <OfficerTopBar />
 
       <div className="flex min-h-0 flex-1">
         <ApplicationQueue />
 
         <main className="flex min-w-0 flex-1 flex-col">
-          <ConflictBanner app={app} derived={derived} />
-
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <FileHeader app={app} derived={derived} />
-            <ParallelTrack app={app} derived={derived} />
-            {derived.conflict && !app.resolution ? (
-              <ConflictResolutionScreen app={app} derived={derived} />
-            ) : (
-              <PhaseSummary app={app} derived={derived} />
-            )}
+          <div key={app.id} className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            <div className="flex flex-col gap-4">
+              <ConflictBanner app={app} derived={derived} />
+              <FileHeader app={app} derived={derived} />
+              <ParallelTrack app={app} derived={derived} />
+              {derived.conflict && !app.resolution ? (
+                <ConflictResolutionScreen app={app} derived={derived} />
+              ) : (
+                <PhaseSummary app={app} derived={derived} />
+              )}
+            </div>
           </div>
 
           <DecisionBar key={app.id} app={app} />
