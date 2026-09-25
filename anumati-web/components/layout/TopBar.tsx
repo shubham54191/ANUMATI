@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ChevronDown, UserRound } from "lucide-react";
 import type { Meta } from "@/types/api";
+import { ExplainToggle } from "@/components/ui/Explain";
 import { ViewToggle } from "./ViewToggle";
 import { VersionBanner } from "./VersionBanner";
+import { SessionChip } from "./SessionChip";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -96,18 +98,11 @@ export function TopBar({
         )}
       </nav>
 
-      {board ? (
-        <span className="flex h-9 flex-none items-center gap-2 rounded-lg border border-db-line px-3 text-[12.5px] text-db-muted">
-          <UserRound className="h-4 w-4 text-db-faint" strokeWidth={1.7} />
-          Demo
-          <ChevronDown className="h-3.5 w-3.5 text-db-faint" strokeWidth={1.7} />
-        </span>
-      ) : (
-        <>
-          <ViewToggle />
-          {meta ? <VersionBanner meta={meta} /> : null}
-        </>
-      )}
+      <div className="flex-1" />
+      <ViewToggle />
+      <ExplainToggle className="flex-none" />
+      {meta ? <VersionBanner meta={meta} /> : null}
+      <SessionChip />
     </header>
   );
 }

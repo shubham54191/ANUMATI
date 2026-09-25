@@ -3,7 +3,6 @@ import { BookMarked, Users } from "lucide-react";
 import type { ApprovalEvidence } from "@/types/report";
 import { coverage } from "@/lib/data/observed";
 import { useRoadmapStore, type ClockBasis } from "@/store/useRoadmapStore";
-import { Label } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
 const MODES: { id: ClockBasis; label: string; Icon: typeof Users; hint: string }[] = [
@@ -65,15 +64,11 @@ export function ClockToggle({ evidence }: { evidence: Record<string, ApprovalEvi
         ))}
       </div>
 
-      <span className="font-mono text-[10px] tracking-[0.04em] text-faint">
-        {basis === "observed" ? (
-          <>
-            {covered}/{total} APPROVALS · {reports} REPORTS · MEDIAN
-          </>
-        ) : (
-          <Label>EVERY DAY COUNT CITED TO A SECTION</Label>
-        )}
-      </span>
+      {basis === "observed" ? (
+        <span className="font-mono text-[10px] tracking-[0.04em] text-faint">
+          {covered}/{total} APPROVALS · {reports} REPORTS · MEDIAN
+        </span>
+      ) : null}
     </div>
   );
 }

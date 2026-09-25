@@ -92,8 +92,8 @@ export function ConditionalControls({ engineVersion }: { engineVersion: string }
       />
 
       <div className="flex-1" />
-      <span className="font-mono text-[11px] text-faint">
-        Recomputed on change · engine {engineVersion}
+      <span className="font-mono text-[11px] text-faint" title={`Engine ${engineVersion}`}>
+        Recomputed on change
       </span>
     </div>
   );

@@ -2,6 +2,7 @@
 import { ArrowUpRight, CheckCircle2, CircleDot, FileText, Gavel, ShieldAlert, TriangleAlert, XCircle } from "lucide-react";
 import type { ApplicationFile, DeptReview, DerivedMatrixState, ReviewState } from "@/types/matrix";
 import { REVIEW_META, slaFraction, slaLabel } from "@/lib/matrix/display";
+import { Explain } from "@/components/ui/Explain";
 import { cn } from "@/lib/utils";
 
 /**
@@ -148,9 +149,9 @@ export function ParallelTrack({
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
           <h2 className="text-[14px] font-bold tracking-[0.02em] text-db-ink">REVIEW FLOW</h2>
-          <p className="mt-0.5 text-[12.5px] text-db-muted">
+          <Explain className="mt-0.5">
             How the departments evaluated the file and where the conflict occurred.
-          </p>
+          </Explain>
         </div>
         <div className="flex flex-none flex-wrap items-center gap-4 pt-1">
           <LegendDot color="var(--db-green)" label="Approved" />

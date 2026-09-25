@@ -35,6 +35,31 @@ const PILLARS = [
   { Icon: BarChart3, line1: "Data-Driven", line2: "Decisions" },
 ];
 
+/** The brand curve that sweeps across the foot of the left panel. */
+function BrandWave() {
+  return (
+    <svg
+      aria-hidden
+      className="pointer-events-none absolute bottom-0 right-0 h-[46%] w-[34%]"
+      viewBox="0 0 320 400"
+      preserveAspectRatio="none"
+    >
+      <defs>
+        <linearGradient id="bw-a" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.16" />
+          <stop offset="1" stopColor="#E3F0DA" stopOpacity="0.34" />
+        </linearGradient>
+        <linearGradient id="bw-b" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.12" />
+          <stop offset="1" stopColor="#FFFFFF" stopOpacity="0.3" />
+        </linearGradient>
+      </defs>
+      <path d="M320 96 C 244 168 208 276 184 400 L320 400 Z" fill="url(#bw-a)" />
+      <path d="M320 18 C 272 112 250 240 236 400 L320 400 Z" fill="url(#bw-b)" />
+    </svg>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const session = useAuthStore((s) => s.session);
@@ -98,9 +123,16 @@ export default function LoginPage() {
 
         {/* Card */}
         <main className="grid flex-1 overflow-hidden rounded-2xl bg-white shadow-[0_18px_50px_rgba(21,54,91,0.10)] lg:grid-cols-[52fr_48fr]">
-          {/* Left — brand */}
-          <section className="relative flex min-h-[420px] flex-col bg-gradient-to-b from-[#D9E7F5] via-[#E4EEF7] to-[#EEF4F9]">
-            <div className="px-8 pt-10 sm:px-12 lg:px-[60px] lg:pt-12">
+          {/* Left — brand. The scene is the panel's background, not a band at
+              its foot, so the sky runs behind the wordmark and the headline. */}
+          <section className="relative flex min-h-[560px] flex-col overflow-hidden">
+            <PlantScene className="absolute inset-0 h-full w-full" />
+            <div
+              aria-hidden
+              className="absolute inset-x-0 top-0 h-[62%] bg-gradient-to-b from-[rgba(236,243,250,0.92)] via-[rgba(236,243,250,0.55)] to-transparent"
+            />
+            <BrandWave />
+            <div className="relative px-8 pt-10 sm:px-12 lg:px-[62px] lg:pt-[62px]">
               <div className="flex items-center gap-3">
                 <AnumatiMark size={54} />
                 <span className="text-[34px] font-bold tracking-[0.13em] text-[#15365B]">
@@ -152,24 +184,26 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Scene */}
-            <div className="relative mt-8 h-[248px] flex-none lg:mt-auto lg:h-[302px]">
-              <PlantScene className="absolute inset-0 h-full w-full" />
-              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[rgba(12,32,52,0.62)] to-transparent" />
-              <div className="absolute bottom-6 left-8 flex items-start gap-2.5 sm:left-12 lg:left-[60px]">
-                <MapPin className="mt-0.5 h-4 w-4 flex-none text-white" strokeWidth={1.7} />
-                <div className="leading-tight text-white">
-                  <div className="text-[14px] font-semibold">Supporting Atmanirbhar Bharat</div>
-                  <div className="text-[12.5px] text-white/85">
-                    Through Efficient Food Processing &amp; Packaging
-                  </div>
+            {/* Caption, held to the foot of the panel over the fields */}
+            <div className="relative mt-16 flex-1" />
+            <div
+              aria-hidden
+              className="absolute inset-x-0 bottom-0 h-[34%] bg-gradient-to-t from-[rgba(12,32,52,0.66)] to-transparent"
+            />
+            <div className="relative flex items-start gap-2.5 px-8 pb-7 sm:px-12 lg:px-[62px]">
+              <MapPin className="mt-0.5 h-4 w-4 flex-none text-white" strokeWidth={1.7} />
+              <div className="leading-tight text-white">
+                <div className="text-[14px] font-semibold">Supporting Atmanirbhar Bharat</div>
+                <div className="text-[12.5px] text-white/85">
+                  Through Efficient Food Processing &amp; Packaging
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Right — form */}
-          <section className="flex flex-col px-8 py-9 sm:px-12 lg:px-[62px] lg:pb-10 lg:pt-[52px]">
+          {/* Right — the form sits in its own card, inset from the panel */}
+          <section className="flex flex-col bg-[#FAFBFD] p-5 sm:p-8 lg:py-[68px] lg:pl-[62px] lg:pr-[36px]">
+            <div className="flex flex-1 flex-col rounded-[18px] border border-[#EFF2F7] bg-white px-6 py-8 shadow-[0_12px_38px_rgba(21,54,91,0.07)] sm:px-9 lg:px-[54px] lg:py-[42px]">
             <div className="flex justify-end">
               <button
                 type="button"
@@ -296,9 +330,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <p className="mt-6 text-[11.5px] text-[#A3B1BF]">
-              Demonstration build · OFFICER / ADMIN · APPLICANT / DEMO
-            </p>
+            </div>
             </div>
           </section>
         </main>

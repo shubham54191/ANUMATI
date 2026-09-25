@@ -16,6 +16,7 @@ import { BatchLane } from "./BatchLane";
 import { CriticalChannel } from "./CriticalChannel";
 import { DependencyEdge } from "./DependencyEdge";
 import { GraphControls } from "./GraphControls";
+import { GraphLegend } from "./GraphLegend";
 import { useGraphLayout } from "./useGraphLayout";
 
 const nodeTypes = {
@@ -136,6 +137,9 @@ function Canvas({ roadmap }: { roadmap: Roadmap }) {
       >
         <Panel position="bottom-left" className="m-4">
           <GraphControls />
+        </Panel>
+        <Panel position="bottom-right" className="m-4">
+          <GraphLegend dependencies={roadmap.dependencies} />
         </Panel>
       </ReactFlow>
     </div>

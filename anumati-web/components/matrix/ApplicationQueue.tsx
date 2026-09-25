@@ -1,5 +1,5 @@
 "use client";
-import { AlertTriangle, Clock, FileText, Info, Scale, ShieldAlert, SlidersHorizontal } from "lucide-react";
+import { AlertTriangle, Clock, FileText, Scale, ShieldAlert, SlidersHorizontal } from "lucide-react";
 import type { ApplicationFile, MatrixRuleKind } from "@/types/matrix";
 import { derive } from "@/lib/matrix/engine";
 import { useMatrixStore } from "@/store/useMatrixStore";
@@ -141,23 +141,6 @@ export function ApplicationQueue() {
         </div>
       </div>
 
-      <div className="flex-none px-3 pb-3">
-        <div className="rounded-xl border border-db-blue/20 bg-db-blue-tint/60 px-3.5 py-3">
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 flex-none items-center justify-center rounded-lg bg-surface">
-              <Info className="h-3.5 w-3.5 text-db-blue" strokeWidth={1.9} />
-            </span>
-            <span className="text-[10.5px] font-semibold tracking-[0.07em] text-db-ink">
-              DECISION MATRIX IN FORCE
-            </span>
-          </div>
-          <p className="mt-2 text-[11.5px] leading-relaxed text-db-muted">
-            Each file carries the governance rule that settles a disagreement between departments.
-            The rule is data, not code — a state that tie-breaks differently edits the row, not the
-            console.
-          </p>
-        </div>
-      </div>
     </aside>
   );
 }

@@ -4,6 +4,7 @@ import type { ApplicationFile, DerivedMatrixState } from "@/types/matrix";
 import { useMatrixStore } from "@/store/useMatrixStore";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Card";
+import { Explain } from "@/components/ui/Explain";
 import { WeightedScoreCard } from "./WeightedScoreCard";
 import { cn } from "@/lib/utils";
 
@@ -99,22 +100,20 @@ export function PhaseSummary({
             ))}
           </div>
 
-          <p className="mt-3 max-w-2xl text-[12.5px] leading-relaxed text-db-muted">
+          <Explain className="mt-3 max-w-2xl text-[12.5px] leading-relaxed text-db-muted">
             {app.dispatched ? (
               <>
-                All {app.reviews.length} departments received this file on day 0 and are running their own
-                clocks against it. A department that misses its window is either escalated a tier or, where
-                the clearance is not statutory, deemed to have approved — so one silent desk cannot hold the
-                project.
+                All {app.reviews.length} departments received this file on day 0 and run their own clocks. A
+                desk that misses its window is escalated a tier, or deemed to have approved where the
+                clearance is not statutory — so one silent desk cannot hold the project.
               </>
             ) : (
               <>
-                Nothing has been sent yet. Dispatch pushes the file to every stakeholder department at the
-                same moment rather than passing it down a chain, which is what makes the parallel phase — and
-                the conflict protocol behind it — necessary in the first place.
+                Dispatch sends the file to every department at the same moment rather than down a chain. That
+                is what creates the parallel phase, and the conflict protocol behind it.
               </>
             )}
-          </p>
+          </Explain>
 
           {derived.escalated.length > 0 ? (
             <div className="mt-3 rounded-xl border border-db-amber/45 bg-db-amber/[0.06] px-3.5 py-2.5">
@@ -147,7 +146,7 @@ export function PhaseSummary({
             title={
               derived.canFinalise
                 ? "Sign off the parallel review phase"
-                : "Every department must clear, with no conflict open, before the phase can be finalised"
+                : `Enabled when all ${app.reviews.length} lanes clear and no conflict is open`
             }
           >
             <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={1.6} />
@@ -155,8 +154,7 @@ export function PhaseSummary({
           </Button>
           {!derived.canFinalise && !resolution ? (
             <p className="text-[11.5px] leading-relaxed text-db-muted">
-              Disabled until every lane clears. The master action never enables itself around an open
-              rejection — that is the point of the gate.
+              Enabled when all {app.reviews.length} lanes clear.
             </p>
           ) : null}
         </div>

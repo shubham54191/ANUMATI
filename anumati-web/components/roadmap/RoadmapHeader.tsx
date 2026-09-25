@@ -5,7 +5,6 @@ import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { ClockToggle } from "./ClockToggle";
 import { pct } from "@/lib/format/days";
 import { StatTile } from "./StatTile";
-import { EdgeTypeBreakdown } from "./EdgeTypeBreakdown";
 import { TimeCollapse } from "./TimeCollapse";
 
 export function RoadmapHeader({
@@ -65,7 +64,6 @@ export function RoadmapHeader({
         <div className="flex-1" />
         <div className="flex items-center gap-6 self-center">
           <ClockToggle evidence={evidence} />
-          <EdgeTypeBreakdown dependencies={roadmap.dependencies} />
         </div>
       </div>
 

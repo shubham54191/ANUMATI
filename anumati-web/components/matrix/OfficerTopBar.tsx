@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ChevronDown, Clock, FileText, LogOut, UserRound } from "lucide-react";
+import { ExplainToggle } from "@/components/ui/Explain";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMatrixStore } from "@/store/useMatrixStore";
 import { derive } from "@/lib/matrix/engine";
@@ -108,6 +109,8 @@ export function OfficerTopBar() {
           label="past SLA"
         />
       </div>
+
+      <ExplainToggle />
 
       <div className="flex flex-none items-center gap-2.5 border-l border-db-line pl-4">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-db-blue-tint">
