@@ -8,6 +8,7 @@ import {
   reEvaluate,
   sendForRevision,
   tieBreakerDecision,
+  verifyParameters,
 } from "@/lib/matrix/engine";
 import { seedApplications } from "@/lib/matrix/applications";
 import { MATRIX_RULES, RULE_LIST } from "@/lib/matrix/rules";
@@ -226,5 +227,62 @@ describe("the record", () => {
     const app = clash(dispatch(veto()));
     expect(derive(app)).toEqual(derive(app));
     expect(Object.keys(app)).not.toContain("verdict");
+  });
+});
+
+describe("field-level verification ownership", () => {
+  const app = seedApplications()[0];
+
+  it("gives every parameter group exactly one owning department", () => {
+    for (const a of seedApplications()) {
+      expect(a.parameters.length, a.id).toBeGreaterThan(0);
+      for (const g of a.parameters) {
+        expect(g.owner_dept, `${a.id}/${g.id}`).toBeTruthy();
+        expect(g.owner_short, `${a.id}/${g.id}`).toBeTruthy();
+      }
+    }
+  });
+
+  it("never records a group as verified by a department that does not own it", () => {
+    for (const a of seedApplications()) {
+      for (const g of a.parameters) {
+        if (g.verified_by_dept) expect(g.verified_by_dept, g.id).toBe(g.owner_dept);
+      }
+    }
+  });
+
+  it("carries a signature reference exactly when the group is verified", () => {
+    for (const a of seedApplications()) {
+      for (const g of a.parameters) {
+        expect(Boolean(g.signature_ref), g.id).toBe(g.verified_by_dept !== null);
+        expect(g.verified_on_day === null, g.id).toBe(g.verified_by_dept === null);
+      }
+    }
+  });
+
+  it("lets a department clear only the parameters it owns", () => {
+    const mpcb = verifyParameters(app, "mpcb");
+    for (const g of mpcb.parameters) {
+      if (g.owner_dept === "mpcb") expect(g.verified_by_dept, g.id).toBe("mpcb");
+      else {
+        const before = app.parameters.find((x) => x.id === g.id)!;
+        expect(g.verified_by_dept, g.id).toBe(before.verified_by_dept);
+      }
+    }
+  });
+
+  it("leaves the file untouched for a department that is not on it", () => {
+    expect(verifyParameters(app, "not-a-department")).toBe(app);
+  });
+
+  it("does not re-sign a group that is already verified", () => {
+    const once = verifyParameters(app, "midc");
+    expect(verifyParameters(once, "midc")).toBe(once);
+  });
+
+  it("writes one audit event naming the department that signed", () => {
+    const after = verifyParameters(app, "mpcb");
+    expect(after.events).toHaveLength(app.events.length + 1);
+    expect(after.events[after.events.length - 1].actor).toBe("MPCB");
   });
 });

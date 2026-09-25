@@ -32,7 +32,7 @@ export function PhaseSummary({
   const resolution = app.resolution;
 
   return (
-    <section className="border-b border-line bg-surface px-5 py-4">
+    <section className="bg-surface px-5 py-4">
       {resolution ? (
         <div
           className={cn(

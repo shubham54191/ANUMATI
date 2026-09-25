@@ -230,7 +230,7 @@ ANUMATI does not ask Maharashtra to legislate anything new. The MAITRI Act, 2023
 ## Tests
 
 ```bash
-npm test          # 67 tests across the rule base, the matrix engine and the compliance modules
+npm test          # 96 tests across the rule base, the matrix engine, compliance and the OAGS validator
 npm run typecheck # strict TypeScript, no errors
 npm run build     # production bundle
 ```
@@ -242,7 +242,41 @@ it exists to stop specific errors coming back:
 - no approval may claim a deeming clause without naming the provision that grants it;
 - no invented individual may appear as a verifier;
 - the two hero numbers (223 / 464 and 255 / 524) are **locked**, so a silent drift in
-  the rule base breaks a test rather than quietly making a public claim untrue.
+  the rule base breaks a test rather than quietly making a public claim untrue;
+- **our own published rule base must pass our own validator.** If we publish a standard
+  and our file fails it, nothing else in the suite matters.
+
+---
+
+## API
+
+Five route handlers, live in the app. No key, CORS open, nothing stored — the rule base
+is published under CC BY 4.0 and the validator holds nothing it is given.
+
+| Method | Path | What it returns |
+|---|---|---|
+| `GET` | `/api/v1/standard/schema` | The OAGS JSON Schema, draft 2020-12 |
+| `GET` | `/api/v1/standard/export` | Our Maharashtra rule base in OAGS. `?as_of=YYYY-MM-DD` for a past date |
+| `POST` | `/api/v1/standard/validate` | Validates a posted OAGS document |
+| `GET` | `/api/v1/approvals` | The rule base. `?as_of=`, `?stage=`, `?department=` |
+| `POST` | `/api/v1/roadmap` | Builds a roadmap. `{ conditions, clock: "statutory" \| "observed" }` |
+
+```bash
+# Our own file, through our own validator
+curl -s localhost:3000/api/v1/standard/export \
+  | curl -s -X POST -H 'content-type: application/json' --data-binary @- \
+      localhost:3000/api/v1/standard/validate
+
+# 31 approvals, 223 days on the critical path against 464 filed in series
+curl -s -X POST -H 'content-type: application/json' \
+  -d '{"conditions":{"midc_land":true,"boiler":true,"factory":true}}' \
+  localhost:3000/api/v1/roadmap
+```
+
+The validator runs the four checks the `/standard` page names — schema conformance,
+citation on every rule, no cycles, no orphans. An invalid document still returns `200`:
+the caller asked whether it validates, and "no, here is why" answers that question. A
+warning is a remark and does not fail a file; an error does.
 
 ---
 

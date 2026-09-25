@@ -97,7 +97,7 @@ function Canvas({ roadmap }: { roadmap: Roadmap }) {
           <GraphControls />
         </Panel>
         <Panel position="bottom-right" className="m-5">
-          <GraphLegend dependencies={roadmap.dependencies} />
+          <GraphLegend />
         </Panel>
       </ReactFlow>
     </div>

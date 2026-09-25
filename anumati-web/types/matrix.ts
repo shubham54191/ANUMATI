@@ -136,6 +136,34 @@ export interface DataRecord {
   consumers: string[];
 }
 
+/**
+ * Field-level verification ownership.
+ *
+ * A department's approval covers only the parameters that department is
+ * competent to judge. The Building authority's sign-off on a plan says nothing
+ * about effluent, and the plan review board's sign-off says nothing about
+ * staircase width. Carrying the owner on the parameter rather than on the file
+ * is what stops one desk's clearance being read as another's.
+ *
+ * `signature_ref` is a reference to the signature held against the approval in
+ * the issuing system, not a signature this product creates. Nothing here signs
+ * anything: the officer's own DSC does that, and the key never leaves it.
+ */
+export interface ParameterGroup {
+  id: string;
+  label: string;
+  /** The parameters themselves, as the officer would read them off the form. */
+  fields: { name: string; value: string }[];
+  /** The only department competent to clear these parameters. */
+  owner_dept: string;
+  owner_short: string;
+  /** Set once that department has cleared them. Null means nobody has. */
+  verified_by_dept: string | null;
+  verified_on_day: number | null;
+  /** Opaque handle for the signature in the issuing system. Mocked here. */
+  signature_ref: string | null;
+}
+
 export type ThreadAuthorRole = "department" | "officer" | "system";
 
 export interface ThreadMessage {
@@ -217,6 +245,8 @@ export interface ApplicationFile {
   rule: MatrixRule;
   reviews: DeptReview[];
   records: DataRecord[];
+  /** Who owns which parameters on this file, and who has cleared them. */
+  parameters: ParameterGroup[];
   thread: ThreadMessage[];
   events: TimelineEvent[];
   resolution: Resolution | null;

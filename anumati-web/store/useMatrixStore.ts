@@ -17,9 +17,10 @@ import {
   sendForRevision as sendForRevisionOn,
   setRecordState,
   tieBreakerDecision,
+  verifyParameters as verifyParametersOn,
 } from "@/lib/matrix/engine";
 
-export type ContextTab = "thread" | "data" | "sla" | "visits" | "redress" | "audit";
+export type ContextTab = "thread" | "data" | "scope" | "sla" | "visits" | "redress" | "audit";
 
 interface MatrixState {
   applications: ApplicationFile[];
@@ -41,6 +42,7 @@ interface MatrixState {
   decide: (deptId: string, state: "approved" | "rejected", opts?: { score?: number; remarks?: string }) => void;
   triggerClash: () => void;
   reEvaluate: (deptId: string, note: string) => void;
+  verifyParameters: (deptId: string) => void;
   post: (body: string, deptId: string | null) => void;
 
   toggleClock: () => void;
@@ -161,6 +163,8 @@ export const useMatrixStore = create<MatrixState>((set, get) => ({
     update(set, get, (app) => reEvaluateDept(app, deptId, note));
     set({ tieBreakerOpen: false });
   },
+
+  verifyParameters: (deptId) => update(set, get, (app) => verifyParametersOn(app, deptId)),
 
   post: (body, deptId) =>
     update(set, get, (app) => {

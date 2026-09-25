@@ -4,6 +4,7 @@ import { useMatrixStore, type ContextTab } from "@/store/useMatrixStore";
 import { AuditTrail } from "./AuditTrail";
 import { ClarificationThread } from "./ClarificationThread";
 import { DataMatrixPanel } from "./DataMatrixPanel";
+import { ParameterScope } from "./ParameterScope";
 import { SlaBoard } from "./SlaBoard";
 import { InspectionPlanner } from "./InspectionPlanner";
 import { GrievanceQueue } from "./GrievanceQueue";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 const TABS: { id: ContextTab; label: string }[] = [
   { id: "thread", label: "Thread" },
   { id: "data", label: "Data matrix" },
+  { id: "scope", label: "Scope" },
   { id: "sla", label: "SLA" },
   { id: "visits", label: "Visits" },
   { id: "redress", label: "Redress" },
@@ -81,6 +83,7 @@ export function ContextPanel({
       <div className="min-h-0 flex-1">
         {tab === "thread" ? <ClarificationThread app={app} derived={derived} /> : null}
         {tab === "data" ? <DataMatrixPanel app={app} /> : null}
+        {tab === "scope" ? <ParameterScope app={app} /> : null}
         {tab === "sla" ? <SlaBoard app={app} /> : null}
         {tab === "visits" ? <InspectionPlanner app={app} /> : null}
         {tab === "redress" ? <GrievanceQueue /> : null}

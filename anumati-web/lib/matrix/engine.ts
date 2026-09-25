@@ -660,3 +660,45 @@ export function setRecordState(
     ),
   ]);
 }
+
+/**
+ * A department marks the parameters it owns as reviewed.
+ *
+ * Only its own groups are touched — a desk cannot clear another desk's
+ * parameters, which is the whole point of carrying the owner on the group.
+ */
+export function verifyParameters(app: ApplicationFile, deptId: string): ApplicationFile {
+  const dept = app.reviews.find((r) => r.dept_id === deptId);
+  if (!dept) return app;
+  let changed = false;
+  const parameters = app.parameters.map((g) => {
+    if (g.owner_dept !== deptId || g.verified_by_dept !== null) return g;
+    changed = true;
+    return {
+      ...g,
+      verified_by_dept: deptId,
+      verified_on_day: app.day,
+      signature_ref: `sig:${dept.dept_short.toLowerCase()}:${g.id}`,
+    };
+  });
+  if (!changed) return app;
+  return {
+    ...app,
+    parameters,
+    events: [
+      ...app.events,
+      {
+        id: `EV-${app.events.length + 1}`,
+        at: new Date().toISOString(),
+        day: app.day,
+        kind: "data",
+        actor: dept.dept_short,
+        body: `${dept.dept_short} marked the parameters it owns as reviewed: ${parameters
+          .filter((g) => g.owner_dept === deptId)
+          .map((g) => g.label)
+          .join(", ")}.`,
+        authority: "Field-level verification ownership — scope of a departmental approval",
+      },
+    ],
+  };
+}

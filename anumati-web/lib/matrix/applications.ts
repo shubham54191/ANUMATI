@@ -1,4 +1,4 @@
-import type { ApplicationFile, DataRecord, DeptReview } from "@/types/matrix";
+import type { ApplicationFile, DataRecord, DeptReview, ParameterGroup } from "@/types/matrix";
 import { MATRIX_RULES } from "./rules";
 
 /**
@@ -238,6 +238,26 @@ const FILE_VETO: ApplicationFile = {
       consumers: ["MPCB", "MIDC"],
     }),
   ],
+  parameters: [
+    pg("PG-SITE", "Site and structure", "midc", "MIDC", 0, [
+      ["Plot", "PN-CHK-114/2A, notified industrial area"],
+      ["Built-up area", "4,200 sq m"],
+      ["Setbacks", "As per MIDC development control norms"],
+    ]),
+    pg("PG-EFFLUENT", "Effluent and water", "mpcb", "MPCB", null, [
+      ["Declared water draw", "210 KLD"],
+      ["Proposed ETP capacity", "145 KLD"],
+      ["Discharge point", "MIDC common conveyance"],
+    ]),
+    pg("PG-LABOUR", "Contract labour", "labour-mh", "LABOUR", null, [
+      ["Contract workers", "34"],
+      ["Principal employer registration", "Applied"],
+    ]),
+    pg("PG-FIRE", "Fire and egress", "mfs", "FIRE", null, [
+      ["Exits", "2"],
+      ["Staircase width", "1.5 m"],
+    ]),
+  ],
   thread: [],
   events: [],
   demo: {
@@ -249,6 +269,33 @@ const FILE_VETO: ApplicationFile = {
       "Effluent treatment capacity proposed is 145 KLD against a declared draw of 210 KLD. Consent to Establish cannot be granted on a design that cannot treat the load it creates.",
   },
 };
+
+/**
+ * One parameter group. `verifiedOnDay` is the day the owning department cleared
+ * it, or null while nobody has — which is what the officer reading another
+ * department's file needs to see.
+ */
+function pg(
+  id: string,
+  label: string,
+  owner_dept: string,
+  owner_short: string,
+  verifiedOnDay: number | null,
+  fields: [string, string][],
+): ParameterGroup {
+  return {
+    id,
+    label,
+    fields: fields.map(([name, value]) => ({ name, value })),
+    owner_dept,
+    owner_short,
+    verified_by_dept: verifiedOnDay === null ? null : owner_dept,
+    verified_on_day: verifiedOnDay,
+    // Mocked. A deployment carries the reference to the signature the issuing
+    // system already holds against that approval; this product signs nothing.
+    signature_ref: verifiedOnDay === null ? null : `sig:${owner_short.toLowerCase()}:${id}`,
+  };
+}
 
 // --- File 2 — equal authority, Empowered Committee decides ------------------
 
@@ -363,6 +410,18 @@ const FILE_ESCALATION: ApplicationFile = {
       body: "A12 approved — enhanced draw of 210 KLD available on the Ranjangaon header.",
     },
   ],
+  parameters: [
+    pg("PG-PLAN", "Factory plan and layout", "dish", "DISH", 0, [
+      ["Built-up area", "6,800 sq m"],
+      ["Machinery layout", "Approved set, rev C"],
+      ["Working head count", "210"],
+    ]),
+    pg("PG-EGRESS", "Exits and egress", "mfs", "FIRE", null, [
+      ["Staircase width, DISH set", "1.5 m"],
+      ["Staircase width, Fire set", "2.0 m"],
+      ["Exit count", "2 on the DISH plan, 3 required"],
+    ]),
+  ],
   demo: {
     approver_dept: "dish",
     rejecter_dept: "mfs",
@@ -474,6 +533,17 @@ const FILE_RISK: ApplicationFile = {
       body: "File pushed concurrently to 4 departments. Risk scores are due together, not in sequence.",
       authority: "MAITRI Act, 2023 — s. 16 (risk-led and random inspection)",
     },
+  ],
+  parameters: [
+    pg("PG-LOAD", "Sanctioned load", "msedcl", "MSEDCL", 0, [
+      ["Contract demand", "1,250 kVA"],
+      ["Supply voltage", "22 kV HT"],
+    ]),
+    pg("PG-INSTALL", "Electrical installation", "ceig-mh", "CEIG", null, [
+      ["Transformer rating, load application", "1,250 kVA"],
+      ["Transformer rating, single-line diagram", "1,600 kVA"],
+      ["Earthing scheme", "Submitted"],
+    ]),
   ],
   demo: {
     approver_dept: "msedcl",

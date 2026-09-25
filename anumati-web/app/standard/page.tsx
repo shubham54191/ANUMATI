@@ -1,15 +1,71 @@
 "use client";
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, Download, FileText, Upload } from "lucide-react";
+import { ArrowRight, Check, Download, FileText, Upload, X } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Card";
 import { localMeta } from "@/lib/api/roadmap";
+import type { ValidationResult } from "@/lib/oags/validate";
 import { APPROVALS, DEPENDENCIES } from "@/lib/data/maharashtraFood";
+
+/** Shown greyed out until a real file has been checked. */
+const FALLBACK_CHECKS = [
+  { id: "schema", label: "Schema conformance", passed: false, findings: 0 },
+  { id: "citation", label: "Every rule carries a citation", passed: false, findings: 0 },
+  { id: "cycle", label: "No dependency cycles", passed: false, findings: 0 },
+  { id: "orphan", label: "No orphaned approvals", passed: false, findings: 0 },
+] as const;
 
 export default function StandardPage() {
   const meta = localMeta();
-  const [validated, setValidated] = useState(false);
+  const [result, setResult] = useState<ValidationResult | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+
+  // The tick list used to fade in on any click. It now reports what the
+  // endpoint actually said about the file that was dropped on it.
+  const runValidation = async (file: File) => {
+    setChecking(true);
+    setFailure(null);
+    setResult(null);
+    try {
+      const text = await file.text();
+      const res = await fetch("/api/v1/standard/validate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: text,
+      });
+      const payload = await res.json();
+      if (!res.ok) {
+        setFailure(payload?.error?.message ?? `Validator returned ${res.status}.`);
+        return;
+      }
+      setResult(payload as ValidationResult);
+    } catch (e) {
+      setFailure(e instanceof Error ? e.message : "The file could not be read.");
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const checkOurOwn = async () => {
+    setChecking(true);
+    setFailure(null);
+    setResult(null);
+    try {
+      const doc = await (await fetch("/api/v1/standard/export")).json();
+      const res = await fetch("/api/v1/standard/validate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(doc),
+      });
+      setResult((await res.json()) as ValidationResult);
+    } catch (e) {
+      setFailure(e instanceof Error ? e.message : "The export could not be fetched.");
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const sampleEdge = useMemo(() => {
     const d = DEPENDENCIES.find(
@@ -51,18 +107,17 @@ export default function StandardPage() {
     },
   ];
 
+  // These are live route handlers under app/api, not a picture of an API.
   const endpoints = [
-    { m: "GET", path: "/v1/standard/schema", note: "The JSON Schema itself" },
-    { m: "GET", path: "/v1/standard/export", note: "Our dataset, in OAGS" },
-    { m: "POST", path: "/v1/standard/validate", note: "Check somebody else's file" },
-    { m: "GET", path: "/v1/approvals?as_of=2026-09-07", note: "Rules as they stood on a date" },
-  ];
-
-  const checks = [
-    "Schema conformance",
-    "Every rule carries a citation",
-    "No dependency cycles",
-    "No orphaned approvals",
+    { m: "GET", path: "/api/v1/standard/schema", note: "The JSON Schema itself", open: true },
+    { m: "GET", path: "/api/v1/standard/export", note: "Our dataset, in OAGS", open: true },
+    { m: "POST", path: "/api/v1/standard/validate", note: "Check somebody else's file", open: false },
+    {
+      m: "GET",
+      path: "/api/v1/approvals?as_of=2026-09-07",
+      note: "Rules as they stood on a date",
+      open: true,
+    },
   ];
 
   // The rationale is the longest field and the one worth reading, so it is
@@ -132,14 +187,18 @@ export default function StandardPage() {
                 Our Maharashtra rule base and the validator are published in it.
               </p>
               <div style={{ animationDelay: "220ms" }} className="anim-rise flex items-center gap-3">
-                <Button size="md" variant="primary">
-                  Read the schema
-                  <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
-                </Button>
-                <Button size="md" className="border-ink">
-                  <Download className="h-3.5 w-3.5" strokeWidth={1.4} />
-                  Download our dataset
-                </Button>
+                <a href="/api/v1/standard/schema" target="_blank" rel="noreferrer" className="no-underline">
+                  <Button size="md" variant="primary">
+                    Read the schema
+                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  </Button>
+                </a>
+                <a href="/api/v1/standard/export" className="no-underline">
+                  <Button size="md" className="border-ink">
+                    <Download className="h-3.5 w-3.5" strokeWidth={1.4} />
+                    Download our dataset
+                  </Button>
+                </a>
               </div>
             </div>
 
@@ -214,10 +273,13 @@ export default function StandardPage() {
               <div>
                 <Label className="mb-3 block">Endpoints</Label>
                 <div className="overflow-hidden rounded border border-line bg-surface">
-                  {endpoints.map((e, i) => (
-                    <div
+                  {endpoints.map((e, i) => {
+                    const Row = e.open ? "a" : "div";
+                    return (
+                    <Row
                       key={e.path}
-                      className={`flex items-center px-3.5 py-2.5 ${i > 0 ? "border-t border-line" : ""}`}
+                      {...(e.open ? { href: e.path, target: "_blank", rel: "noreferrer" } : {})}
+                      className={`flex items-center px-3.5 py-2.5 no-underline ${i > 0 ? "border-t border-line" : ""} ${e.open ? "transition-colors hover:bg-sunk" : ""}`}
                     >
                       <span
                         className={`w-[52px] flex-none font-mono text-[10px] font-semibold tracking-[0.05em] ${
@@ -232,38 +294,116 @@ export default function StandardPage() {
                       <span className="hidden text-[11.5px] text-muted xl:inline">
                         {e.note}
                       </span>
-                    </div>
-                  ))}
+                    </Row>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className="rounded border border-line bg-sunk px-[18px] py-4">
-                <Label className="mb-3 block text-ink">Validate your file</Label>
-                <button
-                  onClick={() => setValidated(true)}
-                  className="mb-3 flex h-[74px] w-full flex-col items-center justify-center gap-1.5 rounded border border-dashed border-line-strong bg-surface transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                >
+                <div className="mb-3 flex items-baseline justify-between">
+                  <Label className="block text-ink">Validate your file</Label>
+                  <button
+                    onClick={checkOurOwn}
+                    disabled={checking}
+                    className="font-mono text-[10.5px] text-state-active underline-offset-2 hover:underline disabled:opacity-50"
+                  >
+                    try ours
+                  </button>
+                </div>
+
+                <label className="mb-3 flex h-[74px] w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded border border-dashed border-line-strong bg-surface transition-colors hover:border-accent focus-within:ring-2 focus-within:ring-accent">
+                  <input
+                    type="file"
+                    accept="application/json,.json"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) void runValidation(f);
+                      // Let the same file be chosen twice in a row.
+                      e.target.value = "";
+                    }}
+                  />
                   <Upload className="h-4 w-4 text-faint" strokeWidth={1.3} />
-                  <span className="text-[12px] text-muted">Drop an OAGS JSON file</span>
-                </button>
+                  <span className="text-[12px] text-muted">
+                    {checking ? "Checking\u2026" : "Choose an OAGS JSON file"}
+                  </span>
+                </label>
+
+                {failure ? (
+                  <p
+                    role="alert"
+                    className="mb-3 rounded-sm border border-critical/40 bg-critical/[0.05] px-2.5 py-2 text-[12px] leading-snug text-critical"
+                  >
+                    {failure}
+                  </p>
+                ) : null}
+
                 <ul className="flex flex-col gap-1.5">
-                  {checks.map((c, i) => (
-                    <li
-                      key={c}
-                      className="flex items-center gap-2 transition-opacity"
-                      style={{
-                        opacity: validated ? 1 : 0.45,
-                        transitionDelay: validated ? `${i * 90}ms` : "0ms",
-                      }}
-                    >
-                      <Check
-                        className={validated ? "h-3 w-3 text-state-done" : "h-3 w-3 text-faint"}
-                        strokeWidth={1.8}
-                      />
-                      <span className="text-[12px] text-ink">{c}</span>
-                    </li>
-                  ))}
+                  {(result?.checks ?? FALLBACK_CHECKS).map((c) => {
+                    const done = result !== null;
+                    const passed = done && c.passed;
+                    return (
+                      <li key={c.id} className="flex items-center gap-2">
+                        {passed ? (
+                          <Check className="h-3 w-3 flex-none text-state-done" strokeWidth={1.8} />
+                        ) : done ? (
+                          <X className="h-3 w-3 flex-none text-critical" strokeWidth={1.8} />
+                        ) : (
+                          <Check className="h-3 w-3 flex-none text-faint" strokeWidth={1.8} />
+                        )}
+                        <span className={done ? "text-[12px] text-ink" : "text-[12px] text-muted"}>
+                          {c.label}
+                        </span>
+                        {done && c.findings > 0 ? (
+                          <span
+                            className={
+                              passed
+                                ? "font-num ml-auto font-mono text-[10px] text-state-deemed-ink"
+                                : "font-num ml-auto font-mono text-[10px] text-critical"
+                            }
+                          >
+                            {c.findings}
+                          </span>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
+
+                {result ? (
+                  <div className="mt-3 border-t border-line pt-3">
+                    <p className="font-mono text-[10.5px] text-muted">
+                      {result.counts.approvals} approvals · {result.counts.dependencies} edges ·{" "}
+                      <span className={result.valid ? "text-state-done" : "text-critical"}>
+                        {result.valid ? "VALID" : "REJECTED"}
+                      </span>
+                    </p>
+                    {result.findings.length > 0 ? (
+                      <ul className="mt-2 flex max-h-[168px] flex-col gap-1.5 overflow-y-auto">
+                        {result.findings.slice(0, 20).map((f, i) => (
+                          <li key={`${f.path}-${i}`} className="text-[11.5px] leading-snug">
+                            <span
+                              className={
+                                f.severity === "error"
+                                  ? "font-mono text-[10px] text-critical"
+                                  : "font-mono text-[10px] text-state-deemed-ink"
+                              }
+                            >
+                              {f.path}
+                            </span>{" "}
+                            <span className="text-muted">{f.message}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {result.findings.length > 20 ? (
+                      <p className="mt-1.5 font-mono text-[10px] text-faint">
+                        and {result.findings.length - 20} more
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
 
               <div className="rounded border border-line bg-surface px-[18px] py-4">
