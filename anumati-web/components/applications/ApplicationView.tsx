@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { errorLine } from "@/lib/api/explain";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -23,7 +24,7 @@ import {
 } from "@/lib/api/applications";
 import type { FileView } from "@/store/useMatrixStore";
 import type { DeptReview } from "@/types/matrix";
-import { REVIEW_META } from "@/lib/matrix/display";
+import { REVIEW_META, reviewStatus } from "@/lib/matrix/display";
 import { derive, isOpen } from "@/lib/matrix/engine";
 import { AppShell } from "@/components/layout/AppShell";
 import { LedgerPanel } from "@/components/ledger/LedgerPanel";
@@ -40,7 +41,7 @@ const STATUS_TONE: Record<string, string> = {
   completed: "bg-db-green-tint text-db-green border-db-green/30",
 };
 
-const errMsg = (e: unknown, fallback: string) => (e instanceof ApiError ? e.message : fallback);
+const errMsg = (e: unknown, fallback: string) => errorLine(e, fallback);
 
 function Section({ title, aside, children }: { title: string; aside?: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -244,9 +245,17 @@ function DraftStage({ data, reload }: { data: ApplicationDetail; reload: () => P
             className="flex h-10 items-center gap-2 rounded-xl bg-db-blue px-4 text-[13px] font-semibold text-white hover:brightness-95 disabled:opacity-45"
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" strokeWidth={1.8} />}
-            File {wave.length} approval{wave.length === 1 ? "" : "s"} now
+            {submitting ? "Filing…" : `File ${wave.length} approval${wave.length === 1 ? "" : "s"} now`}
           </button>
-          {error ? <span className="text-[12px] text-db-red">{error}</span> : null}
+          {error ? (
+            <span className="text-[12px] text-db-red">{error}</span>
+          ) : !s.submittable ? (
+            <span className="text-[12px] text-db-muted">
+              {s.current_wave === 0
+                ? "Nothing can be filed today — every approval waits on another."
+                : `Not yet — ${s.current_wave_blocked} approval${s.current_wave_blocked === 1 ? "" : "s"} in today's wave would be refused. Fix the gaps above.`}
+            </span>
+          ) : null}
         </div>
       </Section>
 
@@ -339,7 +348,7 @@ function CommonFormPanel({ data, reload }: { data: ApplicationDetail; reload: ()
           className="flex h-9 items-center gap-2 rounded-lg border border-db-line bg-surface px-3.5 text-[12.5px] font-medium text-db-ink hover:border-db-blue/50 disabled:opacity-45"
         >
           {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-          Save form
+          {saving ? "Saving…" : "Save form"}
         </button>
         {msg ? <span className={cn("text-[12px]", msg.ok ? "text-db-green" : "text-db-red")}>{msg.text}</span> : null}
       </div>
@@ -428,7 +437,7 @@ function DocumentsPanel({ data, reload }: { data: ApplicationDetail; reload: () 
           className="flex h-9 w-fit items-center gap-2 rounded-lg bg-db-blue px-3.5 text-[12.5px] font-semibold text-white disabled:opacity-45"
         >
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileUp className="h-3.5 w-3.5" />}
-          Upload
+          {busy ? "Uploading…" : "Upload"}
         </button>
         {msg ? <p className={cn("text-[12px]", msg.ok ? "text-db-green" : "text-db-red")}>{msg.text}</p> : null}
       </div>
@@ -486,8 +495,47 @@ function FiledStage({ data, view, reload }: { data: ApplicationDetail; view: Fil
     conflict_halted: "Two departments disagree. The file is held until they settle it or the Committee decides.",
   };
 
+  // The one answer an applicant opens this page for: is anything waiting on me?
+  const queried = file.reviews.filter((r) => r.query_open);
+  const decided = file.reviews.filter((r) => ["approved", "rejected", "deemed_approved"].includes(r.state)).length;
+  const next: { text: string; you: boolean } = revision
+    ? { text: `Correct the file and resubmit — ${revision.packet.reply_days} days to reply`, you: true }
+    : queried.length > 0
+      ? { text: `Answer ${queried.map((r) => r.dept_short).join(" and ")}'s ${queried.length === 1 ? "query" : "queries"} — ${queried.length === 1 ? "its clock is" : "their clocks are"} paused until you do`, you: true }
+      : file.resolution
+        ? { text: file.resolution.kind === "cleared" ? "Nothing — this phase is cleared" : "Nothing right now — see the outcome below", you: false }
+        : d.conflict
+          ? { text: "Nothing — two departments are settling a disagreement", you: false }
+          : { text: "Nothing — the departments are deciding", you: false };
+
   return (
     <>
+      <section aria-label="Summary" className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-db-line bg-db-line sm:grid-cols-4">
+        <div className="bg-surface px-4 py-3">
+          <div className="text-[11px] font-semibold tracking-[0.06em] text-db-muted">STATUS</div>
+          <div className="mt-0.5 text-[14px] font-semibold text-db-ink">{data.application.status.replace(/_/g, " ").toUpperCase()}</div>
+        </div>
+        <div className="bg-surface px-4 py-3">
+          <div className="text-[11px] font-semibold tracking-[0.06em] text-db-muted">DAY</div>
+          <div className="mt-0.5 font-num text-[14px] font-semibold text-db-ink">{file.day}</div>
+        </div>
+        <div className="bg-surface px-4 py-3">
+          <div className="text-[11px] font-semibold tracking-[0.06em] text-db-muted">DESKS DECIDED</div>
+          <div className="mt-0.5 font-num text-[14px] font-semibold text-db-ink">
+            {decided} / {file.reviews.length}
+          </div>
+          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-db-bg" aria-hidden>
+            <div className="h-full rounded-full bg-db-green" style={{ width: `${(decided / Math.max(1, file.reviews.length)) * 100}%` }} />
+          </div>
+        </div>
+        <div className={cn("col-span-2 px-4 py-3 sm:col-span-1", next.you ? "bg-db-amber-tint" : "bg-surface")}>
+          <div className={cn("text-[11px] font-semibold tracking-[0.06em]", next.you ? "text-db-amber" : "text-db-muted")}>
+            {next.you ? "YOUR NEXT ACTION" : "NEXT ACTION"}
+          </div>
+          <div className="mt-0.5 text-[12.5px] font-medium leading-snug text-db-ink">{next.text}</div>
+        </div>
+      </section>
+
       <Section
         title="Where your file is"
         aside={<span className="font-num text-[12px] text-db-muted">Day {file.day}</span>}
@@ -523,13 +571,16 @@ function FiledStage({ data, view, reload }: { data: ApplicationDetail; view: Fil
               disabled={busy || resubNote.trim().length < 3}
               className="mt-2 flex h-9 items-center gap-2 rounded-lg bg-db-blue px-3.5 text-[12.5px] font-semibold text-white disabled:opacity-45"
             >
-              <Send className="h-3.5 w-3.5" /> Resubmit to the objecting desks
+              <Send className="h-3.5 w-3.5" /> {busy ? "Sending…" : "Resubmit to the objecting desks"}
             </button>
           </div>
         ) : null}
 
         <div className="flex flex-col gap-2">
-          {file.reviews.map((r) => (
+          {/* Desks waiting on the applicant first, then the open ones, then the decided. */}
+          {[...file.reviews]
+            .sort((a, b) => deskRank(a) - deskRank(b))
+            .map((r) => (
             <DeskRow
               key={r.dept_id}
               review={r}
@@ -624,7 +675,7 @@ function DeskRow({
         <span className="font-mono text-[11px] font-semibold text-db-ink">{r.dept_short}</span>
         <span className="font-mono text-[10.5px] text-db-faint">{r.approval_id}</span>
         <span className="min-w-0 flex-1 truncate text-[12.5px] text-db-ink">{r.approval_name}</span>
-        <span className={cn("rounded-full px-2 py-0.5 text-[10.5px] font-semibold", meta.text)}>{meta.label}</span>
+        <span className={cn("rounded-full px-2 py-0.5 text-[10.5px] font-semibold", reviewStatus(r).text)}>{reviewStatus(r).label}</span>
       </div>
 
       {clock && isOpen(r) ? (
@@ -677,7 +728,7 @@ function DeskRow({
               disabled={busy || answer.trim().length < 3}
               className="h-9 rounded-lg bg-db-blue px-3 text-[12.5px] font-semibold text-white disabled:opacity-45"
             >
-              Answer · restart clock
+              {busy ? "Sending…" : "Answer · restart clock"}
             </button>
           </div>
         </div>
@@ -704,11 +755,14 @@ function DeskRow({
                 disabled={gBusy || reason.trim().length < 10}
                 className="h-8 rounded-lg bg-db-navy px-3 text-[12px] font-semibold text-white disabled:opacity-45"
               >
-                Send to the Empowered Committee
+                {gBusy ? "Sending…" : "Send to the Empowered Committee"}
               </button>
               <button onClick={() => setGriefOpen(false)} className="h-8 rounded-lg border border-db-line px-3 text-[12px]">
                 Cancel
               </button>
+              {reason.trim().length < 10 ? (
+                <span className="font-mono text-[10.5px] text-db-faint">{reason.trim().length}/10</span>
+              ) : null}
               {gErr ? <span className="text-[11.5px] text-db-red">{gErr}</span> : null}
             </div>
             <p className="text-[11px] text-db-muted">MAITRI Act, 2023 — s. 8(1)(g). It goes to the Committee, not back to {r.dept_short}.</p>
@@ -722,6 +776,9 @@ function DeskRow({
     </div>
   );
 }
+
+const deskRank = (r: DeptReview) =>
+  r.query_open ? 0 : r.state === "in_review" ? 1 : r.state === "transferred_to_committee" ? 2 : r.state === "queued" ? 3 : 4;
 
 /** The desk's own words, from the thread — a query is posted there when raised. */
 function latestQuery(r: DeptReview, thread: FileView["file"]["thread"]): string | null {

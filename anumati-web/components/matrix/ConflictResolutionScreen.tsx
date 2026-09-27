@@ -111,6 +111,46 @@ export function ConflictResolutionScreen({
         </button>
       </div>
 
+      {/* The same story in the order it happened, before the analysis cards. */}
+      <ol aria-label="How the file got here" className="db-rise flex flex-wrap items-stretch gap-2">
+        {[
+          ...approvers.map((r) => ({
+            tone: "text-db-green",
+            head: `${r.dept_short} ${r.state === "deemed_approved" ? "deemed approved" : "approved"}`,
+            sub: r.decided_at ? `day ${r.decided_on_day} · ${clockOf(r.decided_at)}` : `day ${r.decided_on_day ?? "—"}`,
+          })),
+          ...(rejecter
+            ? [
+                {
+                  tone: "text-db-red",
+                  head: `${rejecter.dept_short} rejected`,
+                  sub: rejecter.decided_at ? `day ${rejecter.decided_on_day} · ${clockOf(rejecter.decided_at)}` : "",
+                },
+              ]
+            : []),
+          { tone: "text-db-ink", head: `Rule ${app.rule.id} applies`, sub: app.rule.label },
+          {
+            tone: "text-db-blue",
+            head: "Available now",
+            sub:
+              app.rule.kind === "veto"
+                ? `Send for revision, or ${rejecter?.dept_short ?? "the objector"} withdraws in the thread`
+                : app.rule.kind === "escalation"
+                  ? "Open the tie-breaker panel"
+                  : "Wait for every desk's score",
+          },
+        ].map((step, i, all) => (
+          <li key={i} className="flex items-center gap-2">
+            <span className="rounded-lg border border-db-line bg-surface px-3 py-1.5">
+              <span className="mr-1.5 font-num text-[10.5px] font-bold text-db-faint">{i + 1}</span>
+              <span className={cn("text-[12px] font-semibold", step.tone)}>{step.head}</span>
+              {step.sub ? <span className="block text-[11px] leading-snug text-db-muted">{step.sub}</span> : null}
+            </span>
+            {i < all.length - 1 ? <span aria-hidden className="text-db-faint">→</span> : null}
+          </li>
+        ))}
+      </ol>
+
       <div className="flex flex-wrap items-stretch gap-4">
         {/* 1 — why the file stopped. */}
         <CardShell

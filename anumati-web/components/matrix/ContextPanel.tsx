@@ -103,7 +103,7 @@ export function ContextPanel({
         {tab === "scope" ? <ParameterScope app={app} /> : null}
         {tab === "sla" ? <SlaBoard app={app} /> : null}
         {tab === "visits" ? <InspectionPlanner app={app} /> : null}
-        {tab === "redress" ? <GrievanceQueue /> : null}
+        {tab === "redress" ? <GrievanceQueue app={app} /> : null}
         {tab === "audit" ? <AuditTrail app={app} /> : null}
       </div>
     </aside>

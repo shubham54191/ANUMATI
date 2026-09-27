@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { errorLine } from "@/lib/api/explain";
 import Link from "next/link";
 import { AlertTriangle, ArrowUpRight, Anchor, Gavel, Inbox, Loader2, Scale, Timer } from "lucide-react";
 import { api, ApiError, subscribe } from "@/lib/api/client";
@@ -30,7 +31,19 @@ const KIND: Record<QueueItem["kind"], { label: string; Icon: typeof Gavel; tone:
   overdue: { label: "Past limit", Icon: Timer, tone: "text-db-muted bg-db-bg" },
 };
 
-const errMsg = (e: unknown, f: string) => (e instanceof ApiError ? e.message : f);
+/** What each decision does, said before it is taken. */
+const AFTER: Record<QueueItem["kind"], string> = {
+  transferred:
+    "Grant issues the approval under the relevant law; Refuse records a refusal. Either way your reasons go on the ledger, the desk leaves this queue and the applicant sees the outcome.",
+  tie_breaker:
+    "Overrule sets the objection aside and the phase clears. Sustain returns the file to the applicant to correct. Both are binding and recorded with your reasons.",
+  grievance:
+    "Resolving records your reasons on the ledger and shows them to the applicant. It does not decide the approval itself — the department or a transfer still does.",
+  overdue:
+    "Nothing to decide yet — the desk has not been transferred. Open the file to call for the department's reasons.",
+};
+
+const errMsg = (e: unknown, f: string) => errorLine(e, f);
 
 /**
  * The Empowered Committee's desk: every file that has left a department's
@@ -170,6 +183,10 @@ function QueueCard({ item: it, onDone }: { item: QueueItem; onDone: () => Promis
         <p className="mt-1 text-[12.5px] text-db-ink">{[it.approval_name, it.applicant].filter(Boolean).join(" · ")}</p>
       ) : null}
       <p className="mt-1 text-[12.5px] leading-relaxed text-db-muted">{it.detail}</p>
+      <p className="mt-1.5 text-[11.5px] leading-snug text-db-ink">
+        <span className="font-semibold">After your decision: </span>
+        {AFTER[it.kind]}
+      </p>
 
       {needsNote ? (
         <div className="mt-3 flex flex-col gap-2">
@@ -211,6 +228,11 @@ function QueueCard({ item: it, onDone }: { item: QueueItem; onDone: () => Promis
               >
                 Resolve grievance
               </ActionButton>
+            ) : null}
+            {!noteOk ? (
+              <span className="font-mono text-[10.5px] text-db-faint">
+                {note.trim().length}/{it.kind === "grievance" ? 5 : 3} — write the reasons first
+              </span>
             ) : null}
             {busy ? <Loader2 className="h-4 w-4 animate-spin text-db-muted" /> : null}
             {err ? <span className="text-[12px] text-db-red">{err}</span> : null}

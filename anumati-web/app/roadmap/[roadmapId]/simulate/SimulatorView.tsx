@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
+import { Explain } from "@/components/ui/Explain";
 import { Button } from "@/components/ui/Button";
 import { downloadText, today } from "@/lib/utils/download";
 import { Label } from "@/components/ui/Card";
@@ -240,6 +241,11 @@ export function SimulatorView({ roadmapId }: { roadmapId: string }) {
           </div>
 
           <div className="px-[22px] py-4">
+            <Explain className="mb-3">
+              A lever is a proposed rule change — a shorter time limit, two approvals allowed in parallel, a deeming
+              clause enforced, an approval removed. The engine re-runs the roadmap with it. A lever that would contradict
+              a statute is refused, and says which one.
+            </Explain>
             <Label className="mb-2 block">How the combined number is computed</Label>
             <p className="max-w-[620px] text-[12.5px] leading-relaxed text-muted">
               Selecting several levers re-runs the whole graph with all of them applied — it does

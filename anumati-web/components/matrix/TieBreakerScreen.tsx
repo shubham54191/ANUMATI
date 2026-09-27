@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useDialog } from "@/hooks/useDialog";
 import { Gavel, ShieldCheck, ThumbsDown, X } from "lucide-react";
 import type { ApplicationFile, DerivedMatrixState } from "@/types/matrix";
 import { clockOf } from "@/lib/matrix/engine";
@@ -27,6 +28,8 @@ export function TieBreakerScreen({
   const tieBreak = useMatrixStore((s) => s.tieBreak);
   const session = useAuthStore((s) => s.session);
   const [note, setNote] = useState("");
+  // Esc and the backdrop close the panel — unless a reason has been typed.
+  const { ref, dismiss } = useDialog(true, () => close(false), note.trim().length > 0);
 
   const panel = app.rule.tie_breaker;
   const chair = panel?.chair ?? "Steering committee";
@@ -47,18 +50,19 @@ export function TieBreakerScreen({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-ink/30" onClick={() => close(false)} aria-hidden />
+      <div className="db-fade absolute inset-0 bg-ink/30" onClick={dismiss} aria-hidden />
 
       <div
+        ref={ref}
         role="dialog"
         aria-modal="true"
         aria-label="Tie-breaker panel review"
-        className="anim-rise relative flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-db-line bg-surface shadow-panel"
+        className="db-dialog relative flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-db-line bg-surface shadow-panel"
       >
         <header className="flex flex-none items-start gap-3 border-b border-db-line bg-db-bg px-5 py-3.5">
           <Gavel className="mt-0.5 h-4 w-4 flex-none text-db-amber" strokeWidth={1.7} />
           <div className="min-w-0 flex-1">
-            <h2 className="text-[17px] font-bold leading-tight text-db-ink">
+            <h2 data-autofocus tabIndex={-1} className="text-[17px] font-bold leading-tight text-db-ink outline-none">
               {panel?.panel ?? "Steering committee review"}
             </h2>
             <p className="mt-0.5 text-[12px] text-db-muted">

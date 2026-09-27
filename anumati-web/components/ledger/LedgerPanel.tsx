@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { errorLine } from "@/lib/api/explain";
 import { FileSignature, Link2, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
 import type { ApplicationFile } from "@/types/matrix";
 import { api, ApiError } from "@/lib/api/client";
@@ -67,7 +68,7 @@ export function LedgerPanel({
       setRows(l.data);
       setSigs(s.data);
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Could not read the ledger.");
+      setError(errorLine(e, "Could not read the ledger."));
       setRows([]);
     }
   }, [id, wholeLedger]);
@@ -84,7 +85,7 @@ export function LedgerPanel({
     try {
       setVerify(await api<VerifyResult>("/v1/ledger/verify"));
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Verification failed to run.");
+      setError(errorLine(e, "Verification failed to run."));
     } finally {
       setChecking(false);
     }
@@ -118,7 +119,7 @@ export function LedgerPanel({
         setExternal({ dept_id: deptId, ...p });
       }
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Signing failed.");
+      setError(errorLine(e, "Signing failed."));
     } finally {
       setSigning(null);
     }
@@ -139,7 +140,7 @@ export function LedgerPanel({
       setNotice("Signature verified against the certificate and recorded.");
       await load();
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "The signature was not accepted.");
+      setError(errorLine(e, "The signature was not accepted."));
     } finally {
       setSigning(null);
     }
@@ -195,6 +196,12 @@ export function LedgerPanel({
             {meta?.dsc_mode === "demo" ? (
               <span className="rounded bg-db-amber-tint px-1.5 text-[9.5px] font-semibold text-db-amber">DEMO KEY · NOT A DSC</span>
             ) : null}
+            <div className="flex-1" />
+            <span className="text-[11px] text-db-muted">
+              {sigs.filter((x) => x.valid).length} verified
+              {sigs.some((x) => !x.valid) ? ` · ${sigs.filter((x) => !x.valid).length} failing` : ""}
+              {signable.length ? ` · ${signable.length} to sign` : ""}
+            </span>
           </div>
           {sigs.map((s) => (
             <div key={s.id} className="flex items-center gap-2 py-1 text-[11.5px]">

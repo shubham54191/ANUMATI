@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, UserRound } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -14,6 +15,9 @@ export function SessionChip() {
   const router = useRouter();
   const session = useAuthStore((s) => s.session);
   const signOut = useAuthStore((s) => s.signOut);
+  const hydrate = useAuthStore((s) => s.hydrate);
+  // Pages without a sign-in gate (e.g. /standard) still show who is signed in.
+  useEffect(() => hydrate(), [hydrate]);
 
   if (!session) return null;
 

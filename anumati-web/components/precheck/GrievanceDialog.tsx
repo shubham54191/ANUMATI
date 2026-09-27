@@ -51,7 +51,7 @@ export function GrievanceDialog({
   };
 
   return (
-    <Dialog open onClose={onClose} title="Raise a grievance">
+    <Dialog open onClose={onClose} title="Raise a grievance" dirty={!sent && reason.trim().length > 0}>
       {sent ? (
         <div className="py-1">
           <p className="mb-3 text-[13px] leading-relaxed text-db-ink">
@@ -60,8 +60,12 @@ export function GrievanceDialog({
             delay. It still decides the application under the same Act the department would have
             applied.
           </p>
-          <p className="mb-4 font-mono text-[10.5px] text-db-muted">
+          <p className="mb-3 font-mono text-[10.5px] text-db-muted">
             MAITRI Act, 2023 — s. 8
+          </p>
+          <p className="mb-4 rounded-lg border border-db-line bg-db-bg px-2.5 py-2 text-[11.5px] leading-snug text-db-muted">
+            Offline demo: saved in this browser. It shows on the console&apos;s Redress tab in this same browser. With
+            the server connected, grievances are raised on a filed application and reach the Committee desk.
           </p>
           <Button variant="primary" onClick={onClose}>
             Close

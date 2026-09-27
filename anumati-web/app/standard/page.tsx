@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Download, FileText, Upload, X } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
+import { Explain } from "@/components/ui/Explain";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Card";
 import { localMeta } from "@/lib/api/roadmap";
@@ -226,6 +227,11 @@ export default function StandardPage() {
         <section className="border-b border-line px-5 py-11">
           <div className="mx-auto w-full max-w-[1200px]">
             <Label className="mb-7 block text-accent">Three things the schema insists on</Label>
+            <Explain className="-mt-4 mb-7">
+              OAGS is the file format ANUMATI publishes its rule base in, so another state or a department can load it,
+              check it and build on it without our software. Download the dataset, or drop your own file into the
+              validator below.
+            </Explain>
             <div className="grid gap-10 md:grid-cols-3">
               {insistences.map((c) => (
                 <div

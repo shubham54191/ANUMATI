@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BarChart3,
-  ChevronDown,
   Eye,
   EyeOff,
-  Globe,
   Landmark,
   Lock,
   MapPin,
@@ -78,7 +77,10 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
-  const [remember, setRemember] = useState(false);
+  // Checked keeps the session after the browser closes; unchecked keeps it
+  // only for this tab. Checked by default — that was the old behaviour.
+  const [remember, setRemember] = useState(true);
+  const [help, setHelp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const meta = useServerMeta();
@@ -92,7 +94,7 @@ export default function LoginPage() {
     e.preventDefault();
     if (busy) return;
     setBusy(true);
-    const result = await signIn(username, password);
+    const result = await signIn(username, password, remember);
     setBusy(false);
     if (!result.ok) {
       setError(result.message);
@@ -216,16 +218,6 @@ export default function LoginPage() {
           {/* Right — the form sits in its own card, inset from the panel */}
           <section className="flex flex-col bg-[#FAFBFD] p-5 sm:p-8 lg:py-[68px] lg:pl-[62px] lg:pr-[36px]">
             <div className="flex flex-1 flex-col rounded-[18px] border border-[#EFF2F7] bg-white px-6 py-8 shadow-[0_12px_38px_rgba(21,54,91,0.07)] sm:px-9 lg:px-[54px] lg:py-[42px]">
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className="flex h-9 items-center gap-2 rounded-full border border-[#E2E8F0] px-3.5 text-[13px] text-[#334155] transition-colors hover:border-[#CBD5E1]"
-              >
-                <Globe className="h-3.5 w-3.5 text-[#64748B]" strokeWidth={1.7} />
-                English
-                <ChevronDown className="h-3.5 w-3.5 text-[#94A3B8]" strokeWidth={1.7} />
-              </button>
-            </div>
 
             <div className="flex flex-1 flex-col justify-center py-6">
             <h2 className="text-[38px] font-bold leading-none text-[#15365B]">Welcome Back</h2>
@@ -285,10 +277,27 @@ export default function LoginPage() {
                   />
                   Remember me
                 </label>
-                <a href="#" className="text-[13.5px] text-[#2563EB] no-underline hover:underline">
+                <button
+                  type="button"
+                  onClick={() => setHelp((v) => !v)}
+                  aria-expanded={help}
+                  aria-controls="signin-help"
+                  className="text-[13.5px] text-[#2563EB] hover:underline"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
+
+              {help ? (
+                <p
+                  id="signin-help"
+                  className="mt-3 rounded-lg border border-[#DBEAFE] bg-[#EFF6FF] px-3.5 py-2.5 text-[12.5px] leading-snug text-[#1E3A8A]"
+                >
+                  {isLive()
+                    ? "ANUMATI does not reset passwords. Accounts come from MAITRI 2.0 — ask your department's MAITRI administrator, or use the demo accounts listed below if this is a demo server."
+                    : "This is the offline demo. The two accounts are fixed: applicant / demo, and officer / admin."}
+                </p>
+              ) : null}
 
               {error ? (
                 <p
@@ -363,13 +372,9 @@ export default function LoginPage() {
               </span>
               <div className="leading-tight">
                 <div className="text-[13.5px] font-medium text-[#1F2937]">Need help?</div>
-                <a
-                  href="#"
-                  className="flex items-center gap-1.5 text-[12.5px] text-[#64748B] no-underline hover:text-[#15365B]"
-                >
-                  Contact ANUMATI Support
-                  <ArrowRight className="h-3 w-3" strokeWidth={1.8} />
-                </a>
+                <p className="text-[12.5px] text-[#64748B]">
+                  Sign-in problems go to your department&apos;s MAITRI 2.0 administrator.
+                </p>
               </div>
             </div>
 
@@ -381,16 +386,11 @@ export default function LoginPage() {
         {/* Footer */}
         <footer className="flex flex-wrap items-center justify-between gap-3 pt-5 text-[12.5px] text-[#64748B]">
           <div className="flex items-center gap-3">
-            {["About ANUMATI", "Privacy Policy", "Terms of Use", "Help"].map((item, i) => (
-              <span key={item} className="flex items-center gap-3">
-                <a href="#" className="no-underline hover:text-[#15365B]">
-                  {item}
-                </a>
-                {i < 3 ? <span className="text-[#D7DEE6]">|</span> : null}
-              </span>
-            ))}
+            <Link href="/standard" className="no-underline hover:text-[#15365B]">
+              Open standard (OAGS)
+            </Link>
           </div>
-          <div>© 2025 ANUMATI. All rights reserved.</div>
+          <div>© 2026 ANUMATI</div>
         </footer>
       </div>
     </div>

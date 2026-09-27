@@ -16,11 +16,15 @@ import { Label } from "@/components/ui/Card";
  * Act asked for in s. 16.
  */
 export function InspectionPlanner({ app }: { app: ApplicationFile }) {
+  // Only this file's approvals. The day each site becomes ready still comes
+  // from the whole graph — readiness depends on approvals filed elsewhere.
+  const onFile = app.reviews.map((r) => r.approval_id).join(",");
   const { visits, summary } = useMemo(() => {
+    const ids = new Set(onFile.split(","));
     const roadmap = buildRoadmap(DEFAULT_REQUEST);
-    const v = planJointVisits(roadmap, 7);
+    const v = planJointVisits({ ...roadmap, approvals: roadmap.approvals.filter((a) => ids.has(a.id)) }, 7);
     return { visits: v, summary: inspectionSummary(v) };
-  }, []);
+  }, [onFile]);
 
   return (
     <div className="flex h-full flex-col">
@@ -34,15 +38,28 @@ export function InspectionPlanner({ app }: { app: ApplicationFile }) {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-        <div className="mb-3 rounded-xl border border-db-green/40 bg-db-green/[0.04] px-3 py-2.5">
-          <div className="font-num text-[22px] font-bold text-db-green">
-            {summary.visits_saved} trips avoided
-          </div>
-          <p className="mt-0.5 text-[11.5px] leading-snug text-db-muted">
-            {summary.inspections} separate inspections at {app.location} grouped into{" "}
-            {summary.joint_visits} visits, by the day the site becomes ready for each department.
+        {summary.inspections === 0 ? (
+          <p className="text-[12px] leading-relaxed text-db-muted">
+            No approval on {app.id} needs a site inspection. Visits are planned only for approvals whose officer has to
+            see the site — building plan, fire, pollution consent, factory, boiler, electrical, FSSAI, occupancy.
           </p>
-        </div>
+        ) : summary.visits_saved > 0 ? (
+          <div className="mb-3 rounded-xl border border-db-green/40 bg-db-green/[0.04] px-3 py-2.5">
+            <div className="font-num text-[22px] font-bold text-db-green">{summary.visits_saved} trips avoided</div>
+            <p className="mt-0.5 text-[11.5px] leading-snug text-db-muted">
+              {summary.inspections} separate inspections at {app.location} grouped into {summary.joint_visits} visits, by
+              the day the site becomes ready for each department.
+            </p>
+          </div>
+        ) : (
+          <div className="mb-3 rounded-xl border border-db-line bg-db-bg px-3 py-2.5">
+            <div className="text-[13px] font-semibold text-db-ink">No visits can be combined on this file</div>
+            <p className="mt-0.5 text-[11.5px] leading-snug text-db-muted">
+              Its {summary.inspections} inspection{summary.inspections === 1 ? "" : "s"} fall more than 7 days apart, so
+              each department travels on its own day.
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-col gap-2.5">
           {visits.map((v) => (

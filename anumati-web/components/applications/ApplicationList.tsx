@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { errorLine } from "@/lib/api/explain";
 import Link from "next/link";
 import { ArrowRight, FolderOpen } from "lucide-react";
 import { api, ApiError } from "@/lib/api/client";
@@ -25,7 +26,7 @@ export function ApplicationList() {
     api<{ data: ApplicationSummary[] }>("/v1/applications")
       .then((r) => setRows(r.data))
       .catch((e) => {
-        setError(e instanceof ApiError ? e.message : "Could not load your applications.");
+        setError(errorLine(e, "Could not load your applications."));
         setRows([]);
       });
   }, []);

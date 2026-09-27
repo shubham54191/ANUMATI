@@ -28,8 +28,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-lg font-medium",
-        "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
-        "disabled:pointer-events-none disabled:opacity-50",
+        "transition-[color,background-color,border-color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
+        "active:translate-y-px",
+        // Not pointer-events-none: a disabled button must still show its
+        // tooltip, which is where it says why it is disabled.
+        "disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0",
         VARIANTS[variant],
         SIZES[size],
         className,

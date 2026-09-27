@@ -33,7 +33,7 @@ export class ApiError extends Error {
 export function sessionToken(): string | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(SESSION_KEY);
+    const raw = window.localStorage.getItem(SESSION_KEY) ?? window.sessionStorage.getItem(SESSION_KEY);
     return raw ? ((JSON.parse(raw) as { token?: string }).token ?? null) : null;
   } catch {
     return null;

@@ -1,7 +1,7 @@
 "use client";
 import { ArrowUpRight, Clock, Timer } from "lucide-react";
 import type { ApplicationFile } from "@/types/matrix";
-import { REVIEW_META, deemedLabel, slaLabel } from "@/lib/matrix/display";
+import { REVIEW_META, deemedLabel, reviewStatus, slaLabel } from "@/lib/matrix/display";
 import { isOpen, slaRemaining } from "@/lib/matrix/engine";
 import { Label } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,17 @@ import { cn } from "@/lib/utils";
  * with no reason recorded is deemed approved, and the phase moves on.
  */
 export function SlaBoard({ app }: { app: ApplicationFile }) {
+  // The health line first; the per-desk detail underneath.
+  const running = app.reviews.filter((r) => r.state === "in_review" && !r.query_open);
+  const health = [
+    { label: "within limit", n: running.filter((r) => slaRemaining(r, app.day) > 2).length, tone: "text-db-green" },
+    { label: "near limit", n: running.filter((r) => { const l = slaRemaining(r, app.day); return l >= 0 && l <= 2; }).length, tone: "text-db-blue" },
+    { label: "overdue", n: running.filter((r) => slaRemaining(r, app.day) < 0).length, tone: "text-db-amber" },
+    { label: "paused (query)", n: app.reviews.filter((r) => r.query_open).length, tone: "text-db-amber" },
+    { label: "with Committee", n: app.reviews.filter((r) => r.state === "transferred_to_committee").length, tone: "text-db-red" },
+    { label: "waiting", n: app.reviews.filter((r) => r.state === "queued").length, tone: "text-db-muted" },
+  ].filter((h) => h.n > 0);
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-none items-center gap-2 border-b border-db-line px-4 py-2.5">
@@ -25,6 +36,22 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+        <div className="mb-3 rounded-xl border border-db-line bg-db-bg px-3 py-2.5" aria-label="SLA health">
+          <div className="text-[10.5px] font-bold tracking-[0.08em] text-db-muted">SLA HEALTH</div>
+          {health.length === 0 ? (
+            <p className="mt-1 text-[12px] text-db-muted">
+              {app.dispatched ? "Every desk has decided — no clock is running." : "No clock has started — the file is not dispatched."}
+            </p>
+          ) : (
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+              {health.map((h) => (
+                <span key={h.label} className="text-[12px] text-db-ink">
+                  <span className={cn("font-num font-bold", h.tone)}>{h.n}</span> {h.label}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="flex flex-col gap-2.5">
           {app.reviews.map((r) => {
             const meta = REVIEW_META[r.state];
@@ -51,8 +78,8 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
                   <span className="font-mono text-[11px] font-semibold tracking-[0.05em] text-db-ink">
                     {r.dept_short}
                   </span>
-                  <span className={cn("font-mono text-[9.5px] font-medium tracking-[0.06em]", meta.text)}>
-                    {meta.label}
+                  <span className={cn("font-mono text-[9.5px] font-medium tracking-[0.06em]", reviewStatus(r).text)}>
+                    {reviewStatus(r).label}
                   </span>
                 </div>
 

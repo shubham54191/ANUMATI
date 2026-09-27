@@ -24,6 +24,15 @@ const RECORD_ICON: Record<DataRecordState, typeof FileText> = {
 };
 
 /** A stable icon per record, so a card keeps its face between fetches. */
+/** What each state means for the officer — the next step, not just the word. */
+const NEXT_STEP: Record<DataRecordState, string> = {
+  idle: "Not asked yet. Fetch asks the ministry of record directly.",
+  fetching: "Waiting for the ministry's answer.",
+  verified: "Matches the application. Nothing to do.",
+  mismatch: "Disagrees with the application. Raise it in the thread or as a query — a mismatch is flagged, never an automatic rejection.",
+  unavailable: "The source did not answer. Re-fetch, or check against the uploaded document.",
+};
+
 const SHAPE = [CheckCircle2, FileText, ShieldCheck, Landmark, Building2];
 
 /**
@@ -132,6 +141,9 @@ export function DataMatrixPanel({ app }: { app: ApplicationFile }) {
 
                     <p className="mt-1.5 text-[11px] leading-snug text-db-muted">
                       Replaces: {r.replaces}
+                    </p>
+                    <p className={cn("mt-1 text-[11px] leading-snug", r.state === "mismatch" ? "text-db-red" : "text-db-faint")}>
+                      {NEXT_STEP[r.state]}
                     </p>
 
                     <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-db-line pt-2">

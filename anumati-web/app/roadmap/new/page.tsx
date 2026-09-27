@@ -1,6 +1,7 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -12,24 +13,46 @@ import { CONDITIONS, LAND_REGIMES, SECTORS, SIZE_BANDS, STAGES } from "@/lib/con
 import { LOCATIONS } from "@/lib/constants/locations";
 import { localMeta } from "@/lib/api/roadmap";
 import { APPROVALS, DEPENDENCIES } from "@/lib/data/maharashtraFood";
+import { DEFAULT_ANSWERS, decodeAnswers, encodeAnswers } from "@/lib/roadmap/setupParams";
 import { cn } from "@/lib/utils";
-
-const EMPLOYEES_BY_BAND: Record<string, number> = {
-  micro: 6,
-  small: 30,
-  medium: 72,
-  large: 130,
-};
 
 export default function NewRoadmapPage() {
   const router = useRouter();
   const meta = localMeta();
-  const [sector, setSector] = useState<string>(SECTORS[0].id);
-  const [location, setLocation] = useState<string>(LOCATIONS[0].id);
-  const [size, setSize] = useState<string>(SIZE_BANDS[2].id);
-  const [land, setLand] = useState<string>(LAND_REGIMES[0].id);
-  const [stage, setStage] = useState<string>(STAGES[0].id);
-  const [on, setOn] = useState<Record<string, boolean>>({ boiler: true });
+  const [sector, setSector] = useState<string>(DEFAULT_ANSWERS.sector);
+  const [location, setLocation] = useState<string>(DEFAULT_ANSWERS.location);
+  const [size, setSize] = useState<string>(DEFAULT_ANSWERS.size);
+  const [land, setLand] = useState<string>(DEFAULT_ANSWERS.land);
+  const [stage, setStage] = useState<string>(DEFAULT_ANSWERS.stage);
+  const [on, setOn] = useState<Record<string, boolean>>(DEFAULT_ANSWERS.on);
+  const [returning, setReturning] = useState(false);
+
+  // "Change answers" on the roadmap comes back here with the answers in the
+  // URL. Read them once, so the form opens where the applicant left it.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (![...q.keys()].length) return;
+    const a = decodeAnswers(q);
+    setSector(a.sector);
+    setLocation(a.location);
+    setSize(a.size);
+    setLand(a.land);
+    setStage(a.stage);
+    setOn(a.on);
+    setReturning(true);
+  }, []);
+
+  const generate = () => {
+    const params = encodeAnswers({
+      sector,
+      location,
+      land: land === "private" ? "private" : "midc",
+      size,
+      stage,
+      on,
+    });
+    router.push(`/roadmap/RM-4F2A81?${params.toString()}`);
+  };
 
   return (
     <AuthGate allow="applicant">
@@ -44,6 +67,10 @@ export default function NewRoadmapPage() {
             <p style={{ animationDelay: "120ms" }} className="anim-rise mb-7 max-w-[520px] text-[14.5px] leading-relaxed text-muted">
               Five answers. You get every approval you need, in the order the law requires.
             </p>
+
+            {returning ? (
+              <p className="mb-3 text-[12.5px] text-db-blue">Your earlier answers are filled in. Change what you need and generate again.</p>
+            ) : null}
 
             <div style={{ animationDelay: "180ms" }} className="anim-rise rounded border border-line bg-surface">
               {[
@@ -69,6 +96,12 @@ export default function NewRoadmapPage() {
                   />
                 </div>
               ))}
+
+              <p className="border-b border-line px-5 py-2.5 text-[12px] leading-relaxed text-muted">
+                Rule base {meta.rules_version} covers food processing in Pune district, for a new setup. Other sectors,
+                districts and stages are listed so you can see what is coming — they cannot be chosen until their rules
+                are extracted and published.
+              </p>
 
               <div className="border-b border-line bg-bg px-5 pb-3.5 pt-4">
                 <div className="mb-3 flex items-center justify-between">
@@ -107,21 +140,7 @@ export default function NewRoadmapPage() {
                 <Button
                   size="md"
                   variant="primary"
-                  onClick={() => {
-                    const employees = EMPLOYEES_BY_BAND[size] ?? 72;
-                    const params = new URLSearchParams({ employees: String(employees) });
-                    // Drives both the land-use conversion approval and which
-                    // authority sanctions the building plan.
-                    params.set("midc_land", land === "midc" ? "1" : "0");
-                    // heightM drives conditions.height (>15m) in the store, so the
-                    // slider on the next screen and this toggle stay consistent —
-                    // send a metre value, not the boolean, for that one condition.
-                    if (on.height) params.set("heightM", "20");
-                    for (const c of CONDITIONS) {
-                      if (c.id !== "height" && on[c.id]) params.set(c.id, "1");
-                    }
-                    router.push(`/roadmap/RM-4F2A81?${params.toString()}`);
-                  }}
+                  onClick={generate}
                 >
                   Generate roadmap
                   <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -174,7 +193,9 @@ export default function NewRoadmapPage() {
             <div className="rounded border border-line bg-sunk px-4 py-3.5">
               <Label className="mb-2 block text-ink">Open standard</Label>
               <p className="mb-2.5 text-xs text-muted">Published as OAGS.</p>
-              <span className="text-xs text-state-active">View the schema →</span>
+              <Link href="/standard" className="text-xs text-state-active hover:underline">
+                View the schema →
+              </Link>
             </div>
           </aside>
         </div>

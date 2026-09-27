@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 export interface Option {
   id: string;
   label: string;
+  /** false: listed but not selectable — the rule base does not cover it yet. */
+  covered?: boolean;
 }
 
 export function Select({
@@ -35,8 +37,8 @@ export function Select({
         )}
       >
         {options.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.label}
+          <option key={o.id} value={o.id} disabled={o.covered === false}>
+            {o.covered === false ? `${o.label} — not in the rule base yet` : o.label}
           </option>
         ))}
       </select>

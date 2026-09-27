@@ -60,7 +60,8 @@ interface AuthState {
   /** False until localStorage has been read — guards against a flash of the wrong view. */
   hydrated: boolean;
   hydrate: () => void;
-  signIn: (username: string, password: string) => Promise<SignInResult>;
+  /** remember=false keeps the session for this tab only (sessionStorage). */
+  signIn: (username: string, password: string, remember?: boolean) => Promise<SignInResult>;
   signInAsApplicant: () => Promise<SignInResult>;
   signOut: () => void;
 }
@@ -86,7 +87,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hydrate: () => {
     if (typeof window === "undefined") return;
     try {
-      const raw = window.localStorage.getItem(KEY);
+      const raw = window.localStorage.getItem(KEY) ?? window.sessionStorage.getItem(KEY);
       const session = raw ? (JSON.parse(raw) as Session) : null;
       // A session from the other mode is not a session in this one.
       const valid = session && Boolean(session.live) === isLive() ? session : null;
@@ -96,7 +97,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  signIn: async (username, password) => {
+  signIn: async (username, password, remember = true) => {
     const u = username.trim().toLowerCase();
     const p = password.trim();
     if (u.length === 0 || p.length === 0) {
@@ -123,7 +124,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           is_demo: pr.is_demo,
           live: true,
         };
-        persist(session);
+        persist(session, remember);
         set({ session, hydrated: true });
         return { ok: true, session };
       } catch (e) {
@@ -136,12 +137,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const lp = p.toLowerCase();
     if (u === "officer" && lp === "admin") {
-      persist(OFFICER_SESSION);
+      persist(OFFICER_SESSION, remember);
       set({ session: OFFICER_SESSION, hydrated: true });
       return { ok: true, session: OFFICER_SESSION };
     }
     if (u === "applicant" && (lp === "demo" || lp === "applicant")) {
-      persist(APPLICANT_SESSION);
+      persist(APPLICANT_SESSION, remember);
       set({ session: APPLICANT_SESSION, hydrated: true });
       return { ok: true, session: APPLICANT_SESSION };
     }
@@ -156,7 +157,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: () => {
-    if (typeof window !== "undefined") window.localStorage.removeItem(KEY);
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(KEY);
+        window.sessionStorage.removeItem(KEY);
+      } catch {
+        /* storage blocked */
+      }
+    }
     set({ session: null, hydrated: true });
   },
 }));
@@ -166,10 +174,13 @@ if (typeof window !== "undefined") {
   window.addEventListener("anumati:unauthorized", () => useAuthStore.getState().signOut());
 }
 
-function persist(session: Session) {
+function persist(session: Session, remember = true) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(session));
+    const keep = remember ? window.localStorage : window.sessionStorage;
+    const drop = remember ? window.sessionStorage : window.localStorage;
+    drop.removeItem(KEY);
+    keep.setItem(KEY, JSON.stringify(session));
   } catch {
     /* private mode — the session just does not survive a reload */
   }

@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import { isLive } from "@/lib/api/client";
 import { AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, FileWarning, Info } from "lucide-react";
 import type { Roadmap } from "@/types/roadmap";
 import type { ApprovalReadiness, Gap } from "@/types/compliance";
@@ -137,14 +139,26 @@ export function ReadinessList({ roadmap }: { roadmap: Roadmap }) {
                     );
                   })}
 
-                  <div className="flex items-center gap-2 pt-0.5">
-                    <Button onClick={() => setGrievance(r)} className="h-7 px-2.5">
-                      Raise a grievance on {r.approval_id}
-                    </Button>
-                    <span className="text-[11px] text-db-muted">
-                      Goes to the Empowered Committee, not back to the same desk.
-                    </span>
-                  </div>
+                  {isLive() ? (
+                    // Live: a grievance is about a filed desk that has stalled,
+                    // so it is raised on the application, where the server
+                    // records it and routes it to the Committee.
+                    <div className="flex items-center gap-2 pt-0.5 text-[11.5px] text-db-muted">
+                      Stuck after filing? Raise a grievance on the desk from
+                      <Link href="/applications" className="font-medium text-db-blue">
+                        My applications →
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <Button onClick={() => setGrievance(r)} className="h-7 px-2.5">
+                        Raise a grievance on {r.approval_id}
+                      </Button>
+                      <span className="text-[11px] text-db-muted">
+                        Goes to the Empowered Committee, not back to the same desk.
+                      </span>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>
