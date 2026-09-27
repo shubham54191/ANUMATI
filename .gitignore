@@ -23,3 +23,8 @@ ANUMATI_FRONTEND_ARCHITECTURE_1.md
 # System files
 .DS_Store
 Thumbs.db
+
+# Server runtime data and Python caches
+anumati-server/var/
+__pycache__/
+.pytest_cache/

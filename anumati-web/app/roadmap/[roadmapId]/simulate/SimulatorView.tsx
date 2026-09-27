@@ -1,10 +1,10 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
+import { downloadText, today } from "@/lib/utils/download";
 import { Label } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LeverRow } from "@/components/simulator/LeverRow";
@@ -35,6 +35,11 @@ export function SimulatorView({ roadmapId }: { roadmapId: string }) {
   const best = legal[0];
   const refused = impacts.find((i) => i.illegal);
 
+  /**
+   * Recomputed with every chosen lever applied at once — NOT the sum of the
+   * individual savings. Two levers on the same node do not add up, and a
+   * simulator that pretends they do will overstate the reform on stage.
+   */
   const total = useMemo(
     () => totalWithMany(roadmap, impacts.filter((i) => chosen.includes(i.lever.id)).map((i) => i.lever)),
     [roadmap, impacts, chosen],
@@ -43,17 +48,61 @@ export function SimulatorView({ roadmapId }: { roadmapId: string }) {
   const shownTotal = useCountUp(total, 620);
   const shownSaved = useCountUp(saved, 620);
 
-  const searchParams = useSearchParams();
-  useEffect(() => {
-    if (searchParams.get("role") === "department" || viewMode !== "department") {
-      setViewMode("department");
+  /**
+   * The reform brief. Everything in it is already on screen — the levers the
+   * officer picked, what the engine says they do, and the ones it refused —
+   * so the export is a transcript of this page, not a new claim.
+   */
+  const exportBrief = () => {
+    const picked = impacts.filter((i) => chosen.includes(i.lever.id));
+    const refusedAll = impacts.filter((i) => i.illegal);
+    const lines = [
+      `# ANUMATI — reform brief`,
+      ``,
+      `Roadmap: ${roadmapId}`,
+      `Generated: ${today()}`,
+      `Rules: ${meta.rules_version} · engine ${meta.engine_version}`,
+      ``,
+      `## Effect`,
+      ``,
+      `| | Days |`,
+      `|---|---|`,
+      `| Baseline critical path | ${baseline} |`,
+      `| With the selected reforms | ${total} |`,
+      `| Saved | ${saved} |`,
+      ``,
+      `Modelled, not measured: these are notified time limits, not observed outcomes.`,
+      ``,
+      `## Reforms selected (${picked.length})`,
+      ``,
+    ];
+    if (picked.length === 0) {
+      lines.push(`None selected.`, ``);
+    } else {
+      for (const i of picked) {
+        lines.push(`### ${i.lever.label}`, ``, i.lever.rationale, ``);
+        if (i.days_saved !== null) lines.push(`Alone, this lever saves ${i.days_saved} days.`, ``);
+      }
     }
-  }, [searchParams, viewMode, setViewMode]);
+    if (refusedAll.length > 0) {
+      lines.push(`## Refused by the engine (${refusedAll.length})`, ``);
+      for (const i of refusedAll) {
+        lines.push(`- **${i.lever.label}** — ${i.reason ?? "statutory dependency; not reformable here"}`);
+      }
+      lines.push(``);
+    }
+    lines.push(
+      `A statutory dependency cannot be cut by a simulator. Only practice-based edges are`,
+      `removable, and the engine refuses the rest rather than quietly counting them.`,
+      ``,
+    );
+    downloadText(`anumati-reform-brief-${roadmapId}-${today()}.md`, lines.join("\n"), "text/markdown");
+  };
 
   const toggle = (id: string) =>
     setChosen((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
-  if (viewMode !== "department" && searchParams.get("role") !== "department") {
+  if (viewMode !== "department") {
     return (
       <AppShell active="roadmap" meta={meta}>
         <main className="flex flex-1 items-center justify-center">
@@ -87,7 +136,7 @@ export function SimulatorView({ roadmapId }: { roadmapId: string }) {
         <Link href={`/roadmap/${roadmapId}`} className="no-underline">
           <Button>Back to roadmap</Button>
         </Link>
-        <Button variant="primary">
+        <Button variant="primary" onClick={exportBrief} title="Download this simulation as a markdown brief">
           <Download className="h-3 w-3" strokeWidth={1.4} />
           Export brief
         </Button>

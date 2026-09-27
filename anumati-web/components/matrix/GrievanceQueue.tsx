@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
 const STATUS_META: Record<Grievance["status"], { label: string; text: string; border: string }> = {
-  open: { label: "OPEN", text: "text-critical", border: "border-critical/45" },
-  acknowledged: { label: "ACKNOWLEDGED", text: "text-state-deemed-ink", border: "border-state-deemed/45" },
-  resolved: { label: "RESOLVED", text: "text-state-done-ink", border: "border-state-done/45" },
+  open: { label: "OPEN", text: "text-db-red", border: "border-db-red/45" },
+  acknowledged: { label: "ACKNOWLEDGED", text: "text-db-amber", border: "border-db-amber/45" },
+  resolved: { label: "RESOLVED", text: "text-db-green", border: "border-db-green/45" },
 };
 
 /**
@@ -31,14 +31,14 @@ export function GrievanceQueue() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-none items-center gap-2 border-b border-line px-4 py-2.5">
-        <Scale className="h-3.5 w-3.5 text-accent" strokeWidth={1.6} />
+      <div className="flex flex-none items-center gap-2 border-b border-db-line px-4 py-2.5">
+        <Scale className="h-3.5 w-3.5 text-db-blue" strokeWidth={1.6} />
         <Label>Grievances</Label>
         <div className="flex-1" />
         <span
           className={cn(
             "font-mono text-[10.5px]",
-            open > 0 ? "font-medium text-critical" : "text-faint",
+            open > 0 ? "font-medium text-db-red" : "text-db-faint",
           )}
         >
           {open} open · {all.length} total
@@ -47,7 +47,7 @@ export function GrievanceQueue() {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
         {all.length === 0 ? (
-          <p className="text-[12px] leading-relaxed text-muted">
+          <p className="text-[12px] leading-relaxed text-db-muted">
             Nothing on the queue. An applicant raises one from the pre-check screen when a file has
             gone past its limit with no written query.
           </p>
@@ -58,22 +58,22 @@ export function GrievanceQueue() {
             const meta = STATUS_META[g.status];
             const mine = filed.some((f) => f.id === g.id);
             return (
-              <div key={g.id} className={cn("rounded border bg-surface px-3 py-2.5", meta.border)}>
+              <div key={g.id} className={cn("rounded-xl border bg-surface px-3 py-2.5", meta.border)}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[10.5px] font-semibold text-ink">
+                  <span className="font-mono text-[10.5px] font-semibold text-db-ink">
                     {g.id} · {g.approval_id} · {g.department_short}
                   </span>
                   <span className={cn("font-mono text-[9.5px] font-medium tracking-[0.06em]", meta.text)}>
                     {meta.label}
                   </span>
                 </div>
-                <div className="mt-0.5 text-[12px] font-medium text-ink">{g.approval_name}</div>
-                <p className="mt-1 text-[11.5px] leading-snug text-ink">{g.reason}</p>
-                <p className="mt-1 font-mono text-[10px] text-faint">
+                <div className="mt-0.5 text-[12px] font-medium text-db-ink">{g.approval_name}</div>
+                <p className="mt-1 text-[11.5px] leading-snug text-db-ink">{g.reason}</p>
+                <p className="mt-1 font-mono text-[10px] text-db-faint">
                   {g.applicant} · raised {g.raised_on} · {g.days_pending} d pending
                   {mine ? " · RAISED IN THIS SESSION" : ""}
                 </p>
-                <p className="mt-1 font-mono text-[10px] leading-snug text-muted">{g.authority}</p>
+                <p className="mt-1 font-mono text-[10px] leading-snug text-db-muted">{g.authority}</p>
 
                 {mine && g.status !== "resolved" ? (
                   <div className="mt-2 flex gap-2">

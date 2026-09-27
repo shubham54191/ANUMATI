@@ -30,11 +30,11 @@ export function Dialog({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative w-full max-w-lg rounded border border-line bg-surface shadow-panel"
+        className="relative w-full max-w-lg rounded-xl border border-db-line bg-surface shadow-panel"
       >
-        <div className="flex items-center justify-between border-b border-line px-5 py-4">
-          <h2 className="font-serif text-[19px] font-medium text-ink">{title}</h2>
-          <button onClick={onClose} aria-label="Close" className="text-muted hover:text-ink">
+        <div className="flex items-center justify-between border-b border-db-line px-5 py-4">
+          <h2 className="text-[19px] font-bold text-db-ink">{title}</h2>
+          <button onClick={onClose} aria-label="Close" className="text-db-muted hover:text-db-ink">
             <X className="h-4 w-4" strokeWidth={1.5} />
           </button>
         </div>

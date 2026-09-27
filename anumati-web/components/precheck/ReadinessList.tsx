@@ -34,70 +34,70 @@ export function ReadinessList({ roadmap }: { roadmap: Roadmap }) {
   const [grievance, setGrievance] = useState<ApprovalReadiness | null>(null);
 
   return (
-    <section className="rounded border border-line bg-surface">
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2.5">
+    <section className="rounded-xl border border-db-line bg-surface">
+      <div className="flex flex-wrap items-center gap-3 border-b border-db-line px-4 py-2.5">
         <Label>Pre-submission check</Label>
-        <span className="text-[12px] text-muted">
+        <span className="text-[12px] text-db-muted">
           Run against the dossier you hold today. Nothing is sent to a department.
         </span>
         <div className="flex-1" />
         <span className="font-num font-mono text-[11.5px]">
-          <span className="font-semibold text-critical">{summary.blocked}</span>
-          <span className="text-muted"> of {summary.total} would be turned away</span>
+          <span className="font-semibold text-db-red">{summary.blocked}</span>
+          <span className="text-db-muted"> of {summary.total} would be turned away</span>
         </span>
       </div>
 
       <div className="grid grid-cols-2 gap-2.5 px-4 py-3 sm:grid-cols-4">
         {[
-          ["Ready to file", summary.ready, "text-state-done-ink"],
-          ["Would be refused", summary.blocked, "text-critical"],
-          ["Blocking gaps", summary.blocking_gaps, "text-critical"],
-          ["Advisory notes", summary.advisory_gaps, "text-muted"],
+          ["Ready to file", summary.ready, "text-db-green"],
+          ["Would be refused", summary.blocked, "text-db-red"],
+          ["Blocking gaps", summary.blocking_gaps, "text-db-red"],
+          ["Advisory notes", summary.advisory_gaps, "text-db-muted"],
         ].map(([label, value, tone]) => (
-          <div key={label as string} className="rounded border border-line bg-bg px-3 py-2">
+          <div key={label as string} className="rounded-xl border border-db-line bg-bg px-3 py-2">
             <Label className="mb-0.5 block">{label as string}</Label>
-            <span className={cn("font-num font-serif text-[22px] font-medium", tone as string)}>
+            <span className={cn("font-num text-[22px] font-bold", tone as string)}>
               {value as number}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="border-t border-line">
+      <div className="border-t border-db-line">
         {rows.map((r) => {
           const open = openId === r.approval_id;
           return (
-            <div key={r.approval_id} className="border-b border-line last:border-b-0">
+            <div key={r.approval_id} className="border-b border-db-line last:border-b-0">
               <button
                 onClick={() => setOpenId(open ? null : r.approval_id)}
                 aria-expanded={open}
                 className={cn(
-                  "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-sunk",
+                  "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-db-bg",
                   !r.ready && "shadow-[inset_3px_0_0_var(--critical)]",
                 )}
               >
                 {r.gaps.length > 0 ? (
                   open ? (
-                    <ChevronDown className="h-3 w-3 flex-none text-muted" strokeWidth={1.6} />
+                    <ChevronDown className="h-3 w-3 flex-none text-db-muted" strokeWidth={1.6} />
                   ) : (
-                    <ChevronRight className="h-3 w-3 flex-none text-muted" strokeWidth={1.6} />
+                    <ChevronRight className="h-3 w-3 flex-none text-db-muted" strokeWidth={1.6} />
                   )
                 ) : (
-                  <CheckCircle2 className="h-3 w-3 flex-none text-state-done-ink" strokeWidth={1.7} />
+                  <CheckCircle2 className="h-3 w-3 flex-none text-db-green" strokeWidth={1.7} />
                 )}
 
-                <span className="font-mono text-[11px] font-semibold text-ink">{r.approval_id}</span>
-                <span className="min-w-0 flex-1 truncate text-[12.5px] text-ink">{r.name}</span>
-                <span className="hidden font-mono text-[10.5px] text-faint md:inline">
+                <span className="font-mono text-[11px] font-semibold text-db-ink">{r.approval_id}</span>
+                <span className="min-w-0 flex-1 truncate text-[12.5px] text-db-ink">{r.name}</span>
+                <span className="hidden font-mono text-[10.5px] text-db-faint md:inline">
                   {r.department_short}
                 </span>
-                <span className="font-num font-mono text-[10.5px] text-faint">
+                <span className="font-num font-mono text-[10.5px] text-db-faint">
                   filable d{r.filable_on_day}
                 </span>
                 <span
                   className={cn(
                     "w-[92px] flex-none text-right font-mono text-[10px] font-medium tracking-[0.05em]",
-                    r.ready ? "text-state-done-ink" : "text-critical",
+                    r.ready ? "text-db-green" : "text-db-red",
                   )}
                 >
                   {r.ready ? "READY" : `${r.gaps.filter((g) => g.blocking).length} BLOCKING`}
@@ -112,27 +112,27 @@ export function ReadinessList({ roadmap }: { roadmap: Roadmap }) {
                       <div
                         key={i}
                         className={cn(
-                          "rounded border px-3 py-2",
-                          g.blocking ? "border-critical/40 bg-critical/[0.04]" : "border-line bg-surface",
+                          "rounded-xl border px-3 py-2",
+                          g.blocking ? "border-db-red/40 bg-db-red/[0.04]" : "border-db-line bg-surface",
                         )}
                       >
                         <span className="flex items-center gap-1.5">
                           <meta.Icon
-                            className={cn("h-3 w-3", g.blocking ? "text-critical" : "text-muted")}
+                            className={cn("h-3 w-3", g.blocking ? "text-db-red" : "text-db-muted")}
                             strokeWidth={1.7}
                           />
                           <span
                             className={cn(
                               "font-mono text-[9.5px] font-medium tracking-[0.06em]",
-                              g.blocking ? "text-critical" : "text-muted",
+                              g.blocking ? "text-db-red" : "text-db-muted",
                             )}
                           >
                             {meta.label}
                             {g.blocking ? "" : " · ADVISORY"}
                           </span>
                         </span>
-                        <p className="mt-1 text-[12.5px] leading-snug text-ink">{g.detail}</p>
-                        <p className="mt-0.5 text-[11.5px] leading-snug text-muted">{g.remedy}</p>
+                        <p className="mt-1 text-[12.5px] leading-snug text-db-ink">{g.detail}</p>
+                        <p className="mt-0.5 text-[11.5px] leading-snug text-db-muted">{g.remedy}</p>
                       </div>
                     );
                   })}
@@ -141,7 +141,7 @@ export function ReadinessList({ roadmap }: { roadmap: Roadmap }) {
                     <Button onClick={() => setGrievance(r)} className="h-7 px-2.5">
                       Raise a grievance on {r.approval_id}
                     </Button>
-                    <span className="text-[11px] text-muted">
+                    <span className="text-[11px] text-db-muted">
                       Goes to the Empowered Committee, not back to the same desk.
                     </span>
                   </div>

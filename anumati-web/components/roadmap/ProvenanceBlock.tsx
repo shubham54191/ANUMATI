@@ -4,13 +4,13 @@ import { Label } from "@/components/ui/Card";
 
 export function ProvenanceBlock({ approval }: { approval: Approval }) {
   return (
-    <div className="flex-1 border-b border-line bg-sunk px-[18px] py-3.5">
+    <div className="flex-1 border-b border-db-line bg-db-bg px-[18px] py-3.5">
       <div className="mb-2.5 flex items-center gap-1.5">
-        <FileText className="h-3 w-3 text-ink" strokeWidth={1.3} />
-        <Label className="text-ink">Source</Label>
+        <FileText className="h-3 w-3 text-db-ink" strokeWidth={1.3} />
+        <Label className="text-db-ink">Source</Label>
       </div>
 
-      <div className="mb-2.5 text-[12.5px] leading-relaxed text-ink">
+      <div className="mb-2.5 text-[12.5px] leading-relaxed text-db-ink">
         {approval.source.document_id.replace(/-/g, " ")} —{" "}
         <span className="font-mono text-xs">{approval.source.section}</span>
       </div>
@@ -18,17 +18,17 @@ export function ProvenanceBlock({ approval }: { approval: Approval }) {
       <div className="mb-2.5 flex gap-6">
         <div>
           <Label className="mb-0.5 block text-[9px]">Effective from</Label>
-          <div className="font-num font-mono text-[11.5px] text-ink">
+          <div className="font-num font-mono text-[11.5px] text-db-ink">
             {approval.source.effective_from}
           </div>
         </div>
         <div>
           <Label className="mb-0.5 block text-[9px]">Rule version</Label>
-          <div className="font-mono text-[11.5px] text-ink">{approval.version}</div>
+          <div className="font-mono text-[11.5px] text-db-ink">{approval.version}</div>
         </div>
         <div>
           <Label className="mb-0.5 block text-[9px]">Confidence</Label>
-          <div className="font-num font-mono text-[11.5px] font-medium text-state-done-ink">
+          <div className="font-num font-mono text-[11.5px] font-medium text-db-green">
             {approval.confidence.toFixed(2)} {approval.verified_by ? "read" : "extracted"}
           </div>
         </div>
@@ -45,13 +45,13 @@ export function ProvenanceBlock({ approval }: { approval: Approval }) {
       </a>
 
       {approval.verified_by ? (
-        <div className="text-[11.5px] text-muted">
-          Read from the bare act by <span className="text-ink">{approval.verified_by}</span> on{" "}
+        <div className="text-[11.5px] text-db-muted">
+          Read from the bare act by <span className="text-db-ink">{approval.verified_by}</span> on{" "}
           <span className="font-mono text-[11px]">{approval.verified_on}</span>. Departmental
           officer review still pending.
         </div>
       ) : (
-        <div className="text-[11.5px] text-muted">
+        <div className="text-[11.5px] text-db-muted">
           Extracted, not yet verified by a reviewer.
         </div>
       )}

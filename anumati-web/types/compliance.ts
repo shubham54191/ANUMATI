@@ -17,6 +17,8 @@ export interface Gap {
   blocking: boolean;
   /** Where the applicant fixes it. */
   remedy: string;
+  /** For a missing document: the document's name, as the dossier records it. */
+  document?: string;
 }
 
 export interface ApprovalReadiness {
@@ -27,6 +29,13 @@ export interface ApprovalReadiness {
   filable_on_day: number;
   gaps: Gap[];
   ready: boolean;
+  /**
+   * True when nothing this approval waits on is still to be issued — it is in
+   * the wave being filed now. A later-wave approval is *expected* to wait for
+   * its prerequisites; that is sequencing, not a defect in the file, so it
+   * never blocks submission.
+   */
+  in_current_wave: boolean;
 }
 
 /** One physical fact, as written on each department's form. */

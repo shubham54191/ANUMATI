@@ -1,7 +1,7 @@
 "use client";
 import { ArrowUpRight, CheckCircle2, CircleDot, FileText, Gavel, ShieldAlert, TriangleAlert, XCircle } from "lucide-react";
 import type { ApplicationFile, DeptReview, DerivedMatrixState, ReviewState } from "@/types/matrix";
-import { REVIEW_META, slaFraction, slaLabel } from "@/lib/matrix/display";
+import { REVIEW_META, isOverdue, slaFraction, slaLabel } from "@/lib/matrix/display";
 import { Explain } from "@/components/ui/Explain";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +43,7 @@ function DeptNode({ review, day, delay }: { review: DeptReview; day: number; del
   const meta = REVIEW_META[review.state];
   const Icon = STATE_ICON[review.state];
   const fraction = slaFraction(review, day);
-  const overdue = review.decided_on_day === null && review.sla_days - day < 0;
+  const overdue = isOverdue(review, day);
 
   return (
     <div
@@ -99,7 +99,7 @@ function DeptNode({ review, day, delay }: { review: DeptReview; day: number; del
               overdue ? "font-semibold text-db-amber" : "text-db-faint",
             )}
           >
-            {slaLabel(review, day)} · {review.sla_days} d
+            {slaLabel(review, day)}
           </span>
         </div>
       </div>

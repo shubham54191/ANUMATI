@@ -25,19 +25,19 @@ export function AuthorityLine({
     <div className={cn("flex flex-col gap-1.5", className)}>
       <div className="flex items-start gap-2">
         {draft ? (
-          <FlaskConical className="mt-0.5 h-3 w-3 flex-none text-accent-secondary" strokeWidth={1.7} />
+          <FlaskConical className="mt-0.5 h-3 w-3 flex-none text-db-amber" strokeWidth={1.7} />
         ) : (
-          <BookMarked className="mt-0.5 h-3 w-3 flex-none text-muted" strokeWidth={1.6} />
+          <BookMarked className="mt-0.5 h-3 w-3 flex-none text-db-muted" strokeWidth={1.6} />
         )}
-        <span className="text-[11.5px] leading-snug text-muted">
+        <span className="text-[11.5px] leading-snug text-db-muted">
           {rule.authority} — <span className="font-mono">{rule.authority_section}</span>
         </span>
         <span
           className={cn(
-            "ml-auto flex-none rounded-sm border px-1.5 py-px font-mono text-[9.5px] font-medium tracking-[0.06em]",
+            "ml-auto flex-none rounded-lg border px-1.5 py-px font-mono text-[9.5px] font-medium tracking-[0.06em]",
             draft
-              ? "border-accent-secondary/50 bg-accent-secondary/[0.08] text-accent-secondary"
-              : "border-state-done/50 bg-state-done/[0.07] text-state-done-ink",
+              ? "border-db-blue-secondary/50 bg-db-blue-secondary/[0.08] text-db-amber"
+              : "border-db-green/50 bg-db-green/[0.07] text-db-green",
           )}
         >
           {draft ? "DRAFT — NOT NOTIFIED" : "IN FORCE"}
@@ -45,7 +45,7 @@ export function AuthorityLine({
       </div>
 
       {draft && rule.authority_note ? (
-        <p className="pl-5 text-[11px] leading-snug text-faint">{rule.authority_note}</p>
+        <p className="pl-5 text-[11px] leading-snug text-db-faint">{rule.authority_note}</p>
       ) : null}
     </div>
   );

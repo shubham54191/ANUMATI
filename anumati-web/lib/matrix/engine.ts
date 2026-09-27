@@ -18,7 +18,16 @@ import type {
  */
 
 let seq = 0;
-const uid = (prefix: string) => `${prefix}-${(seq += 1).toString(36)}${Date.now().toString(36).slice(-4)}`;
+/**
+ * Ids have to be unique across processes once the same functions run on the
+ * server as well as in the browser. `randomUUID` is there in Node and in any
+ * secure browser context; the counter is the fallback for plain-http previews.
+ */
+const uid = (prefix: string) => {
+  const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
+  if (c?.randomUUID) return `${prefix}-${c.randomUUID().slice(0, 12)}`;
+  return `${prefix}-${(seq += 1).toString(36)}${Date.now().toString(36).slice(-4)}`;
+};
 
 /** Clock text for a stamp. Seconds matter — that is what makes a clash simultaneous. */
 export const clockOf = (iso: string) => iso.slice(11, 19);
@@ -34,9 +43,28 @@ export const isOpen = (r: DeptReview) =>
   // Committee's — and still has to be decided under the relevant law.
   r.state === "transferred_to_committee";
 
+/**
+ * Days this desk's clock has actually run: from the day it received the file,
+ * less any days a query of its own sat with the applicant. Two desks on the
+ * same file can therefore be on very different clocks, which is the point —
+ * a second-wave approval is not overdue because the first wave was slow.
+ */
+export function elapsedDays(review: DeptReview, day: number): number {
+  return Math.max(0, day - (review.dispatched_on_day ?? 0) - (review.paused_days ?? 0));
+}
+
 /** Days left before this department breaches its window. Negative = overdue. */
 export function slaRemaining(review: DeptReview, day: number): number {
-  return review.sla_days - day;
+  return review.sla_days - elapsedDays(review, day);
+}
+
+/**
+ * Days left on the parent Act's own deeming clause, where it has one.
+ * A different number from the service limit, and a different consequence.
+ */
+export function deemedRemaining(review: DeptReview, day: number): number | null {
+  if (!review.deemed_exists || review.deemed_days === null) return null;
+  return review.deemed_days - elapsedDays(review, day);
 }
 
 export function event(
@@ -65,7 +93,13 @@ function withEvents(app: ApplicationFile, events: TimelineEvent[]): ApplicationF
 export function dispatch(app: ApplicationFile): ApplicationFile {
   if (app.dispatched) return app;
   const at = new Date().toISOString();
-  const reviews = app.reviews.map((r) => ({ ...r, state: "in_review" as ReviewState }));
+  const reviews = app.reviews.map((r) => ({
+    ...r,
+    state: "in_review" as ReviewState,
+    dispatched_on_day: r.dispatched_on_day ?? app.day,
+    paused_days: r.paused_days ?? 0,
+    query_open: false,
+  }));
   const ev = [
     event(
       app,
@@ -112,6 +146,7 @@ export function decide(app: ApplicationFile, inputs: DecisionInput[]): Applicati
       decided_at: at,
       score: input.score ?? r.score,
       remarks: input.remarks ?? r.remarks,
+      query_open: false,
     };
   });
 
@@ -244,10 +279,25 @@ function tick(app: ApplicationFile): ApplicationFile {
   const stamped = { ...app, day };
 
   const reviews = app.reviews.map((r) => {
-    if (!isOpen(r) || !app.dispatched) return r;
-    const left = r.sla_days - day;
+    // A queued desk has not received the file yet, so it runs no clock. A
+    // transferred desk has lost the power to decide (s. 5(2)), but the parent
+    // Act's own deeming period is the statute's consequence, not the desk's,
+    // and keeps running — pilot reading, flagged for the Industries
+    // Department to confirm.
+    const holding = r.state === "in_review";
+    const transferred = r.state === "transferred_to_committee";
+    if ((!holding && !transferred) || !app.dispatched) return r;
 
-    if (left === 2) {
+    // A query with the applicant stops this desk's clock, and only this one.
+    // Pilot rule — confirm against the time limits notified under s. 18.
+    if (holding && r.query_open) {
+      return { ...r, paused_days: (r.paused_days ?? 0) + 1 };
+    }
+
+    const elapsed = elapsedDays(r, day);
+    const left = r.sla_days - elapsed;
+
+    if (holding && left === 2) {
       events.push(
         event(
           stamped,
@@ -262,7 +312,7 @@ function tick(app: ApplicationFile): ApplicationFile {
     }
 
     // The parent law's own deeming clause, where the statute actually has one.
-    if (r.deemed_exists && r.deemed_days !== null && day > r.deemed_days) {
+    if (r.deemed_exists && r.deemed_days !== null && elapsed > r.deemed_days) {
       events.push(
         event(
           stamped,
@@ -288,7 +338,7 @@ function tick(app: ApplicationFile): ApplicationFile {
     // disposes of it under the same sectoral law the department would have
     // applied. Nothing is waved through, and nobody gains a power they did
     // not already have.
-    if (left < 0 && r.escalated_on_day === null) {
+    if (holding && left < 0 && r.escalated_on_day === null) {
       events.push(
         event(
           stamped,
@@ -324,7 +374,9 @@ export function derive(app: ApplicationFile): DerivedMatrixState {
   const pending = app.reviews.filter(isOpen);
   const escalated = app.reviews.filter((r) => r.escalated_on_day !== null && isOpen(r));
   const transferred = app.reviews.filter((r) => r.state === "transferred_to_committee");
-  const breachedSla = app.reviews.filter((r) => isOpen(r) && r.sla_days - app.day < 0);
+  const breachedSla = app.reviews.filter(
+    (r) => r.state === "in_review" && app.dispatched && slaRemaining(r, app.day) < 0,
+  );
 
   const clearedCount = approved.length + deemed.length;
   const conflict = rejected.length > 0 && clearedCount > 0;
@@ -701,4 +753,191 @@ export function verifyParameters(app: ApplicationFile, deptId: string): Applicat
       },
     ],
   };
+}
+
+// ---------------------------------------------------------------------------
+// Queries — the one thing that may stop a desk's clock
+// ---------------------------------------------------------------------------
+
+/**
+ * A department asks the applicant something it needs to decide. Its own clock
+ * stops until the answer arrives; every other desk on the file keeps running.
+ */
+export function raiseQuery(
+  app: ApplicationFile,
+  deptId: string,
+  body: string,
+): ApplicationFile {
+  const r = app.reviews.find((x) => x.dept_id === deptId);
+  if (!r || r.state !== "in_review" || r.query_open) return app;
+  const at = new Date().toISOString();
+  const reviews = app.reviews.map((x) => (x.dept_id === deptId ? { ...x, query_open: true } : x));
+  const withMsg = postMessage(
+    { ...app, reviews },
+    {
+      author: r.officer_name,
+      author_short: r.dept_short,
+      role: "department",
+      dept_id: r.dept_id,
+      body: `Query: ${body}`,
+    },
+  );
+  return withEvents(withMsg, [
+    event(
+      app,
+      "query",
+      `${r.dept_short} · ${r.officer_name}`,
+      `${r.dept_short} raised a query on ${r.approval_id}. Its clock is paused until the applicant answers — ${body}`,
+      "Pilot rule — time with the applicant does not count against the department",
+      at,
+    ),
+  ]);
+}
+
+/** The applicant's answer restarts that desk's clock where it stopped. */
+export function answerQuery(
+  app: ApplicationFile,
+  deptId: string,
+  body: string,
+  author = "Applicant",
+): ApplicationFile {
+  const r = app.reviews.find((x) => x.dept_id === deptId);
+  if (!r || !r.query_open) return app;
+  const at = new Date().toISOString();
+  const reviews = app.reviews.map((x) => (x.dept_id === deptId ? { ...x, query_open: false } : x));
+  const withMsg = postMessage(
+    { ...app, reviews },
+    { author, author_short: "APPLICANT", role: "applicant", dept_id: null, body },
+  );
+  return withEvents(withMsg, [
+    event(
+      app,
+      "query",
+      author,
+      `Applicant answered ${r.dept_short}'s query on ${r.approval_id}. ${r.dept_short}'s clock resumes with ${slaRemaining(r, app.day)} day(s) left.`,
+      undefined,
+      at,
+    ),
+  ]);
+}
+
+// ---------------------------------------------------------------------------
+// Waves — releasing approvals whose prerequisites have just been issued
+// ---------------------------------------------------------------------------
+
+/**
+ * Put the next wave of desks on the file. Each starts its own clock today; a
+ * second-wave approval is never overdue on the first wave's account.
+ */
+export function dispatchWave(app: ApplicationFile, desks: DeptReview[]): ApplicationFile {
+  const fresh = desks.filter((d) => !app.reviews.some((r) => r.approval_id === d.approval_id));
+  if (fresh.length === 0) return app;
+  const at = new Date().toISOString();
+  const released = fresh.map((d) => ({
+    ...d,
+    state: "in_review" as ReviewState,
+    dispatched_on_day: app.day,
+    paused_days: 0,
+    query_open: false,
+    decided_on_day: null,
+    decided_at: null,
+    escalated_on_day: null,
+  }));
+  return withEvents(
+    { ...app, dispatched: true, reviews: [...app.reviews, ...released], resolution: null },
+    [
+      event(
+        app,
+        "dispatch",
+        "Matrix 2.0",
+        `Next wave released to ${released.length} department(s) — ${released
+          .map((r) => `${r.dept_short} (${r.approval_id})`)
+          .join(", ")}. Their prerequisites are now issued; each clock starts today.`,
+        undefined,
+        at,
+      ),
+    ],
+  );
+}
+
+// ---------------------------------------------------------------------------
+// After a transfer, and after a return — the two ways a file comes back
+// ---------------------------------------------------------------------------
+
+/**
+ * The Empowered Committee disposes of a desk it took over under s. 5. It
+ * decides under the same sectoral law the department would have applied
+ * (s. 5(3)) — this records that decision, it grants no new power.
+ */
+export function committeeDecide(
+  app: ApplicationFile,
+  deptId: string,
+  outcome: "approved" | "rejected",
+  by: string,
+  note: string,
+): ApplicationFile {
+  const r = app.reviews.find((x) => x.dept_id === deptId);
+  if (!r || r.state !== "transferred_to_committee") return app;
+  const at = new Date().toISOString();
+  const reviews = app.reviews.map((x) =>
+    x.dept_id === deptId
+      ? {
+          ...x,
+          state: outcome as ReviewState,
+          decided_on_day: app.day,
+          decided_at: at,
+          remarks: `Decided by ${by} under the relevant law. ${note}`,
+        }
+      : x,
+  );
+  return applyMatrix(
+    withEvents({ ...app, reviews }, [
+      event(
+        app,
+        "resolution",
+        by,
+        `${r.approval_id} (${r.dept_short}, transferred on day ${r.escalated_on_day ?? "?"}) ${outcome} by the Committee. ${note}`,
+        "MAITRI Act, 2023 — s. 5(3); decisions binding under s. 9",
+        at,
+      ),
+    ]),
+  );
+}
+
+/**
+ * The applicant answers a revision packet. Rejected desks take the file back
+ * and start a fresh clock; clearances already granted stay granted.
+ */
+export function resubmit(app: ApplicationFile, note: string): ApplicationFile {
+  if (!app.resolution || app.resolution.kind !== "sent_for_revision") return app;
+  const at = new Date().toISOString();
+  const reopened = app.reviews.filter((r) => r.state === "rejected");
+  const reviews = app.reviews.map((r) =>
+    r.state === "rejected"
+      ? {
+          ...r,
+          state: "in_review" as ReviewState,
+          dispatched_on_day: app.day,
+          paused_days: 0,
+          query_open: false,
+          decided_on_day: null,
+          decided_at: null,
+          escalated_on_day: null,
+          remarks: `Resubmitted — ${note}`,
+        }
+      : r,
+  );
+  return withEvents(
+    { ...app, reviews, resolution: null, tie_breaker_open: false },
+    [
+      event(
+        app,
+        "dispatch",
+        app.applicant,
+        `Revised file resubmitted to ${reopened.map((r) => r.dept_short).join(", ")}. Clearances already granted are carried forward. ${note}`,
+        undefined,
+        at,
+      ),
+    ],
+  );
 }

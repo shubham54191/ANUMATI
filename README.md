@@ -59,7 +59,7 @@ An interactive visual canvas mapping all required clearances.
 ---
 
 ### 3. Department View: Statutory Register & Pre-Establishment / Pre-Operation Checklist
-The facilitation officer's working ledger. Organised by standard industrial phases (**Pre-Establishment** and **Pre-Operation**), complete with legal citations, filing windows, statutory SLAs, and RTS deemed approval periods. Features one-click **Printable A4 Audit Sheet** generation for district offices.
+The facilitation officer's working ledger. Organised by standard industrial phases (**Pre-Establishment** and **Pre-Operation**), complete with legal citations, filing windows, statutory SLAs, and the deemed-approval clauses that actually exist in the parent Acts. The RTS Act 2015 is not one of them: it gives an appeal and a penalty on the officer, not a deemed approval, so an SLA breach here transfers the file to the Empowered Committee under MAITRI Act 2023 s. 5. Features one-click **Printable A4 Audit Sheet** generation for district offices.
 
 ![Officer Checklist Register](screenshots/03-officer-checklist-register.png)
 
@@ -538,6 +538,20 @@ Our vision is to transform ANUMATI from an award-winning prototype into an insti
 ---
 
 ## Quickstart & Local Setup
+
+### Full stack (web + API + worker + PostgreSQL)
+
+```bash
+cp .env.example .env          # set JWT_SECRET: openssl rand -hex 32
+docker compose up --build     # web :3000 · API :4000
+```
+
+Sign in as `applicant`/`demo`, `officer`/`admin`, a department desk (`mpcb`, `midc`, `fire`, … / `demo`),
+`committee`/`demo` or `reviewer`/`demo`. The badge on every screen says what is live and what is recorded:
+government systems answer from recordings and signatures use a labelled demo key until real credentials
+and DSCs are configured. Details: [`anumati-server/README.md`](anumati-server/README.md).
+
+### Offline demo (browser only)
 
 The repository is configured to run out-of-the-box using the embedded regulatory rule base in `lib/data/`. No external database or Python server is required for frontend evaluation.
 

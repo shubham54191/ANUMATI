@@ -44,6 +44,7 @@ export function readinessFor(
       detail: `${doc} is on ${approval.department_short}'s list and is not in the dossier.`,
       blocking: true,
       remedy: "Add the document — no approval on this roadmap issues it for you.",
+      document: doc,
     });
   }
 
@@ -80,6 +81,7 @@ export function readinessFor(
     });
   }
 
+  const waiting = gaps.some((g) => g.kind === "prerequisite_pending" && g.blocking);
   return {
     approval_id: approvalId,
     name: approval.name,
@@ -87,6 +89,7 @@ export function readinessFor(
     filable_on_day: filable,
     gaps,
     ready: gaps.every((g) => !g.blocking),
+    in_current_wave: !waiting,
   };
 }
 
@@ -99,11 +102,34 @@ export function prevalidate(roadmap: Roadmap, dossier: Dossier): ApprovalReadine
 /** The headline an applicant actually cares about. */
 export function prevalidationSummary(rows: ApprovalReadiness[]) {
   const blocked = rows.filter((r) => !r.ready);
+  const wave = rows.filter((r) => r.in_current_wave);
+  const waveBlocked = wave.filter((r) => !r.ready);
   return {
     total: rows.length,
     ready: rows.length - blocked.length,
     blocked: blocked.length,
     blocking_gaps: blocked.reduce((n, r) => n + r.gaps.filter((g) => g.blocking).length, 0),
     advisory_gaps: rows.reduce((n, r) => n + r.gaps.filter((g) => !g.blocking).length, 0),
+    /** Approvals that can be filed today. */
+    current_wave: wave.length,
+    /** Of those, how many still have a gap the counter would refuse. */
+    current_wave_blocked: waveBlocked.length,
+    /**
+     * Whether the file can go in. Only the current wave is judged: a later
+     * approval waiting for a certificate that does not exist yet is the
+     * roadmap working, not the applicant failing.
+     */
+    submittable: wave.length > 0 && waveBlocked.length === 0,
   };
+}
+
+/** The gaps that stop submission today, in the order an applicant should fix them. */
+export function submissionGaps(rows: ApprovalReadiness[]) {
+  return rows
+    .filter((r) => r.in_current_wave && !r.ready)
+    .flatMap((r) =>
+      r.gaps
+        .filter((g) => g.blocking)
+        .map((g) => ({ approval_id: r.approval_id, department_short: r.department_short, ...g })),
+    );
 }

@@ -1,6 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 
+/**
+ * THE SIGNATURE.
+ *
+ * The product's whole argument is that the same 32 approvals take 524 days in
+ * sequence and 255 in parallel. Four numbers in a row state that; this shows it.
+ *
+ * On load the bar draws out to the full sequential length, holds, then collapses
+ * to the optimised length — and the space it gives up is the saving. One beat,
+ * about a second, once per page. It does not replay, it does not loop, and it
+ * does not run at all for a reader who has asked for reduced motion.
+ */
 export function TimeCollapse({
   sequential,
   optimised,
@@ -29,12 +40,12 @@ export function TimeCollapse({
   const barWidth = phase === 0 ? "0%" : phase === 1 ? "100%" : `${ratio * 100}%`;
 
   return (
-    <div className="flex h-[38px] flex-none items-center gap-4 border-t border-line bg-surface px-5">
+    <div className="flex h-[38px] flex-none items-center gap-4 border-t border-db-line bg-surface px-5">
       <span className="label w-[54px] flex-none">To scale</span>
 
       <div className="relative h-[14px] flex-1">
         {/* the full sequential span, always present as the ground */}
-        <div className="absolute inset-y-0 left-0 right-0 rounded-sm border border-line bg-bg" />
+        <div className="absolute inset-y-0 left-0 right-0 rounded-lg border border-db-line bg-bg" />
 
         {/* the saving — revealed by the collapse, never drawn on top of it */}
         <div
@@ -51,7 +62,7 @@ export function TimeCollapse({
 
         {/* the target notch: where the bar is going, visible before it gets there */}
         <div
-          className="absolute -top-1 bottom-[-4px] w-px bg-critical/40"
+          className="absolute -top-1 bottom-[-4px] w-px bg-db-red/40"
           style={{ left: `${ratio * 100}%` }}
         />
 
@@ -70,12 +81,12 @@ export function TimeCollapse({
       <div className="flex w-[228px] flex-none items-center justify-end gap-2">
         <span
           className="font-num font-mono text-[11px] transition-colors duration-300"
-          style={{ color: phase === 2 ? "var(--text)" : "var(--text-faint)" }}
+          style={{ color: phase === 2 ? "var(--text)" : "var(--text-db-faint)" }}
         >
           {phase === 2 ? `${optimised} d parallel` : `${sequential} d in sequence`}
         </span>
         <span
-          className="font-num rounded-sm border border-critical/40 bg-critical/[0.06] px-1.5 py-px font-mono text-[10.5px] font-medium text-critical transition-opacity duration-500"
+          className="font-num rounded-lg border border-db-red/40 bg-db-red/[0.06] px-1.5 py-px font-mono text-[10.5px] font-medium text-db-red transition-opacity duration-500"
           style={{ opacity: phase === 2 ? 1 : 0, transitionDelay: "300ms" }}
         >
           {saved} d saved

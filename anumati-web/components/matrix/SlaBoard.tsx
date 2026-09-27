@@ -1,8 +1,8 @@
 "use client";
 import { ArrowUpRight, Clock, Timer } from "lucide-react";
 import type { ApplicationFile } from "@/types/matrix";
-import { REVIEW_META, slaLabel } from "@/lib/matrix/display";
-import { isOpen } from "@/lib/matrix/engine";
+import { REVIEW_META, deemedLabel, slaLabel } from "@/lib/matrix/display";
+import { isOpen, slaRemaining } from "@/lib/matrix/engine";
 import { Label } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
@@ -28,10 +28,12 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
         <div className="flex flex-col gap-2.5">
           {app.reviews.map((r) => {
             const meta = REVIEW_META[r.state];
-            const left = r.sla_days - app.day;
+            const left = slaRemaining(r, app.day);
             const open = isOpen(r);
-            const overdue = open && left < 0;
-            const warning = open && left >= 0 && left <= 2;
+            const running = r.state === "in_review" && !r.query_open;
+            const overdue = running && left < 0;
+            const warning = running && left >= 0 && left <= 2;
+            const deemed = deemedLabel(r, app.day);
 
             return (
               <div
@@ -65,6 +67,11 @@ export function SlaBoard({ app }: { app: ApplicationFile }) {
                     {slaLabel(r, app.day)}
                   </span>
                 </div>
+                {deemed ? (
+                  <div className="mt-0.5 flex items-center gap-1.5 pl-[18px]">
+                    <span className="font-num font-mono text-[10.5px] text-db-faint">{deemed} · parent Act</span>
+                  </div>
+                ) : null}
 
                 {open ? (
                   <p className="mt-1.5 text-[11.5px] leading-snug text-db-muted">

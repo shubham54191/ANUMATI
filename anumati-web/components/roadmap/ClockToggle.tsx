@@ -42,7 +42,7 @@ export function ClockToggle({ evidence }: { evidence: Record<string, ApprovalEvi
   return (
     <div className="flex flex-col items-end gap-1">
       <div
-        className="flex items-center gap-1.5 rounded border border-line bg-sunk p-0.5"
+        className="flex items-center gap-1.5 rounded-xl border border-db-line bg-db-bg p-0.5"
         role="group"
         aria-label="Which clock the roadmap is built on"
       >
@@ -53,10 +53,10 @@ export function ClockToggle({ evidence }: { evidence: Record<string, ApprovalEvi
             aria-pressed={basis === m.id}
             title={m.hint}
             className={cn(
-              "flex h-8 items-center gap-1.5 rounded-sm px-3 text-xs transition-colors",
+              "flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs transition-colors",
               basis === m.id
-                ? "border border-accent/30 bg-accent-muted font-medium text-accent"
-                : "text-muted hover:text-accent",
+                ? "border border-db-blue/30 bg-db-blue-tint font-medium text-db-blue"
+                : "text-db-muted hover:text-db-blue",
             )}
           >
             <m.Icon className="h-3 w-3" strokeWidth={1.5} />
@@ -65,7 +65,7 @@ export function ClockToggle({ evidence }: { evidence: Record<string, ApprovalEvi
         ))}
       </div>
 
-      <span className="font-mono text-[10px] tracking-[0.04em] text-faint">
+      <span className="font-mono text-[10px] tracking-[0.04em] text-db-faint">
         {basis === "observed" ? (
           <>
             {covered}/{total} APPROVALS · {reports} REPORTS · MEDIAN

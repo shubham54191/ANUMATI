@@ -4,6 +4,7 @@ import { RefreshCw, Send } from "lucide-react";
 import type { ApplicationFile, DerivedMatrixState } from "@/types/matrix";
 import { clockOf } from "@/lib/matrix/engine";
 import { useMatrixStore } from "@/store/useMatrixStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Card";
 import { Explain } from "@/components/ui/Explain";
@@ -28,6 +29,8 @@ export function ClarificationThread({
   const reEvaluate = useMatrixStore((s) => s.reEvaluate);
   const speakingAs = useMatrixStore((s) => s.speakingAs);
   const setSpeakingAs = useMatrixStore((s) => s.setSpeakingAs);
+  const mode = useMatrixStore((s) => s.mode);
+  const session = useAuthStore((s) => s.session);
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +39,25 @@ export function ClarificationThread({
   }, [app.thread.length]);
 
   const rejecter = derived.rejected[0];
-  const participants = [...derived.rejected, ...derived.approved, ...derived.deemed];
+  // Live mode: an officer speaks only for their own department, and only the
+  // facilitation officer speaks for the single window. The server enforces
+  // the same thing; the composer just does not offer what it would refuse.
+  const live = mode === "live";
+  const isAdmin = session?.role === "admin";
+  const mine = (deptId: string) =>
+    !live || isAdmin || (session?.role === "officer" && deptId.split(":")[0] === session.department_id);
+  const canSpeakForWindow = !live || isAdmin || session?.department_id === "single-window";
+  const participants = live
+    ? app.reviews.filter((r) => mine(r.dept_id))
+    : [...derived.rejected, ...derived.approved, ...derived.deemed];
+  const showPostAs = !(live && session?.role === "committee");
+
+  // Keep the chosen identity valid when the file or the session changes.
+  useEffect(() => {
+    if (speakingAs && !mine(speakingAs)) setSpeakingAs(null);
+    else if (!speakingAs && !canSpeakForWindow && participants[0]) setSpeakingAs(participants[0].dept_id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [app.id, speakingAs, canSpeakForWindow, participants.length]);
 
   const send = () => {
     const body = draft.trim();
@@ -75,7 +96,9 @@ export function ClarificationThread({
                     ? "border-db-red/35 bg-db-red/[0.04]"
                     : m.role === "officer"
                       ? "border-db-blue/30 bg-db-blue-tint/40"
-                      : "border-db-green/40 bg-db-green/[0.04]",
+                      : m.role === "applicant"
+                        ? "border-db-amber-line bg-db-amber-tint/60"
+                        : "border-db-green/40 bg-db-green/[0.04]",
               )}
             >
               <div className="mb-1 flex items-center justify-between gap-2">
@@ -96,7 +119,7 @@ export function ClarificationThread({
         </div>
       </div>
 
-      {rejecter ? (
+      {rejecter && mine(rejecter.dept_id) ? (
         <div className="flex-none border-t border-db-line bg-db-green/[0.04] px-4 py-2.5">
           <Button
             variant="primary"
@@ -119,8 +142,10 @@ export function ClarificationThread({
       ) : null}
 
       <div className="flex-none border-t border-db-line px-4 py-2.5">
+        {showPostAs ? (
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
           <Label className="flex-none">Post as</Label>
+          {canSpeakForWindow ? (
           <button
             onClick={() => setSpeakingAs(null)}
             aria-pressed={speakingAs === null}
@@ -133,6 +158,7 @@ export function ClarificationThread({
           >
             SINGLE WINDOW
           </button>
+          ) : null}
           {participants.map((p) => (
             <button
               key={p.dept_id}
@@ -149,6 +175,7 @@ export function ClarificationThread({
             </button>
           ))}
         </div>
+        ) : null}
 
         <div className="flex items-end gap-2">
           <textarea

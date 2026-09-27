@@ -28,10 +28,10 @@ export function Select({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "h-11 w-full appearance-none rounded border border-control bg-surface",
-          "px-3 pr-10 text-[14px] text-ink",
+          "h-11 w-full appearance-none rounded-xl border border-db-line bg-surface",
+          "px-3 pr-10 text-[14px] text-db-ink",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
-          "hover:border-accent/60",
+          "hover:border-db-blue/60",
         )}
       >
         {options.map((o) => (
@@ -41,7 +41,7 @@ export function Select({
         ))}
       </select>
       <ChevronDown
-        className="pointer-events-none absolute right-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted"
+        className="pointer-events-none absolute right-3 top-1/2 h-3 w-3 -translate-y-1/2 text-db-muted"
         strokeWidth={1.5}
       />
     </div>

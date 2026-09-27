@@ -2,6 +2,7 @@
 import { ChevronsRight, Pause, Play, RotateCcw, Send } from "lucide-react";
 import type { ApplicationFile, DerivedMatrixState } from "@/types/matrix";
 import { useMatrixStore } from "@/store/useMatrixStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { PhaseStepper } from "./PhaseStepper";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,14 @@ export function FileHeader({
   const toggleClock = useMatrixStore((s) => s.toggleClock);
   const clockRunning = useMatrixStore((s) => s.clockRunning);
   const resetFile = useMatrixStore((s) => s.resetFile);
+  const mode = useMatrixStore((s) => s.mode);
+  const demoControls = useMatrixStore((s) => s.demoControls);
+  const busy = useMatrixStore((s) => s.busy);
+  // Live mode: the server's clock is the only clock. The simulated clock and
+  // day-skip are offered only when the server runs in demo mode, and a live
+  // file can never be reset — the ledger does not forget.
+  const facilitation = useAuthStore((s) => s.session?.role === "admin" || s.session?.department_id === "single-window");
+  const showClock = mode === "demo" || (demoControls && facilitation);
 
   // The engine refuses to advance a settled file; the controls say so rather
   // than sitting there looking live and doing nothing.
@@ -49,10 +58,11 @@ export function FileHeader({
         </div>
 
         <div className="flex flex-none items-center gap-2">
-          {!app.dispatched ? (
+          {!app.dispatched && (mode === "demo" || facilitation) ? (
             <button
               onClick={dispatchAll}
-              className="flex h-10 items-center gap-2 rounded-xl bg-db-blue px-4 text-[13px] font-semibold text-white transition-colors hover:brightness-95"
+              disabled={busy}
+              className="disabled:opacity-50 flex h-10 items-center gap-2 rounded-xl bg-db-blue px-4 text-[13px] font-semibold text-white transition-colors hover:brightness-95"
             >
               <Send className="h-4 w-4" strokeWidth={1.9} />
               Dispatch to all {app.reviews.length} departments
@@ -69,6 +79,7 @@ export function FileHeader({
                 </span>
               </div>
 
+              {showClock ? (
               <div className="flex h-11 items-center gap-1 rounded-xl border border-db-line bg-surface px-1.5">
                 <button
                   onClick={toggleClock}
@@ -107,9 +118,11 @@ export function FileHeader({
                   +1 D
                 </button>
               </div>
+              ) : null}
             </>
           )}
 
+          {mode === "demo" ? (
           <button
             onClick={resetFile}
             title="Reset this file to its filed state"
@@ -118,6 +131,7 @@ export function FileHeader({
             <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.8} />
             Reset
           </button>
+          ) : null}
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import type { DataRecordState, DeptReview, ReviewState } from "@/types/matrix";
+import { deemedRemaining, elapsedDays, slaRemaining } from "./engine";
 
 /**
  * One place where a review state becomes a colour and a word.
@@ -117,12 +118,23 @@ export const RECORD_META: Record<
 };
 
 /** How much of a department's window has been used, capped for the bar. */
+/** Share of this desk's own window used — its own clock, not the file's day. */
 export function slaFraction(review: DeptReview, day: number): number {
   if (review.sla_days <= 0) return 1;
-  const used = (review.decided_on_day ?? day) / review.sla_days;
-  return Math.max(0, Math.min(1, used));
+  if (review.state === "queued") return 0;
+  const at = review.decided_on_day ?? day;
+  return Math.max(0, Math.min(1, elapsedDays(review, at) / review.sla_days));
 }
 
+/** In review and past the service limit on its own clock. */
+export function isOverdue(review: DeptReview, day: number): boolean {
+  return review.state === "in_review" && slaRemaining(review, day) < 0;
+}
+
+/**
+ * The service-limit clock, in words. Each desk runs its own clock from the day
+ * it received the file, paused while its own query sits with the applicant.
+ */
 export function slaLabel(review: DeptReview, day: number): string {
   const settledOn = review.decided_on_day;
   if (settledOn !== null) {
@@ -130,13 +142,27 @@ export function slaLabel(review: DeptReview, day: number): string {
       ? `deemed d${settledOn} · ${review.sla_days} d limit`
       : `decided d${settledOn} of ${review.sla_days} d`;
   }
+  if (review.state === "queued") return "waits for an earlier approval";
   if (review.state === "transferred_to_committee") {
-    return `transferred d${review.escalated_on_day} · limit was ${review.sla_days} d`;
+    const deemed = deemedRemaining(review, day);
+    return deemed === null
+      ? `transferred d${review.escalated_on_day} · no deeming clause`
+      : `transferred d${review.escalated_on_day} · deemed in ${Math.max(0, deemed)} d`;
   }
-  const left = review.sla_days - day;
-  if (left < 0) return `overdue by ${Math.abs(left)} d`;
-  if (left === 0) return "due today";
-  return `${left} d left`;
+  const left = slaRemaining(review, day);
+  const paused = review.paused_days ? ` · ${review.paused_days} d paused` : "";
+  if (review.query_open) return `query open · clock paused at ${left} d${paused}`;
+  if (left < 0) return `overdue by ${Math.abs(left)} d${paused}`;
+  if (left === 0) return `due today${paused}`;
+  return `${left} d left${paused}`;
+}
+
+/** The parent Act's own deeming clock, where there is one. */
+export function deemedLabel(review: DeptReview, day: number): string | null {
+  if (review.decided_on_day !== null || review.state === "queued") return null;
+  const left = deemedRemaining(review, day);
+  if (left === null) return null;
+  return left <= 0 ? "deemed period reached" : `deemed approval in ${left} d`;
 }
 
 export const dayStamp = (day: number) => `d${day}`;

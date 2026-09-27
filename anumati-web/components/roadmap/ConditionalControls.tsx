@@ -29,9 +29,9 @@ function Toggle({
           )}
         />
       </span>
-      <span className={cn("text-[12.5px]", on ? "text-ink" : "text-muted")}>{label}</span>
+      <span className={cn("text-[12.5px]", on ? "text-db-ink" : "text-db-muted")}>{label}</span>
       {note ? (
-        <span className="rounded-sm bg-state-active/[0.07] px-1.5 font-mono text-[10px] text-state-active">
+        <span className="rounded-lg bg-db-blue/[0.07] px-1.5 font-mono text-[10px] text-db-blue">
           {note}
         </span>
       ) : null}
@@ -44,11 +44,11 @@ export function ConditionalControls({ engineVersion }: { engineVersion: string }
     useRoadmapStore();
 
   return (
-    <div className="flex h-12 flex-none items-center gap-6 border-b border-line bg-sunk px-5">
+    <div className="flex h-12 flex-none items-center gap-6 border-b border-db-line bg-db-bg px-5">
       <Label>Conditions</Label>
 
       <label className="flex items-center gap-2.5">
-        <span className="text-[12.5px] text-ink">Employees</span>
+        <span className="text-[12.5px] text-db-ink">Employees</span>
         <input
           type="range"
           min={1}
@@ -58,15 +58,17 @@ export function ConditionalControls({ engineVersion }: { engineVersion: string }
           className="h-1 w-[120px] accent-[var(--text)]"
           aria-label="Employees"
         />
-        <span className="font-num w-8 font-mono text-xs font-medium text-ink">{employees}</span>
-        {}
-        <span className="font-mono text-[10px] text-faint">
+        <span className="font-num w-8 font-mono text-xs font-medium text-db-ink">{employees}</span>
+        {/* Say what the number crossed, not just what it is. The slider is the
+            demo's clearest proof that the system reasons rather than reciting a
+            list, and that only lands if the threshold is on screen. */}
+        <span className="font-mono text-[10px] text-db-faint">
           {employees >= 10 ? "factory · ESI" : "below every threshold"}
         </span>
       </label>
 
       <label className="flex items-center gap-2.5">
-        <span className="text-[12.5px] text-ink">Built height</span>
+        <span className="text-[12.5px] text-db-ink">Built height</span>
         <input
           type="range"
           min={4}
@@ -76,7 +78,7 @@ export function ConditionalControls({ engineVersion }: { engineVersion: string }
           className="h-1 w-24 accent-[var(--text)]"
           aria-label="Built height in metres"
         />
-        <span className="font-num w-10 font-mono text-xs font-medium text-ink">{heightM} m</span>
+        <span className="font-num w-10 font-mono text-xs font-medium text-db-ink">{heightM} m</span>
       </label>
 
       <Toggle
@@ -92,7 +94,7 @@ export function ConditionalControls({ engineVersion }: { engineVersion: string }
       />
 
       <div className="flex-1" />
-      <span className="font-mono text-[11px] text-faint">
+      <span className="font-mono text-[11px] text-db-faint">
         Recomputed on change · engine {engineVersion}
       </span>
     </div>

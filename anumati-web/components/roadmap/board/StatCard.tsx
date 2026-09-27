@@ -28,20 +28,26 @@ export function StatCard({
 }) {
   const t = TONE[tone];
   return (
-    <div className="flex-1 rounded-xl border border-db-line bg-surface px-5 py-4">
+    <div className="flex min-w-[196px] flex-1 flex-col justify-between rounded-xl border border-db-line bg-surface px-5 py-4">
       <div className="flex items-center gap-3">
         <span className={cn("flex h-9 w-9 flex-none items-center justify-center rounded-lg", t.tile)}>
           <Icon className={cn("h-[17px] w-[17px]", t.icon)} strokeWidth={1.8} />
         </span>
-        <span className="text-[13px] font-medium leading-tight text-db-muted">{label}</span>
+        <span className="truncate text-[13px] font-medium leading-tight text-db-muted" title={label}>
+          {label}
+        </span>
       </div>
 
-      <div className="mt-3 flex items-end gap-2">
+      <div className="mt-3 flex flex-nowrap items-end gap-2">
         <span className={cn("text-[38px] font-semibold leading-none tracking-[-0.02em]", t.value)}>
           {value}
         </span>
-        {unit ? <span className="pb-1 text-[13px] text-db-muted">{unit}</span> : null}
-        {badge ? <span className="flex-1 pb-1 text-right">{badge}</span> : null}
+        {unit ? (
+          <span className="whitespace-nowrap pb-1 text-[13px] text-db-muted">{unit}</span>
+        ) : null}
+        {badge ? (
+          <span className="flex-1 whitespace-nowrap pb-1 text-right">{badge}</span>
+        ) : null}
       </div>
     </div>
   );
@@ -49,7 +55,7 @@ export function StatCard({
 
 export function Delta({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-db-green-tint px-2 py-[3px] text-[11.5px] font-semibold text-db-green">
+    <span className="inline-flex whitespace-nowrap items-center gap-1 rounded-full bg-db-green-tint px-2 py-[3px] text-[11.5px] font-semibold text-db-green">
       {children}
     </span>
   );

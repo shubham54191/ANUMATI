@@ -46,7 +46,7 @@ export function ReportRejectionDialog({
     <Dialog open={open} onClose={onClose} title="Report what actually happened">
       {sent ? (
         <div className="py-2">
-          <p className="mb-3 text-[13px] leading-relaxed text-ink">
+          <p className="mb-3 text-[13px] leading-relaxed text-db-ink">
             Recorded against {approval.id} and routed to the review queue. It counts towards the
             observed median straight away — open the approval and read it under{" "}
             <span className="font-medium">What applicants reported</span> — but it will not change
@@ -56,7 +56,7 @@ export function ReportRejectionDialog({
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <p className="text-[12.5px] leading-relaxed text-muted">
+          <p className="text-[12.5px] leading-relaxed text-db-muted">
             {approval.name} · {approval.department_name}
           </p>
 
@@ -64,7 +64,7 @@ export function ReportRejectionDialog({
             <Label className="mb-2 block">What happened</Label>
             <div className="flex flex-col gap-1.5">
               {KINDS.map((k) => (
-                <label key={k.id} className="flex items-center gap-2.5 text-[12.5px] text-ink">
+                <label key={k.id} className="flex items-center gap-2.5 text-[12.5px] text-db-ink">
                   <input
                     type="radio"
                     name="kind"
@@ -88,9 +88,9 @@ export function ReportRejectionDialog({
                 onChange={(e) => setDays(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))}
                 inputMode="numeric"
                 placeholder={String(approval.statutory_days)}
-                className="h-8 w-[90px] rounded border border-control bg-surface px-2 font-mono text-[12.5px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="h-8 w-[90px] rounded-xl border border-db-line bg-surface px-2 font-mono text-[12.5px] text-db-ink outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
-              <span className="text-[11.5px] text-muted">
+              <span className="text-[11.5px] text-db-muted">
                 statutory window is {approval.statutory_days} days
               </span>
             </label>
@@ -106,7 +106,7 @@ export function ReportRejectionDialog({
               onChange={(e) => setDetail(e.target.value)}
               rows={3}
               placeholder="The office asked for the consent fee challan in original."
-              className="w-full rounded border border-line bg-surface px-3 py-2 text-[12.5px] text-ink placeholder:text-faint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+              className="w-full rounded-xl border border-db-line bg-surface px-3 py-2 text-[12.5px] text-db-ink placeholder:text-db-faint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-db-blue"
             />
           </div>
 

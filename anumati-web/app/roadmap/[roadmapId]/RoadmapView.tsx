@@ -29,6 +29,7 @@ import { ApprovalRegister } from "@/components/register/ApprovalRegister";
 import { DocumentLedger } from "@/components/documents/DocumentLedger";
 import { WorkflowTrack } from "@/components/track/WorkflowTrack";
 import { PreCheckPane } from "@/components/precheck/PreCheckPane";
+import { FileApplicationButton } from "@/components/applications/FileApplicationButton";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { useReportsStore } from "@/store/useReportsStore";
 import { daysUnder, evidenceIndex } from "@/lib/data/observed";
@@ -165,21 +166,21 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
                 <StatCard
                   tone="blue"
                   Icon={FileText}
-                  label="Total Approvals"
+                  label="Approvals"
                   value={roadmap.approvals.length}
                   unit={`across ${departments} departments`}
                 />
                 <StatCard
                   tone="green"
                   Icon={CalendarDays}
-                  label="If done sequentially"
+                  label="Sequential"
                   value={roadmap.sequential_days}
                   unit="days"
                 />
                 <StatCard
                   tone="purple"
                   Icon={Clock}
-                  label="Optimised (critical path)"
+                  label="Critical path"
                   value={roadmap.optimised_days}
                   unit="days"
                   badge={<Delta>↓ {savedPct.toFixed(1)}%</Delta>}
@@ -187,7 +188,7 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
                 <StatCard
                   tone="emerald"
                   Icon={CircleCheck}
-                  label="Time Saved"
+                  label="Time saved"
                   value={saved}
                   unit="days"
                   badge={
@@ -298,6 +299,11 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
                 <Printer className="h-3.5 w-3.5" strokeWidth={1.6} />
                 Print checklist
               </button>
+
+              <FileApplicationButton
+                request={{ ...DEFAULT_REQUEST, conditions }}
+                defaultProject={`${sector} unit — ${location}`}
+              />
 
               {isOfficer ? (
                 <Link

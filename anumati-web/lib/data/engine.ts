@@ -71,16 +71,29 @@ function topoSort(ids: string[], edges: Dependency[]): string[] {
  */
 export type DaysResolver = (a: Approval) => number;
 
+/**
+ * The rule base a roadmap is computed against. The browser uses the seeded
+ * copy; the server passes whatever version is published in its database, so
+ * the same function answers for both.
+ */
+export interface RuleBase {
+  approvals: Approval[];
+  dependencies: Dependency[];
+}
+
+export const SEEDED_RULES: RuleBase = { approvals: APPROVALS, dependencies: DEPENDENCIES };
+
 export function buildRoadmap(
   request: RoadmapRequest,
   id = "RM-4F2A81",
   daysFor: DaysResolver = (a) => a.statutory_days,
+  rules: RuleBase = SEEDED_RULES,
 ): Roadmap {
-  const approvals = APPROVALS.filter(
+  const approvals = rules.approvals.filter(
     (a) => applicable(a, request.conditions) && a.review_status === "published",
   ).map((a) => resolveAuthority(a, request.conditions));
   const live = new Set(approvals.map((a) => a.id));
-  const dependencies = DEPENDENCIES.filter(
+  const dependencies = rules.dependencies.filter(
     (d) => live.has(d.from_approval_id) && live.has(d.to_approval_id),
   );
 

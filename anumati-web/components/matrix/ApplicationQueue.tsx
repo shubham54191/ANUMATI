@@ -118,7 +118,7 @@ export function ApplicationQueue() {
                     title={app.rule.label}
                     className={cn(
                       "flex flex-none items-center gap-1 rounded-full px-2 py-[3px] text-[9.5px] font-bold tracking-[0.05em]",
-                      conflicted ? "bg-db-red/12 text-db-red" : "bg-db-blue-tint text-db-blue",
+                      conflicted ? "bg-db-red/10 text-db-red" : "bg-db-blue-tint text-db-blue",
                     )}
                   >
                     <Icon className="h-2.5 w-2.5" strokeWidth={2} />

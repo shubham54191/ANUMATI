@@ -7,11 +7,11 @@ import { Label } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
 const ALERT_META: Record<RenewalAlert, { label: string; text: string; border: string }> = {
-  none: { label: "IN DATE", text: "text-muted", border: "border-line" },
-  "60": { label: "60 DAYS", text: "text-accent-secondary", border: "border-accent-secondary/40" },
-  "30": { label: "30 DAYS", text: "text-state-deemed-ink", border: "border-state-deemed/45" },
-  "7": { label: "7 DAYS", text: "text-critical", border: "border-critical/45" },
-  expired: { label: "LAPSED", text: "text-critical", border: "border-critical" },
+  none: { label: "IN DATE", text: "text-db-muted", border: "border-db-line" },
+  "60": { label: "60 DAYS", text: "text-db-amber", border: "border-db-blue-secondary/40" },
+  "30": { label: "30 DAYS", text: "text-db-amber", border: "border-db-amber/45" },
+  "7": { label: "7 DAYS", text: "text-db-red", border: "border-db-red/45" },
+  expired: { label: "LAPSED", text: "text-db-red", border: "border-db-red" },
 };
 
 /**
@@ -26,13 +26,13 @@ export function RenewalBoard({ today = new Date() }: { today?: Date }) {
   const urgent = board.filter((b) => b.alert !== "none").length;
 
   return (
-    <section className="rounded border border-line bg-surface">
-      <div className="flex items-center gap-2 border-b border-line px-4 py-2.5">
-        <CalendarClock className="h-3.5 w-3.5 text-accent" strokeWidth={1.6} />
+    <section className="rounded-xl border border-db-line bg-surface">
+      <div className="flex items-center gap-2 border-b border-db-line px-4 py-2.5">
+        <CalendarClock className="h-3.5 w-3.5 text-db-blue" strokeWidth={1.6} />
         <Label>Renewal calendar</Label>
         <div className="flex-1" />
-        <span className="font-num font-mono text-[11.5px] text-muted">
-          <span className={cn("font-semibold", urgent > 0 ? "text-critical" : "text-ink")}>{urgent}</span>{" "}
+        <span className="font-num font-mono text-[11.5px] text-db-muted">
+          <span className={cn("font-semibold", urgent > 0 ? "text-db-red" : "text-db-ink")}>{urgent}</span>{" "}
           of {board.length} need attention
         </span>
       </div>
@@ -44,17 +44,17 @@ export function RenewalBoard({ today = new Date() }: { today?: Date }) {
             <div
               key={renewal.approval_id}
               className={cn(
-                "flex flex-wrap items-center gap-3 border-b border-line px-4 py-2.5 last:border-b-0",
+                "flex flex-wrap items-center gap-3 border-b border-db-line px-4 py-2.5 last:border-b-0",
                 alert !== "none" && "shadow-[inset_3px_0_0_currentColor]",
                 alert !== "none" ? meta.text : undefined,
               )}
             >
-              <span className="font-mono text-[11px] font-semibold text-ink">{renewal.approval_id}</span>
-              <span className="min-w-0 flex-1 truncate text-[12.5px] text-ink">{renewal.name}</span>
-              <span className="hidden font-mono text-[10.5px] text-faint md:inline">
+              <span className="font-mono text-[11px] font-semibold text-db-ink">{renewal.approval_id}</span>
+              <span className="min-w-0 flex-1 truncate text-[12.5px] text-db-ink">{renewal.name}</span>
+              <span className="hidden font-mono text-[10.5px] text-db-faint md:inline">
                 {renewal.department_short}
               </span>
-              <span className="font-num font-mono text-[11px] text-muted">
+              <span className="font-num font-mono text-[11px] text-db-muted">
                 expires {renewal.valid_until}
               </span>
               <span className={cn("font-num w-[96px] flex-none text-right font-mono text-[11.5px] font-medium", meta.text)}>
@@ -62,14 +62,14 @@ export function RenewalBoard({ today = new Date() }: { today?: Date }) {
               </span>
               <span
                 className={cn(
-                  "w-[86px] flex-none rounded-sm border px-1.5 py-px text-center font-mono text-[9.5px] font-medium tracking-[0.06em]",
+                  "w-[86px] flex-none rounded-lg border px-1.5 py-px text-center font-mono text-[9.5px] font-medium tracking-[0.06em]",
                   meta.border,
                   meta.text,
                 )}
               >
                 {meta.label}
               </span>
-              <span className="w-full text-[11px] leading-snug text-faint md:w-auto md:flex-1 md:basis-full">
+              <span className="w-full text-[11px] leading-snug text-db-faint md:w-auto md:flex-1 md:basis-full">
                 {window_open ? "Renewal window is open. " : ""}
                 {renewal.source}
               </span>

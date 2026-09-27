@@ -48,7 +48,7 @@ export function ContextPanel({
       <div
         role="tablist"
         aria-label="File context"
-        className="flex h-[52px] flex-none items-center gap-1 overflow-x-auto border-b border-db-line px-2"
+        className="flex min-h-[52px] flex-none flex-wrap items-center gap-1 border-b border-db-line px-2 py-1.5"
       >
         {TABS.map((t) => {
           const count = badge(t.id);

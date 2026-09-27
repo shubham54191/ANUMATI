@@ -108,6 +108,16 @@ export interface DeptReview {
   escalated_on_day: number | null;
   /** Documents this department is waiting on from the shared data matrix. */
   requires: string[];
+  /**
+   * Day of the file's life this desk received it. Zero for the first wave;
+   * later for approvals released once their prerequisites were issued. The
+   * clock is counted from here, not from the file's first dispatch.
+   */
+  dispatched_on_day?: number;
+  /** Days the clock stood still because a query was with the applicant. */
+  paused_days?: number;
+  /** True while this desk's query is waiting for the applicant's answer. */
+  query_open?: boolean;
 }
 
 /** A record the system fetches itself instead of asking for a certificate. */
@@ -164,7 +174,7 @@ export interface ParameterGroup {
   signature_ref: string | null;
 }
 
-export type ThreadAuthorRole = "department" | "officer" | "system";
+export type ThreadAuthorRole = "department" | "officer" | "system" | "applicant";
 
 export interface ThreadMessage {
   id: string;
@@ -187,7 +197,8 @@ export type EventKind =
   | "deemed"
   | "resolution"
   | "data"
-  | "message";
+  | "message"
+  | "query";
 
 export interface TimelineEvent {
   id: string;

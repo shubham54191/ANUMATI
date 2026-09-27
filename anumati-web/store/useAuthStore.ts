@@ -1,14 +1,19 @@
 "use client";
 import { create } from "zustand";
+import { api, ApiError, isLive } from "@/lib/api/client";
 
 /**
- * Demo-grade sign-in. There is no server here — the roadmap engine and the
- * matrix console both run in the browser — so this decides which product a
- * person sees, not what they are allowed to read. Anything that actually
- * needed protecting would be checked again on the server.
+ * Sign-in, in two modes.
+ *
+ * Demo mode (no API configured): two local accounts decide which product a
+ * person sees. Nothing is protected, and the screens say so.
+ *
+ * Live mode: the ANUMATI server checks the password, issues a short-lived
+ * token, and enforces every role and every department boundary itself. The
+ * browser only decides what to draw.
  */
 
-export type Role = "officer" | "applicant";
+export type Role = "officer" | "applicant" | "committee" | "reviewer" | "admin";
 
 export interface Session {
   role: Role;
@@ -16,8 +21,15 @@ export interface Session {
   name: string;
   designation: string;
   office: string;
-  /** Officer sign-in with the admin credential also chairs the tie-breaker. */
+  /** Demo mode only: the facilitation officer also chairs the tie-breaker. */
   admin: boolean;
+  /** Live mode: the department whose desks this officer may act on. */
+  department_id?: string | null;
+  /** Live mode: the bearer token the API issued. */
+  token?: string;
+  /** Live mode: whether this is a seeded demo account. */
+  is_demo?: boolean;
+  live?: boolean;
 }
 
 const OFFICER_SESSION: Session = {
@@ -27,6 +39,7 @@ const OFFICER_SESSION: Session = {
   designation: "Single-Window Facilitation Officer",
   office: "District Industries Centre, Pune",
   admin: true,
+  department_id: "single-window",
 };
 
 const APPLICANT_SESSION: Session = {
@@ -40,17 +53,33 @@ const APPLICANT_SESSION: Session = {
 
 const KEY = "anumati.session";
 
+type SignInResult = { ok: true; session: Session } | { ok: false; message: string };
+
 interface AuthState {
   session: Session | null;
   /** False until localStorage has been read — guards against a flash of the wrong view. */
   hydrated: boolean;
   hydrate: () => void;
-  signIn: (username: string, password: string) => { ok: true } | { ok: false; message: string };
-  signInAsApplicant: () => void;
+  signIn: (username: string, password: string) => Promise<SignInResult>;
+  signInAsApplicant: () => Promise<SignInResult>;
   signOut: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+interface LoginResponse {
+  token: string;
+  principal: {
+    id: string;
+    username: string;
+    role: Role;
+    name: string;
+    designation: string;
+    office: string;
+    department_id: string | null;
+    is_demo: boolean;
+  };
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   hydrated: false,
 
@@ -58,38 +87,72 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (typeof window === "undefined") return;
     try {
       const raw = window.localStorage.getItem(KEY);
-      set({ session: raw ? (JSON.parse(raw) as Session) : null, hydrated: true });
+      const session = raw ? (JSON.parse(raw) as Session) : null;
+      // A session from the other mode is not a session in this one.
+      const valid = session && Boolean(session.live) === isLive() ? session : null;
+      set({ session: valid, hydrated: true });
     } catch {
       set({ session: null, hydrated: true });
     }
   },
 
-  signIn: (username, password) => {
+  signIn: async (username, password) => {
     const u = username.trim().toLowerCase();
-    const p = password.trim().toLowerCase();
+    const p = password.trim();
+    if (u.length === 0 || p.length === 0) {
+      return { ok: false, message: "Enter both a user id and a password." };
+    }
 
-    if (u === "officer" && p === "admin") {
+    if (isLive()) {
+      try {
+        const res = await api<LoginResponse>("/v1/auth/login", {
+          method: "POST",
+          body: { username: u, password: p },
+          token: null,
+        });
+        const pr = res.principal;
+        const session: Session = {
+          role: pr.role,
+          username: pr.username,
+          name: pr.name,
+          designation: pr.designation,
+          office: pr.office,
+          admin: pr.role === "admin" || pr.department_id === "single-window",
+          department_id: pr.department_id,
+          token: res.token,
+          is_demo: pr.is_demo,
+          live: true,
+        };
+        persist(session);
+        set({ session, hydrated: true });
+        return { ok: true, session };
+      } catch (e) {
+        return {
+          ok: false,
+          message: e instanceof ApiError ? e.message : "Sign-in failed. Try again.",
+        };
+      }
+    }
+
+    const lp = p.toLowerCase();
+    if (u === "officer" && lp === "admin") {
       persist(OFFICER_SESSION);
       set({ session: OFFICER_SESSION, hydrated: true });
-      return { ok: true };
+      return { ok: true, session: OFFICER_SESSION };
     }
-    if (u === "applicant" && (p === "demo" || p === "applicant")) {
+    if (u === "applicant" && (lp === "demo" || lp === "applicant")) {
       persist(APPLICANT_SESSION);
       set({ session: APPLICANT_SESSION, hydrated: true });
-      return { ok: true };
+      return { ok: true, session: APPLICANT_SESSION };
     }
-    return {
-      ok: false,
-      message:
-        u.length === 0 || p.length === 0
-          ? "Enter both a user id and a password."
-          : "That user id and password do not match a demo account.",
-    };
+    return { ok: false, message: "That user id and password do not match a demo account." };
   },
 
-  signInAsApplicant: () => {
+  signInAsApplicant: async () => {
+    if (isLive()) return get().signIn("applicant", "demo");
     persist(APPLICANT_SESSION);
     set({ session: APPLICANT_SESSION, hydrated: true });
+    return { ok: true, session: APPLICANT_SESSION };
   },
 
   signOut: () => {
@@ -97,6 +160,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ session: null, hydrated: true });
   },
 }));
+
+// An expired token anywhere signs the user out, rather than failing quietly.
+if (typeof window !== "undefined") {
+  window.addEventListener("anumati:unauthorized", () => useAuthStore.getState().signOut());
+}
 
 function persist(session: Session) {
   if (typeof window === "undefined") return;

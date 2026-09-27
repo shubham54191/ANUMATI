@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ChevronDown, Clock, FileText, LogOut, UserRound } from "lucide-react";
+import { AlertCircle, Clock, FileText, LogOut, UserRound } from "lucide-react";
 import { ExplainToggle } from "@/components/ui/Explain";
+import { ModeBadge } from "@/components/layout/ModeBadge";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMatrixStore } from "@/store/useMatrixStore";
 import { derive } from "@/lib/matrix/engine";
@@ -64,7 +65,7 @@ export function OfficerTopBar() {
   return (
     <header
       data-chrome
-      className="flex h-16 flex-none items-center gap-6 border-b border-db-line bg-surface px-5"
+      className="flex h-16 flex-none items-center gap-4 overflow-hidden border-b border-db-line bg-surface px-5"
     >
       <div className="flex flex-none items-center gap-2.5">
         <Mark />
@@ -84,7 +85,25 @@ export function OfficerTopBar() {
         >
           Standard
         </Link>
+        {session?.role === "committee" || session?.role === "admin" ? (
+          <Link
+            href="/committee"
+            className="flex h-16 items-center text-[14px] text-db-muted no-underline transition-colors hover:text-db-ink"
+          >
+            Committee
+          </Link>
+        ) : null}
+        {session?.role === "admin" ? (
+          <Link
+            href="/rules"
+            className="flex h-16 items-center text-[14px] text-db-muted no-underline transition-colors hover:text-db-ink"
+          >
+            Rules
+          </Link>
+        ) : null}
       </nav>
+
+      <ModeBadge className="hidden md:inline-flex" />
 
       <div className="flex-1" />
 
@@ -112,15 +131,16 @@ export function OfficerTopBar() {
 
       <ExplainToggle />
 
-      <div className="flex flex-none items-center gap-2.5 border-l border-db-line pl-4">
+      <div className="flex flex-none items-center gap-2 border-l border-db-line pl-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-db-blue-tint">
           <UserRound className="h-[18px] w-[18px] text-db-blue" strokeWidth={1.8} />
         </span>
-        <div className="hidden leading-tight md:block">
-          <div className="text-[13px] font-semibold text-db-ink">{session?.name}</div>
-          <div className="text-[11.5px] text-db-muted">{session?.designation ?? "Officer"}</div>
+        <div className="hidden max-w-[164px] leading-tight lg:block">
+          <div className="truncate text-[13px] font-semibold text-db-ink">{session?.name}</div>
+          <div className="truncate text-[11.5px] text-db-muted" title={session?.designation}>
+            {session?.designation ?? "Officer"}
+          </div>
         </div>
-        <ChevronDown className="hidden h-4 w-4 text-db-faint md:block" strokeWidth={1.7} />
         <button
           onClick={() => {
             signOut();

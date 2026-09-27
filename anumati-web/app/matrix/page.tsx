@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function MatrixPage() {
   return (
-    <AuthGate allow="officer">
+    <AuthGate allow={["officer", "committee"]}>
       <MatrixConsole />
     </AuthGate>
   );

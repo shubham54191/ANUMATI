@@ -20,11 +20,18 @@ import { AnumatiMark } from "@/components/brand/AnumatiMark";
 import { PlantScene } from "@/components/brand/PlantScene";
 import { StateEmblem } from "@/components/brand/StateEmblem";
 import { useAuthStore } from "@/store/useAuthStore";
+import { HOME } from "@/components/auth/AuthGate";
+import { isLive } from "@/lib/api/client";
+import { ModeBadge, useServerMeta } from "@/components/layout/ModeBadge";
 
-const HOME: Record<string, string> = {
-  officer: "/matrix",
-  applicant: "/roadmap/new",
-};
+/** Accounts the seeded demo server carries. Shown only when it is a demo. */
+const LIVE_DEMO_ACCOUNTS: [string, string, string][] = [
+  ["applicant", "demo", "Applicant — Sahyadri Agro Foods"],
+  ["officer", "admin", "Single-window facilitation desk"],
+  ["mpcb", "demo", "MPCB desk (also midc, fire, dish, msedcl, ceig, labour)"],
+  ["committee", "demo", "Empowered Committee"],
+  ["reviewer", "demo", "Rule reviewer"],
+];
 
 const ACRONYM = ["Approvals", "Navigation", "Unified", "Monitoring", "For", "All", "Industries"];
 
@@ -73,21 +80,26 @@ export default function LoginPage() {
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const meta = useServerMeta();
 
   useEffect(() => hydrate(), [hydrate]);
   useEffect(() => {
     if (hydrated && session) router.replace(HOME[session.role]);
   }, [hydrated, session, router]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = signIn(username, password);
+    if (busy) return;
+    setBusy(true);
+    const result = await signIn(username, password);
+    setBusy(false);
     if (!result.ok) {
       setError(result.message);
       return;
     }
     setError(null);
-    router.replace(username.trim().toLowerCase() === "officer" ? "/matrix" : "/roadmap/new");
+    router.replace(HOME[result.session.role]);
   };
 
   return (
@@ -289,9 +301,10 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                className="mt-6 flex h-[56px] items-center justify-center gap-2.5 rounded-[10px] bg-[#15365B] text-[15.5px] font-semibold text-white transition-colors hover:bg-[#0F2A48]"
+                disabled={busy}
+                className="mt-6 flex h-[56px] items-center justify-center gap-2.5 rounded-[10px] bg-[#15365B] text-[15.5px] font-semibold text-white transition-colors hover:bg-[#0F2A48] disabled:opacity-60"
               >
-                Login
+                {busy ? "Signing in…" : "Login"}
                 <ArrowRight className="h-4 w-4" strokeWidth={2} />
               </button>
             </form>
@@ -304,15 +317,45 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => {
-                signInAsApplicant();
-                router.replace("/roadmap/new");
+              onClick={async () => {
+                const r = await signInAsApplicant();
+                if (r.ok) router.replace("/roadmap/new");
+                else setError(r.message);
               }}
               className="flex h-[52px] items-center justify-center gap-2.5 rounded-[10px] border border-[#E2E8F0] text-[14.5px] font-medium text-[#1F2937] transition-colors hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
             >
               <Landmark className="h-[18px] w-[18px] text-[#15365B]" strokeWidth={1.6} />
-              Login with Government SSO
+              Continue as the demo applicant
             </button>
+            <p className="mt-2 text-center text-[11.5px] leading-snug text-[#94A3B8]">
+              In deployment this is MAITRI 2.0 sign-in — investors keep the account they already have.
+            </p>
+
+            <div className="mt-5 flex items-center justify-center">
+              <ModeBadge />
+            </div>
+            {isLive() && meta?.demo_mode ? (
+              <details className="mt-3 rounded-[10px] border border-[#EEF2F7] px-3.5 py-2.5 text-[12.5px] text-[#475569]">
+                <summary className="cursor-pointer font-medium text-[#15365B]">Demo accounts on this server</summary>
+                <ul className="mt-2 flex flex-col gap-1">
+                  {LIVE_DEMO_ACCOUNTS.map(([u, p, who]) => (
+                    <li key={u} className="flex items-baseline gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUsername(u);
+                          setPassword(p);
+                        }}
+                        className="font-mono text-[12px] text-[#2563EB] hover:underline"
+                      >
+                        {u} / {p}
+                      </button>
+                      <span className="text-[11.5px] text-[#94A3B8]">{who}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
 
             <div className="mt-8 flex items-center gap-3">
               <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#EEF3F8] text-[14px] font-semibold text-[#15365B]">

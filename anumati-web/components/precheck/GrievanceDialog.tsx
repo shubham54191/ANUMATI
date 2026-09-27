@@ -54,13 +54,13 @@ export function GrievanceDialog({
     <Dialog open onClose={onClose} title="Raise a grievance">
       {sent ? (
         <div className="py-1">
-          <p className="mb-3 text-[13px] leading-relaxed text-ink">
+          <p className="mb-3 text-[13px] leading-relaxed text-db-ink">
             Recorded against {readiness.approval_id} and placed on the Empowered Committee&apos;s
             queue. The Committee may call for the department&apos;s reasons and inquire into the
             delay. It still decides the application under the same Act the department would have
             applied.
           </p>
-          <p className="mb-4 font-mono text-[10.5px] text-muted">
+          <p className="mb-4 font-mono text-[10.5px] text-db-muted">
             MAITRI Act, 2023 — s. 8
           </p>
           <Button variant="primary" onClick={onClose}>
@@ -69,12 +69,12 @@ export function GrievanceDialog({
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="rounded border border-line bg-sunk px-3 py-2.5">
-            <span className="font-mono text-[11px] font-semibold text-ink">
+          <div className="rounded-xl border border-db-line bg-db-bg px-3 py-2.5">
+            <span className="font-mono text-[11px] font-semibold text-db-ink">
               {readiness.approval_id}
             </span>
-            <span className="ml-2 text-[12.5px] text-ink">{readiness.name}</span>
-            <div className="mt-0.5 text-[11.5px] text-muted">{readiness.department_short}</div>
+            <span className="ml-2 text-[12.5px] text-db-ink">{readiness.name}</span>
+            <div className="mt-0.5 text-[11.5px] text-db-muted">{readiness.department_short}</div>
           </div>
 
           <label className="flex items-center gap-2.5">
@@ -84,7 +84,7 @@ export function GrievanceDialog({
               value={days}
               onChange={(e) => setDays(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))}
               inputMode="numeric"
-              className="h-8 w-[84px] rounded border border-control bg-surface px-2 font-mono text-[12.5px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="h-8 w-[84px] rounded-xl border border-db-line bg-surface px-2 font-mono text-[12.5px] text-db-ink outline-none focus-visible:ring-2 focus-visible:ring-accent"
             />
           </label>
 
@@ -98,13 +98,13 @@ export function GrievanceDialog({
               onChange={(e) => setReason(e.target.value)}
               rows={3}
               placeholder="No written query has been issued and the limit has lapsed."
-              className="w-full rounded border border-control bg-surface px-3 py-2 text-[12.5px] leading-relaxed text-ink outline-none placeholder:text-faint focus-visible:ring-2 focus-visible:ring-accent"
+              className="w-full rounded-xl border border-db-line bg-surface px-3 py-2 text-[12.5px] leading-relaxed text-db-ink outline-none placeholder:text-db-faint focus-visible:ring-2 focus-visible:ring-accent"
             />
           </div>
 
-          <div className="flex items-start gap-2 rounded border border-accent/30 bg-accent-muted/40 px-3 py-2">
-            <Scale className="mt-0.5 h-3 w-3 flex-none text-accent" strokeWidth={1.7} />
-            <p className="text-[11.5px] leading-snug text-muted">
+          <div className="flex items-start gap-2 rounded-xl border border-db-blue/30 bg-db-blue-tint/40 px-3 py-2">
+            <Scale className="mt-0.5 h-3 w-3 flex-none text-db-blue" strokeWidth={1.7} />
+            <p className="text-[11.5px] leading-snug text-db-muted">
               Routed to the Empowered Committee chaired by the Development Commissioner
               (Industries), not back to the department that is holding the file.
             </p>
