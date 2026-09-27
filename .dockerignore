@@ -1,0 +1,14 @@
+**/node_modules
+**/.next
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+**/var
+**/.pytest_cache
+**/__pycache__
+**/*.tsbuildinfo
+.git
+docs
+_sync
+_to_delete

@@ -343,6 +343,7 @@ npm test          # 111 tests: rule base, matrix engine, clocks, compliance, OAG
 npm run typecheck # strict TypeScript, no errors
 npm run build     # production bundle
 
+
 cd ../anumati-server
 npm test          # the API, the guards and the ledger's hash chain
 npm run ledger:verify   # re-walks the decision ledger and fails on a broken link
@@ -762,7 +763,7 @@ ANUMATI/
 │   │   ├── compliance/             # Pre-validation, risk, inspections, renewals
 │   │   ├── oags/                   # The published schema, the export, the validator
 │   │   └── api/                    # Client for the server; HTTP helpers for the routes
-│   ├── store/  types/  tests/      # Zustand stores · domain models · 96 vitest tests
+│   ├── store/  types/  tests/      # Zustand stores · domain models · 111 vitest tests
 │
 ├── anumati-server/                 # API and worker — Fastify 5, PostgreSQL 16
 │   ├── migrations/                 # 001_init · 002_ledger · 003_signature_cert
