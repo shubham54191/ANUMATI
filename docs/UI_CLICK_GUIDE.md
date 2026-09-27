@@ -4,7 +4,7 @@ What every button, link, tab and control does: what opens, where it opens, how b
 
 | | |
 |---|---|
-| App | `anumati-web` (Next.js 14) with `anumati-server` (API + worker) |
+| App | `anumati-web` (Next.js 14) with `backend/anumati-server` (API + worker) |
 | Checked against | The code in `D:\sih-2026`, 27 Sep 2026 — updated after the UX pass the same day (§16) |
 | Sizes | From the Tailwind classes in the code. `h-9` = 36 px, `w-[392px]` = 392 px, `max-w-lg` = 512 px (1 unit = 4 px). "Fits content" means no size is set. |
 | Breakpoints | `sm` 640 px · `md` 768 px · `lg` 1024 px · `xl` 1280 px · `2xl` 1536 px |

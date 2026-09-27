@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Covers | The applicant dashboard and the officer clearance console — the split, the reason for it, and the value each side delivers |
-| Build | `anumati-web` (Next.js 14) + `anumati-server` (Fastify, PostgreSQL). Without the server the web app runs as an offline demo |
+| Build | `anumati-web` (Next.js 14) + `backend/anumati-server` (Fastify, PostgreSQL). Without the server the web app runs as an offline demo |
 | Written | 26 Sep 2026 |
 
 ---

@@ -504,7 +504,7 @@ MH-SDC ─┬─ app VM ── docker compose ── web (Next.js) · api (Fasti
 
 | Environment | What differs |
 |---|---|
-| **SIH demo** | One laptop, `docker compose up`; adapters in fixture mode; mock DSC; seeded rules and three matrix files. No internet needed |
+| **SIH demo** | One laptop, `cd backend && docker compose up`; adapters in fixture mode; mock DSC; seeded rules and three matrix files. No internet needed |
 | **District pilot** | Two MH-SDC VMs; live API Setu adapter; MAITRI login token; officers' DSCs; one sector, one district |
 | **State rollout** | Same two-VM shape, larger VMs; a read replica if reporting gets heavy. The design does not need Kubernetes at state scale |
 

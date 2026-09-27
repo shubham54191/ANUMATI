@@ -228,7 +228,7 @@ A finale demo fails on hotel Wi-Fi. Design it to need none.
 
 | Piece | Demo setup |
 |---|---|
-| Everything | One laptop, `docker compose up`: `web`, `api`, `postgres` (+ `ollama` only if showing extraction live) |
+| Everything | One laptop, `cd backend && docker compose up`: `web`, `api`, `postgres` (+ `ollama` only if showing extraction live) |
 | Government APIs | Adapters in **fixture mode** — recorded responses for the three demo files, including one deliberate mismatch |
 | DSC | Mock signer with a test key, and the screen says so |
 | Data | Seeded: 31 approvals for the food-processing / MIDC Chakan / 72-staff / boiler case; three matrix files (APP-2026-0148, -0151, -0155) |

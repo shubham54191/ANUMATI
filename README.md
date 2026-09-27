@@ -34,13 +34,13 @@ Entrepreneurs and Single-Window Facilitation Officers face three fundamental roa
 
 ## What is in this repository
 
-Three parts. The web app runs on its own; the other two are what turns the walkthrough into a deployment.
+The web app is at the top level and runs on its own. Everything with a server side is under `backend/`, so the root stays readable.
 
 | Directory | What it is | Runs on |
 |---|---|---|
 | [`anumati-web/`](anumati-web) | The product. Applicant roadmap, officer clearance console, the rule engine, the OAGS API. Runs standalone against the seeded rule base — no database needed. | Next.js 14 · TypeScript · React 18 |
-| [`anumati-server/`](anumati-server) | The API and worker. Accounts, files, decisions, clocks, the append-only decision ledger. **Imports the same engine the browser runs**, so a roadmap or a conflict is computed identically on both sides — and the server's answer is the one that counts. | Fastify 5 · Node 22 · PostgreSQL 16 · pg-boss |
-| [`anumati-extraction/`](anumati-extraction) | The offline pipeline that reads a gazette PDF and **drafts** rules. It never publishes: every draft lands in the review queue for a named officer to sign off or reject. | Python 3.11 · pdfplumber · a local model via Ollama |
+| [`backend/anumati-server/`](backend/anumati-server) | The API and worker. Accounts, files, decisions, clocks, the append-only decision ledger. **Imports the same engine the browser runs**, so a roadmap or a conflict is computed identically on both sides — and the server's answer is the one that counts. | Fastify 5 · Node 22 · PostgreSQL 16 · pg-boss |
+| [`backend/anumati-extraction/`](backend/anumati-extraction) | The offline pipeline that reads a gazette PDF and **drafts** rules. It never publishes: every draft lands in the review queue for a named officer to sign off or reject. | Python 3.11 · pdfplumber · a local model via Ollama |
 
 **Two modes, and the screen always says which.** With `NEXT_PUBLIC_ANUMATI_API` unset the web app is an offline demo running entirely in the browser. Set it, and sign-in, files, decisions and the ledger move to the server. A badge in the chrome reads `DEMO · OFFLINE` or names the live server, because a walkthrough must never be mistaken for a deployment.
 
@@ -344,7 +344,7 @@ npm run typecheck # strict TypeScript, no errors
 npm run build     # production bundle
 
 
-cd ../anumati-server
+cd ../backend/anumati-server
 npm test          # the API, the guards and the ledger's hash chain
 npm run ledger:verify   # re-walks the decision ledger and fails on a broken link
 ```
@@ -682,6 +682,7 @@ notes about how each screen works — off by default, so a working screen stays 
 ### 2. Full stack — web, API, worker and PostgreSQL
 
 ```bash
+cd backend
 cp .env.example .env          # set JWT_SECRET: openssl rand -hex 32
 docker compose up --build     # web :3000 · API :4000
 ```
@@ -691,12 +692,12 @@ This adds the accounts, files, decision ledger and the three live-mode desks. Si
 `ceig`, `labour` — all `/demo`), `committee`/`demo` or `reviewer`/`demo`. The badge on every screen
 says what is live and what is recorded: government systems answer from recordings, and signatures use
 a labelled demo key, until real credentials and DSCs are configured.
-Details: [`anumati-server/README.md`](anumati-server/README.md).
+Details: [`backend/anumati-server/README.md`](backend/anumati-server/README.md).
 
 ### 3. Extraction pipeline — drafting rules from a gazette PDF
 
 Offline, never in a request path, and it only ever drafts.
-See [`anumati-extraction/README.md`](anumati-extraction/README.md).
+See [`backend/anumati-extraction/README.md`](backend/anumati-extraction/README.md).
 
 ### Prerequisites
 - **Node.js** 18.17+ for the web app; **Node 22** for the server. Tested on Node 24.16.
@@ -724,7 +725,6 @@ npm run start        # Starts production server on http://localhost:3000
 ```
 ANUMATI/
 ├── README.md                       # This document
-├── docker-compose.yml              # Web + API + worker + PostgreSQL, one command
 ├── screenshots/                    # 32 screenshots, all taken from the current build
 ├── docs/
 │   ├── MATRIX_2.0.md               # Conflict protocol, state machine, 4-minute demo script
@@ -765,18 +765,20 @@ ANUMATI/
 │   │   └── api/                    # Client for the server; HTTP helpers for the routes
 │   ├── store/  types/  tests/      # Zustand stores · domain models · 111 vitest tests
 │
-├── anumati-server/                 # API and worker — Fastify 5, PostgreSQL 16
-│   ├── migrations/                 # 001_init · 002_ledger · 003_signature_cert
-│   └── src/
-│       ├── auth/                   # scrypt passwords, tokens, per-route guards
-│       ├── matrix/                 # Commands, store, service — the officer's writes
-│       ├── engine/bridge.ts        # Imports anumati-web/lib: one engine, both sides
-│       ├── ledger/                 # Append-only hash chain and its verifier
-│       ├── adapters/               # Government systems; recorded answers + circuit breaker
-│       └── jobs/                   # Deliveries, registry checks, SLA sentinel, renewals
-│
-└── anumati-extraction/             # Offline drafting pipeline — Python 3.11
-    └── anumati_extract/            # PDF → pages → model → validated drafts → review queue
+└── backend/                        # Everything with a server side
+    ├── docker-compose.yml          # Web + API + worker + PostgreSQL, one command
+    ├── .env.example
+    ├── anumati-server/             # API and worker — Fastify 5, PostgreSQL 16
+    │   ├── migrations/             # 001_init · 002_ledger · 003_signature_cert
+    │   └── src/
+    │       ├── auth/               # scrypt passwords, tokens, per-route guards
+    │       ├── matrix/             # Commands, store, service — the officer's writes
+    │       ├── engine/bridge.ts    # Imports anumati-web/lib: one engine, both sides
+    │       ├── ledger/             # Append-only hash chain and its verifier
+    │       ├── adapters/           # Government systems; recorded answers + circuit breaker
+    │       └── jobs/               # Deliveries, registry checks, SLA sentinel, renewals
+    └── anumati-extraction/         # Offline drafting pipeline — Python 3.11
+        └── anumati_extract/        # PDF → pages → model → validated drafts → review queue
 ```
 
 ---

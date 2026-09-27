@@ -1,8 +1,12 @@
 # ANUMATI — the whole stack on one machine.
 #
+#   cd backend
 #   cp .env.example .env        # then change JWT_SECRET and the passwords
 #   docker compose up --build   # web on :3000, API on :4000
 #   docker compose --profile extraction up ollama   # optional, for the rule pipeline
+#
+# The build context is the repository root, one level up, because the API
+# bundles the engine in from anumati-web/lib.
 #
 # The defaults run the DEMO configuration: seeded demo accounts and files,
 # recorded government answers, and a labelled demo signer. The server refuses
@@ -41,8 +45,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: anumati-server/Dockerfile
+      context: ..
+      dockerfile: backend/anumati-server/Dockerfile
     image: anumati-server:local
     restart: unless-stopped
     environment: *server-env
@@ -59,8 +63,8 @@ services:
   # this queue, never a request.
   worker:
     build:
-      context: .
-      dockerfile: anumati-server/Dockerfile
+      context: ..
+      dockerfile: backend/anumati-server/Dockerfile
     image: anumati-server:local
     restart: unless-stopped
     command: ["node", "dist/worker.js"]
@@ -73,7 +77,7 @@ services:
 
   web:
     build:
-      context: .
+      context: ..
       dockerfile: anumati-web/Dockerfile
       args:
         # The browser calls this URL, so it must be reachable from the browser.
