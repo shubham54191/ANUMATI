@@ -9,7 +9,7 @@
 export function StateEmblem({ size = 46 }: { size?: number }) {
   const spokes = Array.from({ length: 24 }, (_, i) => (i * 360) / 24);
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-label="Government of India">
+    <svg aria-hidden width={size} height={size} viewBox="0 0 48 48" fill="none">
       <circle cx="24" cy="24" r="21" stroke="#15365B" strokeWidth="1.6" />
       <circle cx="24" cy="24" r="17" stroke="#15365B" strokeWidth="1.1" />
       {spokes.map((deg) => (

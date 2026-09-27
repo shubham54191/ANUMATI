@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56">
+  <!-- The ANUMATI mark on a solid tile: a favicon is rendered at 16px, where a
+       transparent background disappears into whatever the browser chrome is. -->
+  <rect width="56" height="56" rx="12" fill="#15365B"/>
+  <path d="M23.9 9.4a4.6 4.6 0 0 1 8.2 0l16.6 34.9a4.6 4.6 0 0 1-4.1 6.6h-5.9a3 3 0 0 1-2.7-1.7L28 27.7 20 49.2a3 3 0 0 1-2.8 1.7h-5.8a4.6 4.6 0 0 1-4.1-6.6Z" fill="#FFFFFF"/>
+  <path d="M27.4 30.6c6.4 1.5 10.4 5.8 11.4 12.6-6.5-1.2-10.4-5.4-11.4-12.6Z" fill="#7DC242"/>
+  <circle cx="35.6" cy="19.4" r="3.2" fill="#8CCB4C"/>
+</svg>

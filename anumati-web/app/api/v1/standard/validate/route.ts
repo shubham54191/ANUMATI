@@ -1,5 +1,5 @@
 import { validateOags } from "@/lib/oags/validate";
-import { ok, preflight, readJson } from "@/lib/api/http";
+import { guard, ok, preflight, readJson } from "@/lib/api/http";
 
 export const dynamic = "force-dynamic";
 
@@ -12,9 +12,13 @@ export const dynamic = "force-dynamic";
  * answer "no, here is why" is a successful answer to that question.
  */
 export async function POST(req: Request) {
+  // Tightest of the five: this one parses a body up to 4 MB and walks a graph.
+  const limited = guard(req, 20);
+  if ("response" in limited) return limited.response;
+
   const body = await readJson(req);
   if ("response" in body) return body.response;
-  return ok(validateOags(body.value));
+  return ok(validateOags(body.value), { headers: limited.headers });
 }
 
 export function OPTIONS() {

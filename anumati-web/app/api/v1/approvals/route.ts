@@ -1,6 +1,6 @@
 import { APPROVALS } from "@/lib/data/maharashtraFood";
 import { inForce, RULES_AS_OF, RULES_VERSION } from "@/lib/oags/document";
-import { fail, isIsoDate, ok, preflight } from "@/lib/api/http";
+import { fail, guard, isIsoDate, ok, preflight } from "@/lib/api/http";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +13,9 @@ export const dynamic = "force-dynamic";
  * with a rule list is narrow it.
  */
 export function GET(req: Request) {
+  const limited = guard(req, 120);
+  if ("response" in limited) return limited.response;
+
   const q = new URL(req.url).searchParams;
 
   const asOf = q.get("as_of");
@@ -41,7 +44,7 @@ export function GET(req: Request) {
       filters: { as_of: asOf, stage, department },
     },
     data: rows,
-  });
+  }, { headers: limited.headers });
 }
 
 export function OPTIONS() {

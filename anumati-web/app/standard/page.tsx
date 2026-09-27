@@ -289,7 +289,7 @@ export default function StandardPage() {
                     >
                       <span
                         className={`w-[52px] flex-none font-mono text-[10px] font-semibold tracking-[0.05em] ${
-                          e.m === "GET" ? "text-state-done" : "text-state-active"
+                          e.m === "GET" ? "text-[#15803D]" : "text-state-active"
                         }`}
                       >
                         {e.m}

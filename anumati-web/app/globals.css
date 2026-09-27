@@ -70,7 +70,8 @@
   --db-bg:           #F6F8FC;
   --db-line:         #E6EBF2;
   --db-ink:          #0F172A;
-  --db-muted:        #64748B;
+  /* 5.5:1 on the light backgrounds this sits on. #64748B was 4.34:1 — under AA. */
+  --db-muted:        #556478;
   --db-faint:        #94A3B8;
   --db-navy:         #1E293B;
   --db-blue:         #2563EB;

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimit, rateLimitHeaders } from "./rateLimit";
 
 /**
  * One shape for every response this API gives, success or failure, so a client
@@ -14,6 +15,30 @@ export const CORS = {
   "access-control-allow-methods": "GET, POST, OPTIONS",
   "access-control-allow-headers": "content-type",
 } as const;
+
+/**
+ * Apply the rate limit. Returns a 429 to send straight back, or null to carry
+ * on — with the headers to attach either way.
+ */
+export function guard(
+  req: Request,
+  limit: number,
+): { response: Response } | { headers: Record<string, string> } {
+  const r = rateLimit(req, limit);
+  const headers = rateLimitHeaders(r);
+  if (r.ok) return { headers };
+  return {
+    response: NextResponse.json(
+      {
+        error: {
+          code: "rate_limited",
+          message: `Too many requests. Try again in ${r.retryAfter} seconds.`,
+        },
+      },
+      { status: 429, headers: { ...CORS, ...headers } },
+    ),
+  };
+}
 
 export function ok<T>(data: T, init?: { headers?: Record<string, string> }) {
   return NextResponse.json(data, { status: 200, headers: { ...CORS, ...init?.headers } });

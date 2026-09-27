@@ -4,7 +4,7 @@ import { daysUnder, evidenceIndex } from "@/lib/data/observed";
 import { SEEDED_REPORTS } from "@/lib/data/fieldReports";
 import { APPROVALS } from "@/lib/data/maharashtraFood";
 import { RULES_AS_OF, RULES_VERSION } from "@/lib/oags/document";
-import { fail, ok, preflight, readJson } from "@/lib/api/http";
+import { fail, guard, ok, preflight, readJson } from "@/lib/api/http";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,9 @@ export const dynamic = "force-dynamic";
  * and returns the same roadmap for the same request.
  */
 export async function POST(req: Request) {
+  const limited = guard(req, 30);
+  if ("response" in limited) return limited.response;
+
   const body = await readJson(req, 64_000);
   if ("response" in body) return body.response;
 
@@ -46,7 +49,7 @@ export async function POST(req: Request) {
             : "Median of reported waits, from seeded pilot data. Modelled, not measured.",
       },
       data: roadmap,
-    });
+    }, { headers: limited.headers });
   } catch (e) {
     if (e instanceof CyclicDependencyError) {
       // A cycle is a fault in the rule base, not in the caller's request, and

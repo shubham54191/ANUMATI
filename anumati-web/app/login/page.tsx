@@ -121,12 +121,12 @@ export default function LoginPage() {
             <StateEmblem size={44} />
             <div className="leading-tight">
               <div className="text-[15px] font-semibold text-[#15365B]">Government of India</div>
-              <div className="text-[12.5px] text-[#64748B]">
+              <div className="text-[12.5px] text-[#556478]">
                 Ministry of Food Processing Industries
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-[12.5px] text-[#64748B]">
+          <div className="flex items-center gap-2 text-[12.5px] text-[#556478]">
             <span>Transparent</span>
             <span className="text-[#C7D2DD]">•</span>
             <span>Efficient</span>
@@ -221,7 +221,7 @@ export default function LoginPage() {
 
             <div className="flex flex-1 flex-col justify-center py-6">
             <h2 className="text-[38px] font-bold leading-none text-[#15365B]">Welcome Back</h2>
-            <p className="mt-3 text-[14.5px] text-[#64748B]">Login to your ANUMATI account</p>
+            <p className="mt-3 text-[14.5px] text-[#556478]">Login to your ANUMATI account</p>
 
             <form onSubmit={submit} className="mt-7 flex flex-col" noValidate>
               <label htmlFor="username" className="mb-2 text-[13px] font-semibold text-[#1F2937]">
@@ -231,6 +231,9 @@ export default function LoginPage() {
                 <User className="h-4 w-4 flex-none text-[#94A3B8]" strokeWidth={1.7} />
                 <input
                   id="username"
+                  required
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? "login-error" : undefined}
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -247,6 +250,9 @@ export default function LoginPage() {
                 <input
                   id="password"
                   type={show ? "text" : "password"}
+                  required
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? "login-error" : undefined}
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -257,7 +263,9 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShow((v) => !v)}
                   aria-label={show ? "Hide password" : "Show password"}
-                  className="flex-none text-[#94A3B8] hover:text-[#475569]"
+                  aria-pressed={show}
+                  // A 14px icon is a 14px target. WCAG 2.2 asks for 24.
+                  className="-mr-1 flex h-6 w-6 flex-none items-center justify-center rounded text-[#94A3B8] hover:text-[#475569]"
                 >
                   {show ? (
                     <Eye className="h-4 w-4" strokeWidth={1.7} />
@@ -301,6 +309,7 @@ export default function LoginPage() {
 
               {error ? (
                 <p
+                  id="login-error"
                   role="alert"
                   className="mt-4 rounded-lg border border-[#FCA5A5] bg-[#FEF2F2] px-3.5 py-2.5 text-[13px] leading-snug text-[#B91C1C]"
                 >
@@ -320,7 +329,7 @@ export default function LoginPage() {
 
             <div className="my-6 flex items-center gap-4">
               <span className="h-px flex-1 bg-[#E8EDF3]" />
-              <span className="text-[12.5px] text-[#94A3B8]">OR</span>
+              <span className="text-[12.5px] text-[#66758A]">OR</span>
               <span className="h-px flex-1 bg-[#E8EDF3]" />
             </div>
 
@@ -336,7 +345,7 @@ export default function LoginPage() {
               <Landmark className="h-[18px] w-[18px] text-[#15365B]" strokeWidth={1.6} />
               Continue as the demo applicant
             </button>
-            <p className="mt-2 text-center text-[11.5px] leading-snug text-[#94A3B8]">
+            <p className="mt-2 text-center text-[11.5px] leading-snug text-[#66758A]">
               In deployment this is MAITRI 2.0 sign-in — investors keep the account they already have.
             </p>
 
@@ -359,7 +368,7 @@ export default function LoginPage() {
                       >
                         {u} / {p}
                       </button>
-                      <span className="text-[11.5px] text-[#94A3B8]">{who}</span>
+                      <span className="text-[11.5px] text-[#66758A]">{who}</span>
                     </li>
                   ))}
                 </ul>
@@ -372,7 +381,7 @@ export default function LoginPage() {
               </span>
               <div className="leading-tight">
                 <div className="text-[13.5px] font-medium text-[#1F2937]">Need help?</div>
-                <p className="text-[12.5px] text-[#64748B]">
+                <p className="text-[12.5px] text-[#556478]">
                   Sign-in problems go to your department&apos;s MAITRI 2.0 administrator.
                 </p>
               </div>
@@ -384,7 +393,7 @@ export default function LoginPage() {
         </main>
 
         {/* Footer */}
-        <footer className="flex flex-wrap items-center justify-between gap-3 pt-5 text-[12.5px] text-[#64748B]">
+        <footer className="flex flex-wrap items-center justify-between gap-3 pt-5 text-[12.5px] text-[#556478]">
           <div className="flex items-center gap-3">
             <Link href="/standard" className="no-underline hover:text-[#15365B]">
               Open standard (OAGS)
