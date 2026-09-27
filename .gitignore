@@ -1,4 +1,4 @@
-﻿# Dependencies
+# Dependencies
 node_modules/
 */node_modules/
 
@@ -24,7 +24,6 @@ ANUMATI_FRONTEND_ARCHITECTURE_1.md
 .DS_Store
 Thumbs.db
 
-# Server runtime data and Python caches
-anumati-server/var/
+# Python caches
 __pycache__/
 .pytest_cache/

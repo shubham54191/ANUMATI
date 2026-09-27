@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { errorLine } from "@/lib/api/explain";
 import { BookCheck, ExternalLink, FileSearch, Inbox, Loader2 } from "lucide-react";
 import { api, ApiError } from "@/lib/api/client";
 import { DeskShell } from "@/components/layout/DeskShell";
@@ -36,7 +37,7 @@ const TABS = [
   { id: "rejected", label: "Rejected" },
 ] as const;
 
-const errMsg = (e: unknown, f: string) => (e instanceof ApiError ? e.message : f);
+const errMsg = (e: unknown, f: string) => errorLine(e, f);
 
 /**
  * Where an extracted rule becomes law in the engine — or does not. The
@@ -131,7 +132,11 @@ function RuleCard({ rule: r, onDone }: { rule: RuleRow; onDone: () => Promise<vo
       await onDone();
     } catch (e) {
       const cycle = e instanceof ApiError ? (e.detail as { cycle?: string[] } | undefined)?.cycle : undefined;
-      setErr(cycle ? `${errMsg(e, "")} ${cycle.join(" → ")}` : errMsg(e, "Not accepted."));
+      setErr(
+        cycle
+          ? `${(e as ApiError).message} ${cycle.join(" → ")}. Nothing was published — reject this draft or fix the edge that closes the loop.`
+          : errMsg(e, "Not accepted."),
+      );
     } finally {
       setBusy(null);
     }
@@ -231,6 +236,9 @@ function RuleCard({ rule: r, onDone }: { rule: RuleRow; onDone: () => Promise<vo
             >
               Reject draft
             </button>
+            {note.trim().length < 5 ? (
+              <span className="font-mono text-[10.5px] text-db-faint">{note.trim().length}/5 — say what you checked</span>
+            ) : null}
             {err ? <span className="text-[12px] text-db-red">{err}</span> : null}
           </div>
         </div>

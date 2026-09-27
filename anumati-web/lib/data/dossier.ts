@@ -3,7 +3,7 @@ import type { Dossier } from "@/types/compliance";
 /**
  * What the applicant is holding today.
  *
- * Two deliberate gaps and one deliberate contradiction, because a pre-check
+ * One gap in today's wave, later-wave gaps, and deliberate contradictions, because a pre-check
  * that always says "ready" teaches nobody anything. The contradiction is the
  * one that matters: the same water draw written as two different numbers on
  * two departments' forms, which is exactly the clash the officer console then
@@ -33,7 +33,21 @@ export const SEED_DOSSIER: Dossier = {
     "Land document",
     "Fire fighting layout",
     "GSTIN",
-    // Deliberately absent: "ETP design", "Sanctioned building plan".
+    // Documents the conditional approvals of this unit ask for (boiler,
+    // signage, trade mark, export, labelling).
+    "Load requirement",
+    "Site plan",
+    "Boiler drawings",
+    "Manufacturer certificate",
+    "Signage drawing",
+    "Logo artwork",
+    "Power of attorney",
+    "Bank certificate",
+    "Label artwork",
+    // Deliberately absent:
+    //  - "Board resolution" — the one gap in the wave being filed today, so the
+    //    pre-check refuses exactly one approval (A32) until it is uploaded;
+    //  - "ETP design", "Sanctioned building plan" — later waves.
   ],
   fields: [
     {

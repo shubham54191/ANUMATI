@@ -1,7 +1,7 @@
 "use client";
 import { ArrowUpRight, CheckCircle2, CircleDot, FileText, Gavel, ShieldAlert, TriangleAlert, XCircle } from "lucide-react";
 import type { ApplicationFile, DeptReview, DerivedMatrixState, ReviewState } from "@/types/matrix";
-import { REVIEW_META, isOverdue, slaFraction, slaLabel } from "@/lib/matrix/display";
+import { REVIEW_META, isOverdue, reviewStatus, slaFraction, slaLabel } from "@/lib/matrix/display";
 import { Explain } from "@/components/ui/Explain";
 import { cn } from "@/lib/utils";
 
@@ -76,13 +76,12 @@ function DeptNode({ review, day, delay }: { review: DeptReview; day: number; del
           <span
             className={cn(
               "flex flex-none items-center gap-1 rounded-full px-2 py-[2px] text-[9.5px] font-bold tracking-[0.05em]",
-              meta.bg,
-              meta.text,
+              review.query_open ? "bg-db-amber-tint text-db-amber" : cn(meta.bg, meta.text),
             )}
           >
             {review.state === "approved" ? <CheckCircle2 className="h-2.5 w-2.5" strokeWidth={2.4} /> : null}
             {review.state === "rejected" ? <XCircle className="h-2.5 w-2.5" strokeWidth={2.4} /> : null}
-            {meta.label}
+            {reviewStatus(review).label}
           </span>
         </div>
 
@@ -157,7 +156,7 @@ export function ParallelTrack({
           <LegendDot color="var(--db-green)" label="Approved" />
           <LegendDot color="var(--db-red)" label="Rejected" />
           <LegendDot color="var(--db-blue)" label="Processing" />
-          <LegendDot color="var(--db-faint)" label="Open" />
+          <LegendDot color="var(--db-faint)" label="Waiting" />
         </div>
       </div>
 

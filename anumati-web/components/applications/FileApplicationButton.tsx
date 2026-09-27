@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { errorLine } from "@/lib/api/explain";
+import { useDialog } from "@/hooks/useDialog";
 import { useRouter } from "next/navigation";
 import { FilePlus2, Loader2, X } from "lucide-react";
 import type { RoadmapRequest } from "@/types/roadmap";
@@ -22,6 +24,9 @@ export function FileApplicationButton({ request, defaultProject }: { request: Ro
   const [sample, setSample] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Same rules as every dialog: Esc and backdrop close it, focus stays inside.
+  // The project name is pre-filled, so it only counts as typed once changed.
+  const { ref, dismiss } = useDialog(open, () => !busy && setOpen(false), project !== defaultProject || busy);
 
   if (!isLive() || session?.role !== "applicant") return null;
 
@@ -37,7 +42,7 @@ export function FileApplicationButton({ request, defaultProject }: { request: Ro
       });
       router.push(`/applications/${app.id}`);
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Could not create the application.");
+      setError(errorLine(e, "Could not create the application."));
       setBusy(false);
     }
   };
@@ -53,8 +58,9 @@ export function FileApplicationButton({ request, defaultProject }: { request: Ro
       </button>
 
       {open ? (
-        <div role="dialog" aria-modal aria-labelledby="fa-title" className="fixed inset-0 z-50 flex items-center justify-center bg-db-ink/30 px-4">
-          <div className="w-full max-w-[460px] rounded-xl border border-db-line bg-surface p-5 shadow-[0_18px_48px_rgba(15,23,42,0.22)]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="db-fade absolute inset-0 bg-db-ink/30" onClick={dismiss} aria-hidden />
+          <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="fa-title" className="db-dialog relative w-full max-w-[460px] rounded-xl border border-db-line bg-surface p-5 shadow-[0_18px_48px_rgba(15,23,42,0.22)]">
             <div className="flex items-start gap-3">
               <div className="flex-1">
                 <h2 id="fa-title" className="text-[16px] font-semibold text-db-ink">
@@ -85,7 +91,7 @@ export function FileApplicationButton({ request, defaultProject }: { request: Ro
               <span>
                 Start from the sample unit&apos;s documents
                 <span className="block text-[11.5px] text-db-muted">
-                  Demo convenience — it carries one deliberate mismatch so the pre-check has something to catch.
+                  Demo convenience — it is missing one document (a board resolution), so the pre-check has one thing to catch and one upload fixes it.
                 </span>
               </span>
             </label>

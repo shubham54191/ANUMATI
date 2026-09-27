@@ -1,9 +1,15 @@
+/**
+ * `covered: false` marks an answer the published rule base does not model yet.
+ * The wizard lists it — so an applicant sees what is coming — but will not
+ * let it be chosen, because the roadmap would silently be the food-processing
+ * one under a different label.
+ */
 export const SECTORS = [
-  { id: "food", label: "Food processing & packaging" },
-  { id: "textile", label: "Textile & apparel" },
-  { id: "cold_chain", label: "Cold storage & cold chain" },
-  { id: "auto", label: "Auto components" },
-  { id: "warehousing", label: "Warehousing & logistics" },
+  { id: "food", label: "Food processing & packaging", covered: true },
+  { id: "textile", label: "Textile & apparel", covered: false },
+  { id: "cold_chain", label: "Cold storage & cold chain", covered: false },
+  { id: "auto", label: "Auto components", covered: false },
+  { id: "warehousing", label: "Warehousing & logistics", covered: false },
 ] as const;
 
 export const SIZE_BANDS = [
@@ -14,9 +20,9 @@ export const SIZE_BANDS = [
 ] as const;
 
 export const STAGES = [
-  { id: "new", label: "New setup — greenfield" },
-  { id: "expansion", label: "Expansion of an existing unit" },
-  { id: "renewal", label: "Renewal of existing licences" },
+  { id: "new", label: "New setup — greenfield", covered: true },
+  { id: "expansion", label: "Expansion of an existing unit", covered: false },
+  { id: "renewal", label: "Renewal of existing licences", covered: false },
 ] as const;
 
 /**

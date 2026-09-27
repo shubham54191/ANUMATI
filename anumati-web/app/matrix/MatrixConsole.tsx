@@ -23,6 +23,7 @@ const TICK_MS = 1400;
 /** Errors from the server, said once, dismissable, never a blank screen. */
 function ErrorToast() {
   const error = useMatrixStore((s) => s.error);
+  const next = useMatrixStore((s) => s.errorNext);
   const clear = useMatrixStore((s) => s.clearError);
   if (!error) return null;
   return (
@@ -31,7 +32,11 @@ function ErrorToast() {
       className="db-drop fixed bottom-24 left-1/2 z-50 flex max-w-[560px] -translate-x-1/2 items-start gap-2.5 rounded-xl border border-db-red-line bg-surface px-4 py-3 shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
     >
       <AlertTriangle className="mt-0.5 h-4 w-4 flex-none text-db-red" strokeWidth={1.8} />
-      <p className="text-[13px] leading-snug text-db-ink">{error}</p>
+      <div className="min-w-0">
+        <p className="text-[12.5px] font-semibold text-db-red">That did not go through</p>
+        <p className="mt-0.5 text-[13px] leading-snug text-db-ink">{error}</p>
+        {next ? <p className="mt-1 text-[12px] leading-snug text-db-muted">Next: {next}</p> : null}
+      </div>
       <button onClick={clear} aria-label="Dismiss" className="ml-2 flex-none text-db-faint hover:text-db-ink">
         <X className="h-4 w-4" strokeWidth={1.8} />
       </button>

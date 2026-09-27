@@ -113,6 +113,12 @@ export function ClarificationThread({
                 </span>
               </div>
               <p className="text-[12.5px] leading-relaxed text-db-ink">{m.body}</p>
+              {m.dept_id ? (
+                <p className="mt-1 font-mono text-[10px] text-db-faint">
+                  Re: {app.reviews.find((r) => r.dept_id === m.dept_id)?.approval_id ?? ""}{" "}
+                  {app.reviews.find((r) => r.dept_id === m.dept_id)?.approval_name ?? ""}
+                </p>
+              ) : null}
             </div>
           ))}
           <div ref={endRef} />

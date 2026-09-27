@@ -22,7 +22,8 @@ import {
   tieBreakerDecision,
   verifyParameters as verifyParametersOn,
 } from "@/lib/matrix/engine";
-import { api, ApiError, isLive } from "@/lib/api/client";
+import { api, isLive } from "@/lib/api/client";
+import { explainError } from "@/lib/api/explain";
 
 export type ContextTab = "thread" | "data" | "scope" | "sla" | "visits" | "redress" | "audit";
 
@@ -70,6 +71,8 @@ interface MatrixState {
   /** Live mode only. */
   loading: boolean;
   error: string | null;
+  /** What to do about `error` — the next step, chosen by the kind of failure. */
+  errorNext: string | null;
   busy: boolean;
   /** Whether the server allows the demo controls (advance clock, scripted clash). */
   demoControls: boolean;
@@ -87,12 +90,13 @@ interface MatrixState {
   setPacketOpen: (open: boolean) => void;
 
   dispatchAll: () => void;
-  decide: (deptId: string, state: "approved" | "rejected", opts?: { score?: number; remarks?: string }) => void;
+  /** Live: resolves false if the server refused. Demo: returns nothing. */
+  decide: (deptId: string, state: "approved" | "rejected", opts?: { score?: number; remarks?: string }) => Promise<boolean> | void;
   triggerClash: () => void;
   reEvaluate: (deptId: string, note: string) => void;
   verifyParameters: (deptId: string) => void;
   post: (body: string, deptId: string | null) => void;
-  raiseQuery: (deptId: string, body: string) => void;
+  raiseQuery: (deptId: string, body: string) => Promise<boolean> | void;
   answerQuery: (deptId: string, body: string) => void;
   committeeDecide: (deptId: string, outcome: "approved" | "rejected", note: string) => void;
 
@@ -135,9 +139,8 @@ const LIVE = isLive();
 
 export const useMatrixStore = create<MatrixState>((set, get) => {
   /** In live mode, every action is one command to the server. */
-  const live = (cmd: MatrixCommand) => {
-    void get().send(cmd);
-  };
+  /** Resolves false when the server refused, so a form can keep what was typed. */
+  const live = (cmd: MatrixCommand) => get().send(cmd);
 
   return {
     mode: LIVE ? "live" : "demo",
@@ -151,13 +154,14 @@ export const useMatrixStore = create<MatrixState>((set, get) => {
 
     loading: LIVE,
     error: null,
+    errorNext: null,
     busy: false,
     demoControls: !LIVE,
     views: {},
 
     load: async () => {
       if (!LIVE) return;
-      set({ loading: true, error: null });
+      set({ loading: true, error: null, errorNext: null });
       try {
         const list = await api<{ data: { id: string }[] }>("/v1/matrix/files");
         const views = await Promise.all(list.data.map((f) => api<FileView>(`/v1/matrix/files/${f.id}`)));
@@ -175,7 +179,8 @@ export const useMatrixStore = create<MatrixState>((set, get) => {
           loading: false,
         });
       } catch (e) {
-        set({ loading: false, error: e instanceof ApiError ? e.message : "Could not load the files." });
+        const x = explainError(e, "Could not load the files.");
+        set({ loading: false, error: x.message, errorNext: x.next });
       }
     },
 
@@ -199,7 +204,7 @@ export const useMatrixStore = create<MatrixState>((set, get) => {
     send: async (cmd, id) => {
       const fileId = id ?? get().selectedId;
       if (!fileId) return false;
-      set({ busy: true, error: null });
+      set({ busy: true, error: null, errorNext: null });
       try {
         const v = await api<FileView>(`/v1/matrix/files/${fileId}/commands`, {
           method: "POST",
@@ -212,12 +217,13 @@ export const useMatrixStore = create<MatrixState>((set, get) => {
         }));
         return true;
       } catch (e) {
-        set({ busy: false, clockRunning: false, error: e instanceof ApiError ? e.message : "The server did not accept that." });
+        const x = explainError(e, "The server did not accept that.");
+        set({ busy: false, clockRunning: false, error: x.message, errorNext: x.next });
         return false;
       }
     },
 
-    clearError: () => set({ error: null }),
+    clearError: () => set({ error: null, errorNext: null }),
 
     // Switching files stops the clock and drops the previous file's composer
     // identity — the clock advances whichever file is selected, so leaving it
@@ -370,7 +376,7 @@ export const useMatrixStore = create<MatrixState>((set, get) => {
 
     resetFile: () => {
       if (LIVE) {
-        set({ error: "A live file cannot be reset — its history is in the ledger." });
+        set({ error: "A live file cannot be reset — its history is in the ledger.", errorNext: null });
         return;
       }
       set((s) => {

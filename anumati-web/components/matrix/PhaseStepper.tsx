@@ -141,11 +141,15 @@ export function PhaseStepper({ derived }: { derived: DerivedMatrixState }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Stop index={0} name="Initial Review" state={states[0]} />
-      <ChevronRight className="h-4 w-4 flex-none text-db-faint" strokeWidth={2} />
-      <Stop index={1} name="Parallel Review" state={states[1]} />
-      <ChevronRight className="h-4 w-4 flex-none text-db-faint" strokeWidth={2} />
-      <Stop index={2} name="Final Decision" state={states[2]} />
+      {/* The stops keep a readable width; the verdict chip wraps below them
+          rather than squeezing the phase names into ellipses. */}
+      <div className="flex min-w-[min(100%,540px)] flex-1 items-center gap-2">
+        <Stop index={0} name="Initial Review" state={states[0]} />
+        <ChevronRight className="h-4 w-4 flex-none text-db-faint" strokeWidth={2} />
+        <Stop index={1} name="Parallel Review" state={states[1]} />
+        <ChevronRight className="h-4 w-4 flex-none text-db-faint" strokeWidth={2} />
+        <Stop index={2} name="Final Decision" state={states[2]} />
+      </div>
 
       {chip ? (
         <span

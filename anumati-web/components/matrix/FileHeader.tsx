@@ -41,6 +41,15 @@ export function FileHeader({
     <div className="db-rise rounded-xl border border-db-line bg-surface px-5 py-4">
       <div className="flex flex-wrap items-start gap-4">
         <div className="min-w-0 flex-1">
+          <nav aria-label="Where you are" className="mb-1 flex items-center gap-1.5 text-[11px] text-db-faint">
+            <span>Clearance Console</span>
+            <span aria-hidden>›</span>
+            <span className="font-mono">{app.id}</span>
+            <span aria-hidden>›</span>
+            <span className="font-medium text-db-muted" aria-current="page">
+              {!app.dispatched ? "Initial review" : settled ? "Final decision" : derived.conflict ? "Conflict" : "Parallel review"}
+            </span>
+          </nav>
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="font-mono text-[11.5px] font-semibold tracking-[0.03em] text-db-ink">
               {app.id}
@@ -65,7 +74,7 @@ export function FileHeader({
               className="disabled:opacity-50 flex h-10 items-center gap-2 rounded-xl bg-db-blue px-4 text-[13px] font-semibold text-white transition-colors hover:brightness-95"
             >
               <Send className="h-4 w-4" strokeWidth={1.9} />
-              Dispatch to all {app.reviews.length} departments
+              {busy ? "Dispatching…" : `Dispatch to all ${app.reviews.length} departments`}
             </button>
           ) : (
             <>
@@ -94,7 +103,7 @@ export function FileHeader({
                   }
                   className={cn(
                     "flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[11.5px] font-semibold transition-colors",
-                    "disabled:pointer-events-none disabled:opacity-40",
+                    "disabled:cursor-not-allowed disabled:opacity-40",
                     clockRunning
                       ? "bg-db-blue-tint text-db-blue"
                       : "text-db-muted hover:bg-db-bg hover:text-db-ink",
@@ -112,7 +121,7 @@ export function FileHeader({
                   onClick={() => advance(1)}
                   disabled={settled}
                   title={settled ? "The phase is settled — the clock has stopped" : "Advance one day"}
-                  className="flex h-8 items-center gap-1 rounded-lg px-2.5 text-[11.5px] font-semibold text-db-muted transition-colors hover:bg-db-bg hover:text-db-ink disabled:pointer-events-none disabled:opacity-40"
+                  className="flex h-8 items-center gap-1 rounded-lg px-2.5 text-[11.5px] font-semibold text-db-muted transition-colors hover:bg-db-bg hover:text-db-ink disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <ChevronsRight className="h-3.5 w-3.5" strokeWidth={2} />
                   +1 D

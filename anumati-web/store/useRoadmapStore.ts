@@ -37,7 +37,15 @@ interface RoadmapState {
   setGraphView: (v: "critical" | "all") => void;
   fitGraph: () => void;
   expandGraph: () => void;
-  hydrateFromSetup: (patch: { employees?: number; heightM?: number; on?: Record<string, boolean> }) => void;
+  /** The wizard's descriptive answers. The engine keys on conditions; these
+   *  name the project and travel back to the wizard on "Change answers". */
+  setup: { sector: string; location: string; stage: string };
+  hydrateFromSetup: (patch: {
+    employees?: number;
+    heightM?: number;
+    on?: Record<string, boolean>;
+    setup?: Partial<{ sector: string; location: string; stage: string }>;
+  }) => void;
 }
 
 const LANDING_PANE: Record<ViewMode, Pane> = {
@@ -62,6 +70,7 @@ export const useRoadmapStore = create<RoadmapState>((set) => ({
   },
   employees: 72,
   heightM: 11,
+  setup: { sector: "food", location: "pune_chakan", stage: "new" },
   activeDepartmentId: null,
   clockBasis: "statutory",
   graphView: "all",
@@ -91,9 +100,10 @@ export const useRoadmapStore = create<RoadmapState>((set) => ({
   fitGraph: () => set((s) => ({ fitSignal: s.fitSignal + 1 })),
   expandGraph: () => set((s) => ({ expandSignal: s.expandSignal + 1 })),
 
-  hydrateFromSetup: ({ employees, heightM, on }) =>
+  hydrateFromSetup: ({ employees, heightM, on, setup }) =>
     set((s) => {
       const next = { ...s };
+      if (setup) next.setup = { ...s.setup, ...setup };
       if (typeof employees === "number") {
         next.employees = employees;
         next.conditions = { ...s.conditions, factory: employees >= 10, epf_esic: employees >= 10 };

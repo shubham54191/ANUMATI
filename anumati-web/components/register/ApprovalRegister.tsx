@@ -5,6 +5,9 @@ import type { Roadmap } from "@/types/roadmap";
 import type { ApprovalEvidence } from "@/types/report";
 import type { Stage } from "@/types/approval";
 import { EDGE_SPEC } from "@/lib/constants/edgeTypes";
+import { SECTORS, SIZE_BANDS, STAGES as SETUP_STAGES } from "@/lib/constants/sectors";
+import { LOCATIONS } from "@/lib/constants/locations";
+import { bandForEmployees } from "@/lib/roadmap/setupParams";
 import { useRoadmapStore } from "@/store/useRoadmapStore";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Card";
@@ -31,9 +34,20 @@ export function ApprovalRegister({
   roadmap: Roadmap;
   evidence: Record<string, ApprovalEvidence>;
 }) {
+  const employees = useRoadmapStore((s) => s.employees);
+  const label = (opts: readonly { id: string; label: string }[], id: string) => opts.find((o) => o.id === id)?.label ?? id;
+  // The printed checklist names the project it was built for, not a fixed one.
+  const printLine = [
+    label(SECTORS, roadmap.request.sector),
+    label(LOCATIONS, roadmap.request.location),
+    label(SIZE_BANDS, bandForEmployees(employees)),
+    label(SETUP_STAGES, roadmap.request.stage),
+  ].join(" · ");
   const select = useRoadmapStore((s) => s.select);
   const selectedId = useRoadmapStore((s) => s.selectedApprovalId);
   const [query, setQuery] = useState("");
+  // Quick filters — each one a question an officer actually asks of the list.
+  const [only, setOnly] = useState<null | "critical" | "deemed" | "flagged">(null);
 
   const criticalSet = useMemo(
     () => new Set(roadmap.critical_path),
@@ -52,8 +66,11 @@ export function ApprovalRegister({
 
   const q = query.trim().toLowerCase();
   const matches = (id: string) => {
-    if (!q) return true;
     const a = roadmap.approvals.find((x) => x.id === id)!;
+    if (only === "critical" && !criticalSet.has(id)) return false;
+    if (only === "deemed" && !a.deemed_exists) return false;
+    if (only === "flagged" && !a.flagged) return false;
+    if (!q) return true;
     return (
       a.name.toLowerCase().includes(q) ||
       a.department_name.toLowerCase().includes(q) ||
@@ -78,7 +95,8 @@ export function ApprovalRegister({
   return (
     <div className="print-flow flex h-full flex-col overflow-hidden bg-bg">
       {}
-      <div className="flex h-[52px] flex-none items-center gap-3 border-b border-line bg-surface px-5 print:hidden">
+      {/* Wraps onto a second line on a narrow board instead of clipping the count. */}
+      <div className="flex min-h-[52px] flex-none flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-surface px-5 py-2.5 print:hidden">
         <label className="flex h-8 w-[320px] items-center gap-2 rounded border border-control bg-bg px-3 focus-within:ring-2 focus-within:ring-ink">
           <Search className="h-3.5 w-3.5 flex-none text-faint" strokeWidth={1.4} />
           <input
@@ -89,10 +107,33 @@ export function ApprovalRegister({
             className="w-full bg-transparent text-[13px] text-ink outline-none placeholder:text-faint"
           />
         </label>
-        <span className="font-num font-mono text-[11.5px] text-muted">
+        <div role="group" aria-label="Quick filters" className="flex flex-wrap items-center gap-1">
+          {(
+            [
+              ["critical", `Critical path · ${roadmap.critical_path.length}`],
+              ["deemed", `Deemed clause · ${roadmap.approvals.filter((a) => a.deemed_exists).length}`],
+              ["flagged", `Under review · ${roadmap.approvals.filter((a) => a.flagged).length}`],
+            ] as const
+          ).map(([id, text]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={only === id}
+              onClick={() => setOnly(only === id ? null : id)}
+              className={
+                only === id
+                  ? "h-7 rounded-full border border-db-blue bg-db-blue-tint px-2.5 text-[11.5px] font-medium text-db-blue"
+                  : "h-7 rounded-full border border-line px-2.5 text-[11.5px] text-muted hover:border-db-blue/40 hover:text-db-blue"
+              }
+            >
+              {text}
+            </button>
+          ))}
+        </div>
+        <div className="flex-1" />
+        <span className="flex-none whitespace-nowrap font-num font-mono text-[11.5px] text-muted" aria-live="polite">
           {total} of {roadmap.approvals.length} shown
         </span>
-        <div className="flex-1" />
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -108,8 +149,7 @@ export function ApprovalRegister({
             Approval register — {roadmap.approvals.length} approvals
           </h1>
           <p className="mt-1 text-[11px]">
-            Food processing unit · Pune, Maharashtra — MIDC Chakan · 50–100
-            employees · new setup
+            {printLine}
           </p>
           <p className="mt-2 font-mono text-[11px]">
             {roadmap.sequential_days} d if filed one after another ·{" "}
@@ -125,9 +165,18 @@ export function ApprovalRegister({
 
         {total === 0 ? (
           <EmptyState
-            title="Nothing matches that"
-            body="Try an approval name, a department, or the short name of an act — MRTP-ACT-1966, for instance."
-            action={<Button onClick={() => setQuery("")}>Clear the filter</Button>}
+            title="No approvals match these filters"
+            body="Clear the text or the quick filter to see them again. The text filter reads approval names, departments and act short names — MRTP-ACT-1966, for instance."
+            action={
+              <Button
+                onClick={() => {
+                  setQuery("");
+                  setOnly(null);
+                }}
+              >
+                Clear filters
+              </Button>
+            }
           />
         ) : null}
 

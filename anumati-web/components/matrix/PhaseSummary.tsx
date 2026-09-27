@@ -141,24 +141,39 @@ export function PhaseSummary({
           <Button
             variant="primary"
             size="md"
+            aria-describedby="finalise-why"
             disabled={!derived.canFinalise}
             onClick={finalise}
             title={
               derived.canFinalise
                 ? "Sign off the parallel review phase"
-                : `Enabled when all ${app.reviews.length} lanes clear and no conflict is open`
+                : finaliseBlocker(app, derived) ?? "Not available"
             }
           >
             <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={1.6} />
             Finalise approval
           </Button>
           {!derived.canFinalise && !resolution ? (
-            <p className="text-[11.5px] leading-relaxed text-db-muted">
-              Enabled when all {app.reviews.length} lanes clear.
+            <p id="finalise-why" className="text-[11.5px] leading-relaxed text-db-muted">
+              {finaliseBlocker(app, derived)}
             </p>
           ) : null}
         </div>
       </div>
     </section>
   );
+}
+
+/** Why Finalise is not available yet — the first thing standing in the way. */
+function finaliseBlocker(app: ApplicationFile, d: DerivedMatrixState): string | null {
+  if (app.resolution) return null;
+  if (!app.dispatched) return "Not yet — the file has not been dispatched to the departments.";
+  if (d.conflict) return "Not yet — two departments disagree; settle the conflict first.";
+  if (d.rejected.length > 0) return `Not yet — ${d.rejected.map((r) => r.dept_short).join(", ")} rejected.`;
+  if (d.pending.length > 0) {
+    const n = d.pending.length;
+    return `Not yet — ${n} department${n === 1 ? " is" : "s are"} still deciding (${d.pending.map((r) => r.dept_short).join(", ")}).`;
+  }
+  if (d.weighted && !d.weighted.pass) return "Not yet — the consolidated score is below the passing mark.";
+  return null;
 }

@@ -21,7 +21,8 @@ export const REVIEW_META: Record<
   }
 > = {
   queued: {
-    label: "OPEN",
+    // Not yet with the desk: before dispatch, or waiting on an earlier approval.
+    label: "WAITING",
     colorVar: "--db-faint",
     text: "text-db-muted",
     bg: "bg-db-bg",
@@ -124,6 +125,20 @@ export function slaFraction(review: DeptReview, day: number): number {
   if (review.state === "queued") return 0;
   const at = review.decided_on_day ?? day;
   return Math.max(0, Math.min(1, elapsedDays(review, at) / review.sla_days));
+}
+
+/**
+ * The one status word for a desk, everywhere it is shown. A desk that has
+ * asked the applicant a question is still in review, but what matters to
+ * anyone looking is that the ball is with the applicant and its clock is
+ * stopped — so that is what it says.
+ */
+export function reviewStatus(review: DeptReview): { label: string; text: string; dot: string } {
+  if (review.state === "in_review" && review.query_open) {
+    return { label: "QUERY OPEN", text: "text-db-amber", dot: "bg-db-amber" };
+  }
+  const m = REVIEW_META[review.state];
+  return { label: m.label, text: m.text, dot: m.dot };
 }
 
 /** In review and past the service limit on its own clock. */

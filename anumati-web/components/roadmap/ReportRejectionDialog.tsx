@@ -43,14 +43,17 @@ export function ReportRejectionDialog({
   ];
 
   return (
-    <Dialog open={open} onClose={onClose} title="Report what actually happened">
+    <Dialog open={open} onClose={onClose} title="Report what actually happened" dirty={!sent && detail.trim().length > 0}>
       {sent ? (
         <div className="py-2">
           <p className="mb-3 text-[13px] leading-relaxed text-db-ink">
-            Recorded against {approval.id} and routed to the review queue. It counts towards the
-            observed median straight away — open the approval and read it under{" "}
-            <span className="font-medium">What applicants reported</span> — but it will not change
-            the statutory rule until a verifier publishes a new version.
+            Saved against {approval.id}. It counts towards the observed median straight away — open
+            the approval and read it under <span className="font-medium">What applicants reported</span>{" "}
+            — but it will not change the statutory rule until a verifier publishes a new version.
+          </p>
+          <p className="mb-3 rounded-lg border border-db-line bg-db-bg px-2.5 py-2 text-[11.5px] leading-snug text-db-muted">
+            Kept in this browser only. This build does not send field reports to a server yet; in a
+            deployment they go to the rule reviewers&apos; queue.
           </p>
           <Button onClick={onClose}>Close</Button>
         </div>
@@ -116,7 +119,7 @@ export function ReportRejectionDialog({
               onClick={submit}
               disabled={!detail.trim() || (timing && days === "")}
             >
-              Send to the review queue
+              Save report
             </Button>
             <Button variant="ghost" onClick={onClose}>
               Cancel

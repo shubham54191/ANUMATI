@@ -14,6 +14,7 @@ import {
   Printer,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
+import { Explain } from "@/components/ui/Explain";
 import { ApprovalDetailPanel } from "@/components/roadmap/ApprovalDetailPanel";
 import { ClockToggle } from "@/components/roadmap/ClockToggle";
 import { BoardHeader } from "@/components/roadmap/board/BoardHeader";
@@ -37,6 +38,7 @@ import { APPROVALS } from "@/lib/data/maharashtraFood";
 import { SEEDED_REPORTS } from "@/lib/data/fieldReports";
 import { getRoadmapSync } from "@/lib/api/roadmap";
 import { DEFAULT_REQUEST } from "@/lib/data/engine";
+import { bandForEmployees, decodeAnswers, encodeAnswers } from "@/lib/roadmap/setupParams";
 import { SECTORS, SIZE_BANDS, STAGES } from "@/lib/constants/sectors";
 import { LOCATIONS } from "@/lib/constants/locations";
 
@@ -60,8 +62,10 @@ function ApplySetupChoices() {
     const employeesParam = searchParams.get("employees");
     const heightParam = searchParams.get("heightM");
     const on: Record<string, boolean> = {};
+    // "0" is an answer: a chip the applicant switched off stays off.
     for (const key of SETUP_FLAGS) {
-      if (searchParams.get(key) === "1") on[key] = true;
+      const v = searchParams.get(key);
+      if (v === "1" || v === "0") on[key] = v === "1";
     }
     // Land regime is a three-state answer on the wire: absent means "leave it
     // alone", 1 and 0 are explicit, because "not MIDC" is a real answer and
@@ -84,11 +88,14 @@ function ApplySetupChoices() {
       useRoadmapStore.getState().setViewMode(roleParam);
     }
 
-    if (employeesParam || heightParam || Object.keys(on).length) {
+    const fromWizard = searchParams.has("sector") || searchParams.has("location") || searchParams.has("stage");
+    if (employeesParam || heightParam || Object.keys(on).length || fromWizard) {
+      const answers = decodeAnswers(new URLSearchParams(searchParams.toString()));
       hydrateFromSetup({
         employees: employeesParam ? Number(employeesParam) : undefined,
         heightM: heightParam ? Number(heightParam) : undefined,
         on: Object.keys(on).length ? on : undefined,
+        setup: fromWizard ? { sector: answers.sector, location: answers.location, stage: answers.stage } : undefined,
       });
     }
   }, [searchParams, hydrateFromSetup]);
@@ -98,6 +105,8 @@ function ApplySetupChoices() {
 
 export function RoadmapView({ roadmapId }: { roadmapId: string }) {
   const conditions = useRoadmapStore((s) => s.conditions);
+  const setup = useRoadmapStore((s) => s.setup);
+  const heightM = useRoadmapStore((s) => s.heightM);
   const viewMode = useRoadmapStore((s) => s.viewMode);
   const pane = useRoadmapStore((s) => s.pane);
   const setPane = useRoadmapStore((s) => s.setPane);
@@ -119,13 +128,13 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
 
   const { data: roadmap, meta } = useMemo(
     () =>
-      getRoadmapSync({ ...DEFAULT_REQUEST, conditions }, (a) =>
+      getRoadmapSync({ ...DEFAULT_REQUEST, ...setup, conditions }, (a) =>
         daysUnder(a, clockBasis, evidence),
       ),
-    [conditions, clockBasis, evidence],
+    [conditions, setup, clockBasis, evidence],
   );
 
-  const req = DEFAULT_REQUEST;
+  const req = { ...DEFAULT_REQUEST, ...setup };
   const isOfficer = viewMode === "department";
 
   const saved = roadmap.sequential_days - roadmap.optimised_days;
@@ -201,6 +210,13 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
               <DependencyEvidenceCard dependencies={roadmap.dependencies} />
             </div>
 
+            <Explain className="mt-4 print:hidden">
+              <strong>Sequential</strong> is every approval filed one after another. <strong>Critical path</strong> is
+              the longest chain the law forces — each link waits for a certificate the one before it issues;
+              everything off that chain runs beside it. <strong>Statutory</strong> counts the notified time limits;{" "}
+              <strong>Observed</strong> swaps in the median applicants reported, where there is one.
+            </Explain>
+
             {/* board and rail */}
             <div className="mt-5 flex flex-wrap items-start gap-4">
               <div className="min-w-[660px] flex-1 rounded-xl border border-db-line bg-surface print:border-0">
@@ -211,6 +227,11 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
                 {pane === "graph" ? (
                   <div className="flex flex-col gap-4 p-5 print:hidden">
                     <CriticalPathStrip roadmap={roadmap} />
+                    <Explain>
+                      Each box is one approval, placed on the day it can first be filed. A line means the approval on the
+                      right cannot be filed until the one on the left is issued; its style says why — a statute, a
+                      document, physical work, or only practice. Click a box to see the section of law behind it.
+                    </Explain>
 
                     <div className="rounded-xl border border-db-line">
                       <div className="flex h-[52px] items-center gap-2 border-b border-db-line px-4">
@@ -282,7 +303,18 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
                 engine {meta.engine_version}
               </span>
               <Link
-                href="/roadmap/new"
+                href={`/roadmap/new?${encodeAnswers({
+                  ...setup,
+                  land: conditions.midc_land === false ? "private" : "midc",
+                  size: bandForEmployees(employees),
+                  on: {
+                    boiler: Boolean(conditions.boiler),
+                    height: heightM > 15,
+                    hazardous: Boolean(conditions.hazardous),
+                    export: Boolean(conditions.export),
+                    contract_labour: Boolean(conditions.contract_labour),
+                  },
+                }).toString()}`}
                 title="Change the four answers"
                 className="flex h-7 items-center gap-1.5 rounded-lg border border-db-line px-2.5 text-[11.5px] text-db-muted no-underline transition-colors hover:border-db-blue/40 hover:text-db-blue"
               >
@@ -301,7 +333,7 @@ export function RoadmapView({ roadmapId }: { roadmapId: string }) {
               </button>
 
               <FileApplicationButton
-                request={{ ...DEFAULT_REQUEST, conditions }}
+                request={{ ...DEFAULT_REQUEST, ...setup, size_band: bandForEmployees(employees), conditions }}
                 defaultProject={`${sector} unit — ${location}`}
               />
 

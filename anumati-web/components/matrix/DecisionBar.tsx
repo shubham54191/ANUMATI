@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { Check, HelpCircle, Lock, X, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, HelpCircle, Loader2, Lock, X, Zap } from "lucide-react";
 import type { ApplicationFile } from "@/types/matrix";
 import { isOpen } from "@/lib/matrix/engine";
 import { useMatrixStore } from "@/store/useMatrixStore";
@@ -33,13 +33,23 @@ export function DecisionBar({ app }: { app: ApplicationFile }) {
   const [score, setScore] = useState<string>("");
   const [remarks, setRemarks] = useState("");
   const [asking, setAsking] = useState(false);
+  // A rejection halts the phase for every department, so it takes two clicks:
+  // the first arms it and says what will happen, the second commits.
+  const [confirmReject, setConfirmReject] = useState(false);
+  useEffect(() => {
+    if (!confirmReject) return;
+    const t = window.setTimeout(() => setConfirmReject(false), 6000);
+    return () => window.clearTimeout(t);
+  }, [confirmReject]);
 
   const live = mode === "live";
   const mine = (deptId: string) =>
     !live || session?.role === "admin" || (session?.role === "officer" && departmentOf(deptId) === session.department_id);
 
   const openReviews = app.reviews.filter(isOpen);
-  const selected = app.reviews.find((r) => r.dept_id === active) ?? null;
+  // Only an open desk can be acted on; a desk decided meanwhile (by a clash, the
+  // clock or another screen) drops out of the strip.
+  const selected = openReviews.find((r) => r.dept_id === active) ?? null;
   const weighted = app.rule.kind === "weighted";
   const settled = Boolean(app.resolution);
 
@@ -58,13 +68,16 @@ export function DecisionBar({ app }: { app: ApplicationFile }) {
     setScore("");
     setRemarks("");
     setAsking(false);
+    setConfirmReject(false);
   };
 
-  const act = (state: "approved" | "rejected") => {
+  // What was typed stays in the box if the server refuses.
+  const act = async (state: "approved" | "rejected") => {
     if (!selected) return;
     const parsed = Number(score);
     const note = remarks.trim();
-    decide(selected.dept_id, state, {
+    setConfirmReject(false);
+    const ok = await decide(selected.dept_id, state, {
       score: weighted && score !== "" && !Number.isNaN(parsed) ? Math.max(0, Math.min(100, parsed)) : undefined,
       remarks:
         note ||
@@ -72,13 +85,13 @@ export function DecisionBar({ app }: { app: ApplicationFile }) {
           ? `Cleared by ${selected.dept_short} on day ${app.day}.`
           : `Rejected by ${selected.dept_short} on day ${app.day}.`),
     });
-    reset();
+    if (ok !== false) reset();
   };
 
-  const ask = () => {
+  const ask = async () => {
     if (!selected || remarks.trim().length < 10) return;
-    raiseQuery(selected.dept_id, remarks.trim());
-    reset();
+    const ok = await raiseQuery(selected.dept_id, remarks.trim());
+    if (ok !== false) reset();
   };
 
   // A live rejection with no written reason is not a decision anyone can appeal.
@@ -140,6 +153,16 @@ export function DecisionBar({ app }: { app: ApplicationFile }) {
               aria-label={asking ? "Query to the applicant" : "Remarks"}
               className="h-7 w-[260px] rounded-xl border border-db-line bg-surface px-2 text-[11.5px] text-db-ink outline-none focus-visible:ring-2 focus-visible:ring-accent"
             />
+            {(asking || live) && remarks.trim().length < 10 ? (
+              <span className="font-mono text-[10.5px] text-db-faint" aria-live="polite">
+                {remarks.trim().length}/10{asking ? "" : " to reject"}
+              </span>
+            ) : null}
+            {busy ? (
+              <span className="flex items-center gap-1 text-[11px] text-db-muted" role="status">
+                <Loader2 className="h-3 w-3 animate-spin" /> Saving…
+              </span>
+            ) : null}
             {asking ? (
               <>
                 <Button onClick={ask} disabled={remarks.trim().length < 10} className="h-7 px-2.5" title="At least 10 characters">
@@ -165,19 +188,54 @@ export function DecisionBar({ app }: { app: ApplicationFile }) {
                     />
                   </label>
                 ) : null}
-                <Button onClick={() => act("approved")} disabled={busy || selected.query_open} className="h-7 px-2.5">
+                <Button
+                  onClick={() => act("approved")}
+                  disabled={busy || selected.query_open || confirmReject}
+                  title={selected.query_open ? "A query is open — wait for the applicant's answer" : undefined}
+                  className="h-7 px-2.5"
+                >
                   <Check className="h-3 w-3 text-db-green" strokeWidth={2} />
                   Approve
                 </Button>
-                <Button
-                  onClick={() => act("rejected")}
-                  disabled={busy || rejectBlocked || selected.query_open}
-                  title={rejectBlocked ? "Write the reason first (at least 10 characters)" : undefined}
-                  className="h-7 px-2.5"
-                >
-                  <X className="h-3 w-3 text-db-red" strokeWidth={2} />
-                  Reject
-                </Button>
+                {confirmReject ? (
+                  <>
+                    <Button
+                      onClick={() => act("rejected")}
+                      disabled={busy}
+                      data-autofocus
+                      className="h-7 border-db-red bg-db-red px-2.5 text-white hover:border-db-red hover:text-white hover:brightness-95"
+                      title="Halts the parallel phase; the file goes to its conflict rule"
+                    >
+                      <X className="h-3 w-3" strokeWidth={2} />
+                      Confirm reject
+                    </Button>
+                    <Button onClick={() => setConfirmReject(false)} className="h-7 px-2.5">
+                      Keep reviewing
+                    </Button>
+                    <span className="max-w-[300px] text-[11px] leading-snug text-db-red">
+                      {weighted
+                        ? "Recorded as this desk's decision; the consolidated score decides the phase."
+                        : "Halts the phase for every desk until the file's conflict rule settles it."}{" "}
+                      Only {selected.dept_short} can withdraw it later, from the thread.
+                    </span>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => setConfirmReject(true)}
+                    disabled={busy || rejectBlocked || selected.query_open}
+                    title={
+                      selected.query_open
+                        ? "A query is open — wait for the applicant's answer"
+                        : rejectBlocked
+                          ? "Write the reason first (at least 10 characters)"
+                          : undefined
+                    }
+                    className="h-7 px-2.5"
+                  >
+                    <X className="h-3 w-3 text-db-red" strokeWidth={2} />
+                    Reject
+                  </Button>
+                )}
                 <Button
                   onClick={() => {
                     setAsking(true);
