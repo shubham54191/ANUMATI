@@ -1,8 +1,0 @@
-[project]
-name = "anumati-extract"
-version = "0.1.0"
-description = "Draft ANUMATI approval rules from gazettes and department forms. Every output is a draft a person publishes."
-requires-python = ">=3.10"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
