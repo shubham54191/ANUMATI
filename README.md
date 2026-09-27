@@ -3,11 +3,12 @@
 **Smart India Hackathon 2026 · Problem Statement ID: SIH26130 · Category: Software**
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![React Flow](https://img.shields.io/badge/React_Flow-12.3-ff0072?style=flat-square)](https://reactflow.dev/)
-[![Zustand](https://img.shields.io/badge/Zustand-5.0-brown?style=flat-square)](https://github.com/pmndrs/zustand)
-[![Build Status](https://img.shields.io/badge/Build-Passing-16a34a?style=flat-square)]()
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7_strict-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Fastify](https://img.shields.io/badge/Fastify-5-000000?style=flat-square&logo=fastify)](https://fastify.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Python](https://img.shields.io/badge/Python-3.11-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Tests](https://img.shields.io/badge/Tests-111_passing-16a34a?style=flat-square)]()
+[![OAGS](https://img.shields.io/badge/OAGS-v0.1_CC_BY_4.0-6366f1?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-MIT-gray?style=flat-square)]()
 
 > **"Transforming sequential, opaque business licensing into deterministic, parallelized dependency roadmaps backed by verified statutory citations."**
@@ -31,7 +32,33 @@ Entrepreneurs and Single-Window Facilitation Officers face three fundamental roa
 
 ---
 
+## What is in this repository
+
+Three parts. The web app runs on its own; the other two are what turns the walkthrough into a deployment.
+
+| Directory | What it is | Runs on |
+|---|---|---|
+| [`anumati-web/`](anumati-web) | The product. Applicant roadmap, officer clearance console, the rule engine, the OAGS API. Runs standalone against the seeded rule base — no database needed. | Next.js 14 · TypeScript · React 18 |
+| [`anumati-server/`](anumati-server) | The API and worker. Accounts, files, decisions, clocks, the append-only decision ledger. **Imports the same engine the browser runs**, so a roadmap or a conflict is computed identically on both sides — and the server's answer is the one that counts. | Fastify 5 · Node 22 · PostgreSQL 16 · pg-boss |
+| [`anumati-extraction/`](anumati-extraction) | The offline pipeline that reads a gazette PDF and **drafts** rules. It never publishes: every draft lands in the review queue for a named officer to sign off or reject. | Python 3.11 · pdfplumber · a local model via Ollama |
+
+**Two modes, and the screen always says which.** With `NEXT_PUBLIC_ANUMATI_API` unset the web app is an offline demo running entirely in the browser. Set it, and sign-in, files, decisions and the ledger move to the server. A badge in the chrome reads `DEMO · OFFLINE` or names the live server, because a walkthrough must never be mistaken for a deployment.
+
+### How to read this document
+
+| If you have | Read |
+|---|---|
+| 2 minutes | [Executive Summary](#executive-summary) and the [walkthrough](#application-walkthrough--visual-highlights) screenshots |
+| 10 minutes | The walkthrough in full, then [Questions a jury will ask](#questions-a-jury-will-ask-and-the-answers) |
+| You want to run it | [Quickstart](#quickstart--local-setup) — one command for the offline demo, one for the full stack |
+| You want to check our work | [Tests](#tests), the [API](#api), and [Statutory references](#statutory-rules--legal-references-cited) |
+| You are building on it | [Architecture](#complete-architecture-flow--system-mechanics) and [Project structure](#project-structure) |
+
+---
+
 ## Application Walkthrough & Visual Highlights
+
+Every screenshot below is taken from the running build, on the seeded Maharashtra rule base, in offline demo mode.
 
 ### 1. Dynamic 4-Factor Setup Wizard
 Customizes the regulatory requirement based on **Sector, Location, Scale, Stage**, and conditional project parameters (e.g. Steam Boilers, Hazardous Materials, Built Height, Export orientation).
@@ -56,6 +83,14 @@ An interactive visual canvas mapping all required clearances.
 
 ![Applicant Roadmap Graph](screenshots/02-applicant-roadmap-graph.png)
 
+The same roadmap as a calendar, for anyone who thinks in dates rather than in graphs:
+
+![Timeline view](screenshots/34-timeline-view.png)
+
+Open any approval and the evidence behind it opens with it — the Act and section, the days, what the approval consumes and what it produces, and how confident the rule base is:
+
+![Evidence behind one approval](screenshots/20-evidence-drawer.png)
+
 ---
 
 ### 3. Department View: Statutory Register & Pre-Establishment / Pre-Operation Checklist
@@ -63,12 +98,20 @@ The facilitation officer's working ledger. Organised by standard industrial phas
 
 ![Officer Checklist Register](screenshots/03-officer-checklist-register.png)
 
+The same register on the observed clock, where the gap between what the law allows and what applicants reported is visible row by row:
+
+![Register on the observed clock](screenshots/19-register-observed.png)
+
 ---
 
 ### 4. What-If Policy Reform Simulator
 An evidence-based decision workspace for Industries Department leadership. Policy makers toggle reform levers — shortening a notified time limit, removing a dependency that rests on practice rather than law, honouring a deeming clause the parent Act already contains — and see the macro impact on clearance timelines. Includes **strict statutory guardrails** that refuse a reform the statute does not permit. The Nodal Agency is already asked to propose reforms from user feedback (MAITRI Act s. 15); this is the instrument for that job.
 
 ![Policy Reform Simulator](screenshots/04-policy-reform-simulator.png)
+
+The evidence for a reform comes from the people who hit the counter. An applicant refused at a desk can report it in one click against the exact approval, and the report joins the field data the observed clock is computed from:
+
+![Reporting a refusal against an approval](screenshots/21-loop-closed.png)
 
 ---
 
@@ -105,6 +148,10 @@ When MIDC clears the building plan at the same instant MPCB refuses the Consent 
 
 ![Conflict resolution screen](screenshots/09-conflict-resolution.png)
 
+Where the rule that settles a file is a pilot parameter rather than a notified one, the screen says so on the rule itself. A drafted clause must never borrow the authority of a real one:
+
+![A rule marked as drafted, not notified](screenshots/16-draft-rule-citation.png)
+
 Three governance rules ship, and the UI adapts to whichever one the file carries. Every rule declares whether its instrument is **in force** or **drafted for the pilot and not yet notified**, and the screen says which — a drafted clause must never borrow the authority of a real one:
 
 | Rule | Behaviour on a clash | Resolution path |
@@ -119,6 +166,10 @@ Three governance rules ship, and the UI adapts to whichever one the file carries
 Both departments' conflicting inputs side by side, with officer, designation, timestamp, weight and veto standing — and exactly two buttons: **Overrule & approve** or **Sustain rejection**. There is no third option on purpose; an escalation that can be left half-decided is how a file spends six months on a desk.
 
 ![Tie-breaker panel](screenshots/11-tie-breaker-panel.png)
+
+Routing a file to the panel is not a dialog that disappears. A tie-breaker node joins the track, so the file's own picture records that it went to the Committee and came back:
+
+![Tie-breaker node on the track](screenshots/12-tie-breaker-node.png)
 
 ---
 
@@ -142,6 +193,10 @@ Every lane runs its own notified limit. Two days out, the desk is warned. On bre
 So one silent desk cannot hold a project — and nothing is waved through either.
 
 ![SLA escalation and deemed approval](screenshots/14-sla-escalation-deemed.png)
+
+On the track, a transferred lane is drawn as transferred — still open, now the Committee's, with the day it moved and the provision it moved under:
+
+![Lanes transferred to the Empowered Committee](screenshots/28-transfer-committee.png)
 
 ---
 
@@ -177,6 +232,10 @@ The Act asks for inspections to be conducted jointly as far as practicable (s. 1
 
 ![Joint inspection planner](screenshots/29-officer-inspections.png)
 
+The applicant sees the same merge from the other side — how many separate visits the site would otherwise have taken:
+
+![Inspections merged, applicant side](screenshots/24-joint-inspections.png)
+
 ---
 
 ### 17. Renewal calendar — a clearance is not a finish line
@@ -190,6 +249,55 @@ The day a licence expires the unit is operating unlawfully with nobody having do
 The Empowered Committee may call for the reasons behind a delay or a rejection and inquire into a grievance raised by an applicant (s. 8). One button on any stuck approval routes the file to that Committee — not back to the desk that is holding it. It decides nothing by itself: the application is still disposed of under the relevant law.
 
 ![Grievance queue](screenshots/30-grievance-queue.png)
+
+The button itself sits on the stuck approval, in the applicant's own pre-check, and names where the file goes before it is pressed:
+
+![Raising a grievance from the applicant side](screenshots/26-grievance.png)
+
+---
+
+### 19. Parameter ownership — an upstream approval is context, never clearance
+A department's approval covers only the parameters that department is competent to judge. Building's sign-off on a plan says nothing about effluent; the plan board's sign-off says nothing about staircase width. Each parameter group therefore carries its **owning department**, and the console reads the file from a chosen desk.
+
+Reading `APP-2026-0148` as **MPCB**: the site parameters show cleared by MIDC and signed, the effluent parameters show **"Unverified — your review"**, and labour and fire show as another desk's work. A department can mark only the groups it owns, and doing so writes one audit event naming it.
+
+![Parameter ownership](screenshots/32-parameter-scope.png)
+
+This does **not** claim to catch a bad approval — a careless officer can still tick every box. What it stops is that mistake spreading into another domain, and what it leaves behind is a record of exactly who cleared what. Signing is mocked in this build and says so on screen; a deployment carries the reference to the signature the issuing system already holds, made with the officer's own DSC. The key never reaches this product.
+
+---
+
+### 20. The audit trail — every step, with the provision it was taken under
+Nothing in the console is a bare state change. A dispatch, a decision, an escalation, a transfer to the Committee and a parameter sign-off each land on the trail with the day, the actor, and — where a rule rather than a person drove it — the section it was taken under.
+
+![Audit trail](screenshots/33-audit-trail.png)
+
+---
+
+### 21. Two clocks, and the product never pretends they are the same
+**Statutory** is what the Acts allow. **Observed** is the median of what applicants reported actually waiting, computed from 51 readable field reports rather than typed in by us. On the same MIDC plot the two answer differently — 223 days on the critical path against 319 — and the second number is labelled seeded pilot data wherever it appears.
+
+| Clock | Critical path | Filed in series | What it is |
+|---|---|---|---|
+| Statutory | 223 days | 464 days | The sum of notified time limits. What you are entitled to. |
+| Observed | 319 days | 639 days | Median reported wait, seeded pilot data. What to plan for. |
+
+![Statutory clock](screenshots/17-clock-statutory.png)
+
+![Observed clock](screenshots/18-clock-observed.png)
+
+---
+
+### 22. Live mode: the desks that need a server
+Three screens exist only when the API is running, because each one writes something a browser has no business holding on its own:
+
+| Screen | Who reaches it | What it holds |
+|---|---|---|
+| `/applications` | the applicant | Files actually submitted, their documents and their state |
+| `/committee` | the Empowered Committee account | Files transferred under s. 5 and grievances raised under s. 8 |
+| `/rules` | the rule reviewer account | The extraction pipeline's drafts, waiting for a named sign-off |
+
+In the offline demo these are not reachable — there is no committee or reviewer account to sign in as, and nothing for them to read. Start the server (below) and sign in as `committee` / `demo` or `reviewer` / `demo`.
 
 ---
 
@@ -230,9 +338,14 @@ ANUMATI does not ask Maharashtra to legislate anything new. The MAITRI Act, 2023
 ## Tests
 
 ```bash
-npm test          # 96 tests across the rule base, the matrix engine, compliance and the OAGS validator
+cd anumati-web
+npm test          # 111 tests: rule base, matrix engine, clocks, compliance, OAGS validator
 npm run typecheck # strict TypeScript, no errors
 npm run build     # production bundle
+
+cd ../anumati-server
+npm test          # the API, the guards and the ledger's hash chain
+npm run ledger:verify   # re-walks the decision ledger and fails on a broken link
 ```
 
 The suite is written against the pure engines, which is where the claims live. Some of
@@ -316,7 +429,7 @@ flowchart TD
     subgraph INGESTION["1. Regulatory Ingestion & AI Inference Pipeline"]
         A1["Gazette Notifications & Acts (PDF)"] --> B1["Document Loader (pdfplumber)"]
         A2["Departmental Application Forms"] --> B2["Form Parser (Required Attachments)"]
-        B1 --> C1["LLM Approval Extractor (Instructor + Pydantic, Temp=0)"]
+        B1 --> C1["Approval extractor — local model via Ollama, schema-checked JSON"]
         C1 --> D1["Draft Approvals (Statutory SLA, Deemed Clauses)"]
         B2 --> D2["Required Input Documents"]
         D1 & D2 --> E1["Automated Edge Inferencer (Input Doc == Output Cert)"]
@@ -332,7 +445,7 @@ flowchart TD
     end
 
     subgraph COMPUTE["3. Graph Engine & Optimization Core"]
-        G1 -->|"as_of(date) Query"| I1["DAG Builder (NetworkX DiGraph)"]
+        G1 -->|"as_of(date) Query"| I1["DAG builder — shared TypeScript engine, run on both sides"]
         I1 --> I2{"Cycle Detection"}
         I2 -->|"Cycle Found"| ERR["Raise CyclicDependencyError"]
         I2 -->|"Valid DAG"| I3["Topological Sort & Longest Path CPM"]
@@ -360,7 +473,7 @@ flowchart TD
 ### 1. Ingestion & Automated Documentary Edge Inference Pipeline
 The primary technical barrier in single-window portals is manual graph construction. ANUMATI automates regulatory graph construction directly from primary government sources while strictly prohibiting unverified auto-publishing:
 
-1. **Extraction**: Gazette PDFs and notifications are parsed via `pdfplumber` into text with exact page coordinate mappings. `Instructor` with structured Pydantic schemas extracts statutory SLAs, deemed approval clauses, and citations at temperature 0.
+1. **Extraction**: Gazette PDFs and notifications are parsed via `pdfplumber` into text with exact page coordinate mappings. A local model, prompted for JSON and validated against a pydantic schema, extracts statutory SLAs, deemed approval clauses and citations. A draft that fails validation is dropped and logged, never repaired.
 2. **Form Parsing**: Departmental application forms are analyzed to extract their list of mandatory attachments (`required_documents[]`).
 3. **Automated Edge Inference**:
    The core mathematical discovery: If approval $B$'s application form requires a document that approval $A$ produces, then approval $A$ is an indisputable prerequisite for approval $B$:
@@ -498,16 +611,17 @@ Our vision is to transform ANUMATI from an award-winning prototype into an insti
 - OAGS (Open Approval Graph Standard) specification v0.1.
 - **Matrix 2.0 officer console**: role sign-in, concurrent departmental dispatch, the conflict resolution protocol across all three governance rules, SLA auto-escalation and deemed approval, the shared data matrix, cross-departmental clarification threads, and a cited audit trail.
 
-### Phase 2: Production Backend & Bitemporal Database (Month 1 - 2)
-- **FastAPI Microservice**: High-throughput REST API serving roadmap generation requests via NetworkX graph compute.
-- **PostgreSQL 16 Relational Engine**: Normalized schema for approvals, rules, citations, and applications.
-- **Bitemporal Rule Versioning**: Every regulatory change is recorded with valid-time and system-time (`effective_from`, `effective_to`). A roadmap generated today remains reproducible even if laws change years later.
-- **Automated Type Generation**: OpenAPI contract synchronizing Pydantic models directly to TypeScript interfaces.
+### Phase 2: Server, Database and Decision Ledger (Built — `anumati-server/`)
+- **Fastify 5 API and worker on Node 22.** It imports the web app's engine rather than reimplementing it, so a roadmap, a clock or a conflict is computed identically on both sides — and the server's answer is the one that counts.
+- **PostgreSQL 16.** Bitemporal rule tables (`effective_from`, `effective_to`): a roadmap generated today stays reproducible after the law changes.
+- **Append-only decision ledger.** SHA-256 hash chain, advisory-locked appends, `UPDATE`/`DELETE`/`TRUNCATE` blocked by database triggers, a daily anchor, and `npm run ledger:verify` to check the chain.
+- **Real boundaries.** scrypt passwords, HS256 tokens, and every command re-checked server-side — a department desk can act on its own rows and no others.
+- **Still stood in, and labelled as such:** government registry calls answer from recordings (`ADAPTER_MODE=fixture`), and officer signatures use a demo key marked "not a DSC" until real credentials are configured.
 
-### Phase 3: Automated Ingestion & Human-in-the-Loop Review (Month 3 - 5)
-- **Gazette & Form Extraction Pipeline**: Automated crawler monitoring government gazette notifications and single-window departmental forms.
-- **Structured Knowledge Extraction**: High-precision parser extracting statutory SLAs, deemed approval clauses, and required attachments into standardized approval drafts.
-- **Department Review Queue**: Strict human verification interface. **No rule or dependency edge is auto-published without an officer's sign-off and explicit statutory section citation.**
+### Phase 3: Extraction with Human Sign-off (Built — `anumati-extraction/`)
+- **Reads a notified instrument** — gazette, Act, department form — with pdfplumber, falling back to OCR, and proposes approvals through a local model with schema-checked JSON output.
+- **Infers documentary edges** from the forms themselves: where one approval produces a document another's form requires, that is a dependency with evidence behind it.
+- **It only ever drafts.** Every proposal lands in the Rule review queue and a named reviewer publishes or rejects it with a note. Invalid drafts are dropped and logged, never repaired. Nothing reaches the rule base without a citation and a human.
 
 ### Phase 4: Pilot Deployment & Single-Window Integration (Month 6 - 8)
 - **District Pilot**: Field testing with the District Industries Centre (DIC) Pune and Maharashtra Industrial Development Corporation (MIDC) Chakan facilitation cell.
@@ -522,77 +636,74 @@ Our vision is to transform ANUMATI from an award-winning prototype into an insti
 
 ## Technology Stack
 
-| Layer | Technologies Used |
+| Layer | Technologies used |
 |---|---|
-| **Frontend Framework** | Next.js 14 (App Router, React 18, Server & Client Components) |
-| **Language & Typing** | TypeScript 5.7 (Strict type-checking) |
-| **Styling & Design** | Tailwind CSS 3.4, Custom Design Tokens, CSS Variables |
-| **Graph Visualization** | @xyflow/react (React Flow v12) |
-| **State Management** | Zustand v5 (Reactive client store) |
-| **Analytics & Charts** | Recharts, Tabular Metrics |
-| **Icons & UI Primitives** | Lucide React |
-| **Backend (Target Architecture)** | FastAPI (Python 3.11), Pydantic v2, NetworkX |
-| **Database & Versioning** | PostgreSQL 16, SQLAlchemy 2.0, Alembic |
-| **Schema Standard** | OAGS (Open Approval Graph Schema v0.1) |
+| **Web app** | Next.js 14 (App Router), React 18, TypeScript 5.7 strict |
+| **Styling** | Tailwind CSS 3.4, custom design tokens as CSS variables |
+| **Graph canvas** | @xyflow/react (React Flow v12) |
+| **Client state** | Zustand v5 |
+| **Icons** | Lucide React |
+| **Rule engine** | Plain TypeScript, no framework. Pure functions over a typed DAG — `buildRoadmap`, `derive`. Shared verbatim between browser and server |
+| **API & worker** | Fastify 5 on Node 22, pg-boss for jobs, zod for request schemas, jose for tokens, pino for logs |
+| **Database** | PostgreSQL 16 with SQL migrations. Bitemporal rule tables; the decision ledger is append-only, enforced by triggers |
+| **Extraction** | Python 3.11, pdfplumber (tesseract OCR fallback), a local model via Ollama, pydantic validation |
+| **Schema standard** | OAGS v0.1 — published by this repo, with a validator |
+| **Tests** | vitest — 111 in `anumati-web`, plus the server's own suite in `anumati-server` |
 
 ---
 
 ## Quickstart & Local Setup
 
-### Full stack (web + API + worker + PostgreSQL)
+Three ways in, shortest first.
+
+### 1. Offline demo — one command, nothing to install but npm
+
+Everything runs in the browser against the seeded rule base. No database, no Python, no keys.
+
+```bash
+git clone https://github.com/shubham54191/ANUMATI.git
+cd ANUMATI/anumati-web
+npm install
+npm run dev                  # http://localhost:3000
+```
+
+Sign in with either demo account — credentials are case-insensitive and trimmed:
+
+| User id | Password | Opens |
+|---|---|---|
+| `OFFICER` | `ADMIN` | Matrix 2.0 clearance console — dispatch, conflict resolution, SLA escalation, the shared data matrix |
+| `APPLICANT` | `DEMO` | Applicant roadmap — dependency graph, critical path, document ledger, pre-check |
+
+**Continue as the demo applicant** on the sign-in screen skips the credentials for the applicant side.
+The chrome reads `DEMO · OFFLINE` throughout, and the **Explain** switch in the top bar turns on the
+notes about how each screen works — off by default, so a working screen stays short.
+
+### 2. Full stack — web, API, worker and PostgreSQL
 
 ```bash
 cp .env.example .env          # set JWT_SECRET: openssl rand -hex 32
 docker compose up --build     # web :3000 · API :4000
 ```
 
-Sign in as `applicant`/`demo`, `officer`/`admin`, a department desk (`mpcb`, `midc`, `fire`, … / `demo`),
-`committee`/`demo` or `reviewer`/`demo`. The badge on every screen says what is live and what is recorded:
-government systems answer from recordings and signatures use a labelled demo key until real credentials
-and DSCs are configured. Details: [`anumati-server/README.md`](anumati-server/README.md).
+This adds the accounts, files, decision ledger and the three live-mode desks. Sign in as
+`applicant`/`demo`, `officer`/`admin`, a department desk (`mpcb`, `midc`, `fire`, `dish`, `msedcl`,
+`ceig`, `labour` — all `/demo`), `committee`/`demo` or `reviewer`/`demo`. The badge on every screen
+says what is live and what is recorded: government systems answer from recordings, and signatures use
+a labelled demo key, until real credentials and DSCs are configured.
+Details: [`anumati-server/README.md`](anumati-server/README.md).
 
-### Offline demo (browser only)
+### 3. Extraction pipeline — drafting rules from a gazette PDF
 
-The repository is configured to run out-of-the-box using the embedded regulatory rule base in `lib/data/`. No external database or Python server is required for frontend evaluation.
+Offline, never in a request path, and it only ever drafts.
+See [`anumati-extraction/README.md`](anumati-extraction/README.md).
 
 ### Prerequisites
-- **Node.js**: v18.17.0 or higher (Tested on Node v24.16.0)
-- **npm**: v9.0.0 or higher
+- **Node.js** 18.17+ for the web app; **Node 22** for the server. Tested on Node 24.16.
+- **npm** 9+
+- Docker, only for option 2.
 
-### Installation
+### Running on a different port
 
-1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/shubham54191/ANUMATI.git
-   cd ANUMATI/anumati-web
-   ```
-
-2. **Install Dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the Development Server:**
-   ```bash
-   npm run dev
-   ```
-
-4. **Access the Application:**
-   Open your browser and navigate to:
-   - **Local URL**: [http://localhost:3000](http://localhost:3000)
-   - The application starts on port **3000** (or port **3001** if port 3000 is occupied).
-
-5. **Sign in.** The application opens on the sign-in screen. Two demonstration accounts are seeded:
-
-   | User id | Password | Opens |
-   |---|---|---|
-   | `OFFICER` | `ADMIN` | Matrix 2.0 clearance console — parallel dispatch, conflict resolution, SLA escalation, shared data matrix |
-   | `APPLICANT` | `DEMO` | Applicant roadmap — dependency graph, critical path, document ledger |
-
-   **Continue as an applicant** on the sign-in screen skips the credentials for the applicant side. Credentials are case-insensitive and trimmed.
-
-### Running on a Specific Port
-To run explicitly on Port 3001 or any alternate port:
 ```bash
 npm run dev -- -p 3001
 ```
@@ -611,44 +722,60 @@ npm run start        # Starts production server on http://localhost:3000
 
 ```
 ANUMATI/
-├── README.md                      # Primary project documentation & architecture guide
-├── screenshots/                   # High-resolution screenshots of key user interfaces
-│   ├── 01-setup-wizard.png
-│   ├── 02-applicant-roadmap-graph.png
-│   ├── 03-officer-checklist-register.png
-│   ├── 04-policy-reform-simulator.png
-│   ├── 05-oags-standard-schema.png
-│   ├── 06-document-reuse-ledger.png
-│   └── 07-15 …                    # Matrix 2.0 console, conflict protocol, SLA, data matrix
-├── docs/                          # Comprehensive technical architecture & presentation plans
+├── README.md                       # This document
+├── docker-compose.yml              # Web + API + worker + PostgreSQL, one command
+├── screenshots/                    # 32 screenshots, all taken from the current build
+├── docs/
+│   ├── MATRIX_2.0.md               # Conflict protocol, state machine, 4-minute demo script
+│   ├── TWO_ACCOUNTS.md             # The applicant/officer split and why it exists
+│   ├── INTEGRITY_FRONTEND_BACKEND.md
+│   ├── architecture/               # System architecture, process flow, tech stack (+ diagrams)
 │   ├── BACKEND_ARCHITECTURE.md
 │   ├── FRONTEND_ARCHITECTURE.md
-│   ├── MATRIX_2.0.md              # Conflict resolution protocol, demo script & internals
 │   └── SIH_PRESENTATION_PLAN.md
-└── anumati-web/                   # Next.js 14 web application
-    ├── app/                       # App router pages & layouts
-    │   ├── login/                 # Role sign-in (officer / applicant)
-    │   ├── matrix/                # Matrix 2.0 officer clearance console
-    │   ├── roadmap/new/           # 4-question setup wizard
-    │   ├── roadmap/[roadmapId]/   # Graph view & Officer register
-    │   ├── roadmap/[roadmapId]/simulate/ # Policy reform simulator
-    │   └── standard/              # OAGS specification & schema viewer
-    ├── components/                # Modular UI & graph components
-    │   ├── auth/                  # Role gate — keeps each persona in its own product
-    │   ├── graph/                 # React Flow custom nodes, batch lanes, edge renderers
-    │   ├── matrix/                # Parallel track, conflict screen, tie-breaker, SLA board,
-    │   │                          #   data matrix, clarification thread, audit trail
-    │   ├── register/              # Officer checklist & statutory table
-    │   ├── documents/             # Re-verification audit ledger
-    │   ├── simulator/             # Reform levers, impact cards & guardrails
-    │   └── ui/                    # Reusable design tokens, buttons, dialogs
-    ├── lib/
-    │   ├── data/                  # Seeded rule base (Maharashtra industrial regulations)
-    │   ├── graph/                 # CPM critical path algorithms, layout calculations
-    │   ├── matrix/                # Decision matrix rows, seeded files, conflict state machine
-    │   └── constants/             # Sector definitions, locations, edge classifications
-    ├── store/                     # Zustand stores — roadmap, matrix console, session
-    └── types/                     # Clean TypeScript domain models & schemas
+│
+├── anumati-web/                    # The product — Next.js 14
+│   ├── app/
+│   │   ├── login/                  # Sign-in; each role is sent to its own product
+│   │   ├── roadmap/new/            # Setup wizard
+│   │   ├── roadmap/[roadmapId]/    # Graph, timeline, register, ledger, pre-check
+│   │   │   └── simulate/           # Policy reform simulator
+│   │   ├── matrix/                 # Matrix 2.0 clearance console
+│   │   ├── applications/           # Applicant's filed applications        (live mode)
+│   │   ├── committee/              # Empowered Committee desk              (live mode)
+│   │   ├── rules/                  # Rule review queue                     (live mode)
+│   │   ├── standard/               # OAGS specification and live validator
+│   │   └── api/v1/                 # Public API — schema, export, validate, approvals, roadmap
+│   ├── components/
+│   │   ├── auth/                   # Role gate
+│   │   ├── graph/                  # React Flow nodes, batch lanes, edge renderers
+│   │   ├── matrix/                 # Parallel track, conflict screen, tie-breaker, SLA board,
+│   │   │                           #   data matrix, parameter scope, thread, audit trail
+│   │   ├── precheck/               # Pre-validation, risk score, inspections, renewals
+│   │   ├── register/ documents/    # Statutory register · re-verification ledger
+│   │   ├── committee/ rules/       # Live-mode desks
+│   │   └── ui/                     # Buttons, dialogs, the Explain switch
+│   ├── lib/
+│   │   ├── data/                   # Seeded Maharashtra rule base + field reports
+│   │   ├── graph/                  # CPM critical path, layout
+│   │   ├── matrix/                 # Decision matrix, seeded files, conflict state machine
+│   │   ├── compliance/             # Pre-validation, risk, inspections, renewals
+│   │   ├── oags/                   # The published schema, the export, the validator
+│   │   └── api/                    # Client for the server; HTTP helpers for the routes
+│   ├── store/  types/  tests/      # Zustand stores · domain models · 96 vitest tests
+│
+├── anumati-server/                 # API and worker — Fastify 5, PostgreSQL 16
+│   ├── migrations/                 # 001_init · 002_ledger · 003_signature_cert
+│   └── src/
+│       ├── auth/                   # scrypt passwords, tokens, per-route guards
+│       ├── matrix/                 # Commands, store, service — the officer's writes
+│       ├── engine/bridge.ts        # Imports anumati-web/lib: one engine, both sides
+│       ├── ledger/                 # Append-only hash chain and its verifier
+│       ├── adapters/               # Government systems; recorded answers + circuit breaker
+│       └── jobs/                   # Deliveries, registry checks, SLA sentinel, renewals
+│
+└── anumati-extraction/             # Offline drafting pipeline — Python 3.11
+    └── anumati_extract/            # PDF → pages → model → validated drafts → review queue
 ```
 
 ---

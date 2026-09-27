@@ -120,8 +120,13 @@ function Console({ app, derived }: { app: ApplicationFile; derived: DerivedMatri
       <div className="flex min-h-0 flex-1">
         <ApplicationQueue />
 
+        {/* Two siblings, two distinct keys. Giving both the bare file id made
+            them duplicate keys, and React then appended the new file's pane
+            instead of replacing the old one — every file switch stacked
+            another whole file on the screen. The warning that catches this is
+            stripped from a production build, so it only showed as a bug. */}
         <main className="flex min-w-0 flex-1 flex-col">
-          <div key={app.id} className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <div key={`file-${app.id}`} className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
             <div className="flex flex-col gap-4">
               <ConflictBanner app={app} derived={derived} />
               <FileHeader app={app} derived={derived} />
@@ -134,7 +139,7 @@ function Console({ app, derived }: { app: ApplicationFile; derived: DerivedMatri
             </div>
           </div>
 
-          <DecisionBar key={app.id} app={app} />
+          <DecisionBar key={`bar-${app.id}`} app={app} />
         </main>
 
         <ContextPanel key={app.id} app={app} derived={derived} />
