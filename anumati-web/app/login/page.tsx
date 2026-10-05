@@ -21,16 +21,8 @@ import { StateEmblem } from "@/components/brand/StateEmblem";
 import { useAuthStore } from "@/store/useAuthStore";
 import { HOME } from "@/components/auth/AuthGate";
 import { isLive } from "@/lib/api/client";
-import { ModeBadge, useServerMeta } from "@/components/layout/ModeBadge";
+import { ModeBadge } from "@/components/layout/ModeBadge";
 
-/** Accounts the seeded demo server carries. Shown only when it is a demo. */
-const LIVE_DEMO_ACCOUNTS: [string, string, string][] = [
-  ["applicant", "demo", "Applicant — Sahyadri Agro Foods"],
-  ["officer", "admin", "Single-window facilitation desk"],
-  ["mpcb", "demo", "MPCB desk (also midc, fire, dish, msedcl, ceig, labour)"],
-  ["committee", "demo", "Empowered Committee"],
-  ["reviewer", "demo", "Rule reviewer"],
-];
 
 const ACRONYM = ["Approvals", "Navigation", "Unified", "Monitoring", "For", "All", "Industries"];
 
@@ -83,7 +75,6 @@ export default function LoginPage() {
   const [help, setHelp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const meta = useServerMeta();
 
   useEffect(() => hydrate(), [hydrate]);
   useEffect(() => {
@@ -302,8 +293,8 @@ export default function LoginPage() {
                   className="mt-3 rounded-lg border border-[#DBEAFE] bg-[#EFF6FF] px-3.5 py-2.5 text-[12.5px] leading-snug text-[#1E3A8A]"
                 >
                   {isLive()
-                    ? "ANUMATI does not reset passwords. Accounts come from MAITRI 2.0 — ask your department's MAITRI administrator, or use the demo accounts listed below if this is a demo server."
-                    : "This is the offline demo. The two accounts are fixed: applicant / demo, and officer / admin."}
+                    ? "ANUMATI does not reset passwords. Accounts come from MAITRI 2.0 — ask your department's MAITRI administrator."
+                    : "This is a demonstration build. Credentials are issued separately, not published on this screen."}
                 </p>
               ) : null}
 
@@ -352,28 +343,6 @@ export default function LoginPage() {
             <div className="mt-5 flex items-center justify-center">
               <ModeBadge />
             </div>
-            {isLive() && meta?.demo_mode ? (
-              <details className="mt-3 rounded-[10px] border border-[#EEF2F7] px-3.5 py-2.5 text-[12.5px] text-[#475569]">
-                <summary className="cursor-pointer font-medium text-[#15365B]">Demo accounts on this server</summary>
-                <ul className="mt-2 flex flex-col gap-1">
-                  {LIVE_DEMO_ACCOUNTS.map(([u, p, who]) => (
-                    <li key={u} className="flex items-baseline gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUsername(u);
-                          setPassword(p);
-                        }}
-                        className="font-mono text-[12px] text-[#2563EB] hover:underline"
-                      >
-                        {u} / {p}
-                      </button>
-                      <span className="text-[11.5px] text-[#66758A]">{who}</span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            ) : null}
 
             <div className="mt-8 flex items-center gap-3">
               <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#EEF3F8] text-[14px] font-semibold text-[#15365B]">
