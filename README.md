@@ -7,7 +7,7 @@
 [![Fastify](https://img.shields.io/badge/Fastify-5-000000?style=flat-square&logo=fastify)](https://fastify.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Python](https://img.shields.io/badge/Python-3.11-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/Tests-111_passing-16a34a?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-158_passing-16a34a?style=flat-square)]()
 [![OAGS](https://img.shields.io/badge/OAGS-v0.1_CC_BY_4.0-6366f1?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-MIT-gray?style=flat-square)]()
 
@@ -337,20 +337,47 @@ ANUMATI does not ask Maharashtra to legislate anything new. The MAITRI Act, 2023
 
 ## Tests
 
+**158 automated tests across the three parts**, plus an end-to-end run of the whole
+stack. Every claim below has been executed, not asserted.
+
 ```bash
 cd anumati-web
-npm test          # 111 tests: rule base, matrix engine, clocks, compliance, OAGS validator
-npm run typecheck # strict TypeScript, no errors
-npm run build     # production bundle
-
+npm test                 # 111 — rule base, matrix engine, clocks, compliance, OAGS validator
+npm run typecheck        # strict TypeScript, no errors
+npm run build            # production bundle
 
 cd ../backend/anumati-server
-npm test          # the API, the guards and the ledger's hash chain
-npm run ledger:verify   # re-walks the decision ledger and fails on a broken link
+npm test                 # 37 — the API, every authorisation boundary, the ledger
+npm run ledger:verify    # re-walks the decision ledger, fails on a broken link
+
+cd ../anumati-extraction
+python -m pytest -q      # 10 — the drafting pipeline (1 skipped: needs a local model)
 ```
 
-The suite is written against the pure engines, which is where the claims live. Some of
-it exists to stop specific errors coming back:
+### What the end-to-end run proves
+
+The full stack was brought up — PostgreSQL 16, the API, the worker, and the web app in
+live mode — and driven through the paths the product's claims rest on:
+
+| Claim | How it was checked | Result |
+|---|---|---|
+| Every demo account signs in with the right role | 12 accounts, including seven department desks | All 12 land on their own product |
+| A department acts on its own desks and no others | MPCB tried to decide MIDC's desk | `Only MIDC can act on the MIDC desk. You are signed in for mpcb.` |
+| Only the single window dispatches | Fire tried to dispatch a file | Refused, naming the reason |
+| An applicant sees only their own files | Two applicants, three files | Sahyadri sees its 2, Deccan its 1, the officer all 3 |
+| Role gates are server-side, not CSS | Officer and applicant both read the Committee queue | Both refused by the API |
+| The worker does the registry work | Dispatched a file, watched the queue | Delivered to 4 departments, 5 registry records written back |
+| The decision ledger is append-only | `UPDATE`, `DELETE` and `TRUNCATE` run directly against the table | All three refused **by the database**, chain still verified |
+| A grievance leaves the department | Applicant raised one on a pending approval | Routed to the Empowered Committee citing s. 8(1)(g), appears in its queue |
+| No rule goes live without a human | Posted a draft as the pipeline would | Lands as `draft`; a named reviewer publishes it and the rule set goes v1.3 → v1.4 |
+| A deeming claim needs its provision | Posted a draft claiming one with no clause named | Refused — the same rule the web tests enforce, enforced again on the server |
+
+Every one of those steps is on the hash chain, which verified at each stage.
+
+### What the unit suites are for
+
+They are written against the pure engines, which is where the claims live. Some of it
+exists to stop specific errors coming back:
 
 - no deeming clause may be attributed to the Right to Public Services Act;
 - no approval may claim a deeming clause without naming the provision that grants it;
@@ -649,7 +676,7 @@ Our vision is to transform ANUMATI from an award-winning prototype into an insti
 | **Database** | PostgreSQL 16 with SQL migrations. Bitemporal rule tables; the decision ledger is append-only, enforced by triggers |
 | **Extraction** | Python 3.11, pdfplumber (tesseract OCR fallback), a local model via Ollama, pydantic validation |
 | **Schema standard** | OAGS v0.1 — published by this repo, with a validator |
-| **Tests** | vitest — 111 in `anumati-web`, plus the server's own suite in `anumati-server` |
+| **Tests** | 158 — vitest 111 (web) + 37 (server), pytest 10 (extraction) |
 
 ---
 
@@ -687,12 +714,35 @@ cp .env.example .env          # set JWT_SECRET: openssl rand -hex 32
 docker compose up --build     # web :3000 · API :4000
 ```
 
-This adds the accounts, files, decision ledger and the three live-mode desks. Sign in as
-`applicant`/`demo`, `officer`/`admin`, a department desk (`mpcb`, `midc`, `fire`, `dish`, `msedcl`,
-`ceig`, `labour` — all `/demo`), `committee`/`demo` or `reviewer`/`demo`. The badge on every screen
-says what is live and what is recorded: government systems answer from recordings, and signatures use
-a labelled demo key, until real credentials and DSCs are configured.
+This adds the accounts, files, decision ledger and the three live-mode desks.
+
+**Twelve demo accounts**, each landing on its own product:
+
+| Sign in as | Password | Opens |
+|---|---|---|
+| `applicant`, `deccan` | `demo` | Roadmap, then their own filed applications — and only their own |
+| `officer` | `admin` | Clearance console with the single-window powers: dispatch, revise, finalise |
+| `mpcb` `midc` `fire` `dish` `msedcl` `ceig` `labour` | `demo` | The same console, but each acts on its own desks and no others |
+| `committee` | `demo` | Empowered Committee desk — transfers under s. 5, grievances under s. 8 |
+| `reviewer` | `demo` | Rule review queue — nothing goes live without a name against it |
+
+The badge on every screen says what is live and what is recorded: government systems answer from
+recordings, and signatures use a labelled demo key, until real credentials and DSCs are configured.
 Details: [`backend/anumati-server/README.md`](backend/anumati-server/README.md).
+
+**No Docker?** The stack runs without it — this is how the end-to-end run below was done:
+
+```bash
+# A PostgreSQL 16 on any port, then from backend/anumati-server:
+cp .env.example .env          # point DATABASE_URL at it, set JWT_SECRET
+npm ci && npm run build
+npm start                     # API :4000 — migrates and seeds on first start
+npm run start:worker          # deliveries, registry checks, SLA sentinel, renewals
+
+# and the web app pointed at it:
+cd ../../anumati-web
+NEXT_PUBLIC_ANUMATI_API=http://localhost:4000 npm run build && npm start
+```
 
 ### 3. Extraction pipeline — drafting rules from a gazette PDF
 

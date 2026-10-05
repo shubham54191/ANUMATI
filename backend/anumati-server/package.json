@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "ANUMATI API, workers and database — the sequencing and coordination layer on top of MAITRI 2.0",
+  "description": "ANUMATI API, workers and database \u2014 the sequencing and coordination layer on top of MAITRI 2.0",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
     "dev:worker": "tsx watch --env-file-if-exists=.env src/worker.ts",
-    "start": "node dist/index.js",
-    "start:worker": "node dist/worker.js",
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "start:worker": "node --env-file-if-exists=.env dist/worker.js",
     "build": "tsup",
     "migrate": "tsx --env-file-if-exists=.env src/cli/migrate.ts",
     "seed": "tsx --env-file-if-exists=.env src/cli/seed.ts",
