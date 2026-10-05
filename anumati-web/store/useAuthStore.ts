@@ -51,6 +51,41 @@ const APPLICANT_SESSION: Session = {
   admin: false,
 };
 
+const COMMITTEE_SESSION: Session = {
+  role: "committee",
+  username: "COMMITTEE",
+  name: "Empowered Committee",
+  designation: "Development Commissioner (Industries), chair",
+  office: "MAITRI Act, 2023 — s. 6",
+  admin: false,
+};
+
+const REVIEWER_SESSION: Session = {
+  role: "reviewer",
+  username: "REVIEWER",
+  name: "Rule Reviewer",
+  designation: "Rule review desk",
+  office: "Single-window facilitation cell",
+  admin: false,
+};
+
+/**
+ * What one tap on each entry card does.
+ *
+ * Nobody arriving at this build is told a password, so nobody is asked for
+ * one. In live mode the server still issues the token, and the seeded account
+ * it is issued for is named here rather than printed on the screen — the
+ * credential never leaves the code and never reaches the reader.
+ */
+export type EntryRole = "applicant" | "officer" | "committee" | "reviewer";
+
+const DEMO_LOGIN: Record<EntryRole, { username: string; password: string; local: Session }> = {
+  applicant: { username: "applicant", password: "demo", local: APPLICANT_SESSION },
+  officer: { username: "officer", password: "admin", local: OFFICER_SESSION },
+  committee: { username: "committee", password: "demo", local: COMMITTEE_SESSION },
+  reviewer: { username: "reviewer", password: "demo", local: REVIEWER_SESSION },
+};
+
 const KEY = "anumati.session";
 
 type SignInResult = { ok: true; session: Session } | { ok: false; message: string };
@@ -63,6 +98,7 @@ interface AuthState {
   /** remember=false keeps the session for this tab only (sessionStorage). */
   signIn: (username: string, password: string, remember?: boolean) => Promise<SignInResult>;
   signInAsApplicant: () => Promise<SignInResult>;
+  signInAs: (role: EntryRole) => Promise<SignInResult>;
   signOut: () => void;
 }
 
@@ -149,11 +185,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return { ok: false, message: "That user id and password do not match a demo account." };
   },
 
-  signInAsApplicant: async () => {
-    if (isLive()) return get().signIn("applicant", "demo");
-    persist(APPLICANT_SESSION);
-    set({ session: APPLICANT_SESSION, hydrated: true });
-    return { ok: true, session: APPLICANT_SESSION };
+  signInAsApplicant: async () => get().signInAs("applicant"),
+
+  signInAs: async (role) => {
+    const entry = DEMO_LOGIN[role];
+    if (isLive()) return get().signIn(entry.username, entry.password);
+    persist(entry.local);
+    set({ session: entry.local, hydrated: true });
+    return { ok: true, session: entry.local };
   },
 
   signOut: () => {

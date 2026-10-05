@@ -5,23 +5,23 @@ import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   BarChart3,
-  Eye,
-  EyeOff,
-  Landmark,
-  Lock,
+  Building2,
+  ClipboardCheck,
+  Gavel,
+  Loader2,
   MapPin,
   Network,
   Radar,
   Timer,
-  User,
+  UserRound,
 } from "lucide-react";
 import { AnumatiMark } from "@/components/brand/AnumatiMark";
 import { PlantScene } from "@/components/brand/PlantScene";
 import { StateEmblem } from "@/components/brand/StateEmblem";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore, type EntryRole } from "@/store/useAuthStore";
 import { HOME } from "@/components/auth/AuthGate";
-import { isLive } from "@/lib/api/client";
 import { ModeBadge } from "@/components/layout/ModeBadge";
+import { isLive } from "@/lib/api/client";
 
 
 const ACRONYM = ["Approvals", "Navigation", "Unified", "Monitoring", "For", "All", "Industries"];
@@ -31,6 +31,43 @@ const PILLARS = [
   { Icon: Network, line1: "Better", line2: "Coordination" },
   { Icon: Radar, line1: "Real-time", line2: "Tracking" },
   { Icon: BarChart3, line1: "Data-Driven", line2: "Decisions" },
+];
+
+/**
+ * The four ways in.
+ *
+ * Nobody arriving here has been given a password, so nobody is asked for one.
+ * Each card signs in and opens that role's own product; the server still
+ * decides what the role may do once it is inside.
+ */
+const ENTRY: { role: EntryRole; Icon: typeof Timer; title: string; line: string }[] = [
+  {
+    role: "applicant",
+    Icon: Building2,
+    title: "I am setting up a unit",
+    line: "Your approval roadmap, what to file when, and a check before you file",
+  },
+  {
+    role: "officer",
+    Icon: ClipboardCheck,
+    title: "I am a facilitation officer",
+    line: "The clearance console — dispatch, conflicts, SLA clocks, the data matrix",
+  },
+  {
+    // The last two desks write to the server, so they exist only when there is
+    // one. Offline they are left off the screen rather than offered and then
+    // refused — a card that leads nowhere is worse than a card that is absent.
+    role: "committee",
+    Icon: Gavel,
+    title: "I am on the Empowered Committee",
+    line: "Files transferred under s. 5 and grievances raised under s. 8",
+  },
+  {
+    role: "reviewer",
+    Icon: UserRound,
+    title: "I review the rule base",
+    line: "Drafts waiting for a named sign-off before they go live",
+  },
 ];
 
 /** The brand curve that sweeps across the foot of the left panel. */
@@ -63,31 +100,28 @@ export default function LoginPage() {
   const session = useAuthStore((s) => s.session);
   const hydrated = useAuthStore((s) => s.hydrated);
   const hydrate = useAuthStore((s) => s.hydrate);
-  const signIn = useAuthStore((s) => s.signIn);
-  const signInAsApplicant = useAuthStore((s) => s.signInAsApplicant);
+  const signInAs = useAuthStore((s) => s.signInAs);
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [show, setShow] = useState(false);
-  // Checked keeps the session after the browser closes; unchecked keeps it
-  // only for this tab. Checked by default — that was the old behaviour.
-  const [remember, setRemember] = useState(true);
-  const [help, setHelp] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  /** Which card is mid-flight, so only that one shows a spinner. */
+  const [busy, setBusy] = useState<EntryRole | null>(null);
+
+  const live = isLive();
+  const entries = live ? ENTRY : ENTRY.filter((e) => e.role === "applicant" || e.role === "officer");
 
   useEffect(() => hydrate(), [hydrate]);
   useEffect(() => {
     if (hydrated && session) router.replace(HOME[session.role]);
   }, [hydrated, session, router]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const enter = async (role: EntryRole) => {
     if (busy) return;
-    setBusy(true);
-    const result = await signIn(username, password, remember);
-    setBusy(false);
+    setBusy(role);
+    const result = await signInAs(role);
+    setBusy(null);
     if (!result.ok) {
+      // In live mode this is the server saying no — a seeded account missing,
+      // or the API unreachable. Say what came back rather than a generic line.
       setError(result.message);
       return;
     }
@@ -211,133 +245,53 @@ export default function LoginPage() {
             <div className="flex flex-1 flex-col rounded-[18px] border border-[#EFF2F7] bg-white px-6 py-8 shadow-[0_12px_38px_rgba(21,54,91,0.07)] sm:px-9 lg:px-[54px] lg:py-[42px]">
 
             <div className="flex flex-1 flex-col justify-center py-6">
-            <h2 className="text-[38px] font-bold leading-none text-[#15365B]">Welcome Back</h2>
-            <p className="mt-3 text-[14.5px] text-[#556478]">Login to your ANUMATI account</p>
+            <h2 className="text-[34px] font-bold leading-none text-[#15365B]">Welcome</h2>
+            <p className="mt-3 text-[14.5px] leading-snug text-[#556478]">
+              Choose how you are coming in. This is a demonstration build — no password is needed,
+              and each role opens its own product.
+            </p>
 
-            <form onSubmit={submit} className="mt-7 flex flex-col" noValidate>
-              <label htmlFor="username" className="mb-2 text-[13px] font-semibold text-[#1F2937]">
-                Username / Email ID
-              </label>
-              <div className="flex h-[52px] items-center gap-3 rounded-[10px] border border-[#E2E8F0] px-4 focus-within:border-[#15365B]">
-                <User className="h-4 w-4 flex-none text-[#94A3B8]" strokeWidth={1.7} />
-                <input
-                  id="username"
-                  required
-                  aria-invalid={error ? true : undefined}
-                  aria-describedby={error ? "login-error" : undefined}
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username or email"
-                  className="w-full bg-transparent text-[14px] text-[#1F2937] outline-none placeholder:text-[#9AA7B4]"
-                />
-              </div>
-
-              <label htmlFor="password" className="mb-2 mt-5 text-[13px] font-semibold text-[#1F2937]">
-                Password
-              </label>
-              <div className="flex h-[52px] items-center gap-3 rounded-[10px] border border-[#E2E8F0] px-4 focus-within:border-[#15365B]">
-                <Lock className="h-4 w-4 flex-none text-[#94A3B8]" strokeWidth={1.7} />
-                <input
-                  id="password"
-                  type={show ? "text" : "password"}
-                  required
-                  aria-invalid={error ? true : undefined}
-                  aria-describedby={error ? "login-error" : undefined}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full bg-transparent text-[14px] text-[#1F2937] outline-none placeholder:text-[#9AA7B4]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShow((v) => !v)}
-                  aria-label={show ? "Hide password" : "Show password"}
-                  aria-pressed={show}
-                  // A 14px icon is a 14px target. WCAG 2.2 asks for 24.
-                  className="-mr-1 flex h-6 w-6 flex-none items-center justify-center rounded text-[#94A3B8] hover:text-[#475569]"
-                >
-                  {show ? (
-                    <Eye className="h-4 w-4" strokeWidth={1.7} />
-                  ) : (
-                    <EyeOff className="h-4 w-4" strokeWidth={1.7} />
-                  )}
-                </button>
-              </div>
-
-              <div className="mt-5 flex items-center justify-between">
-                <label className="flex cursor-pointer items-center gap-2.5 text-[13.5px] text-[#475569]">
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(e) => setRemember(e.target.checked)}
-                    className="h-[17px] w-[17px] rounded-[4px] border-[#CBD5E1] accent-[#15365B]"
-                  />
-                  Remember me
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setHelp((v) => !v)}
-                  aria-expanded={help}
-                  aria-controls="signin-help"
-                  className="text-[13.5px] text-[#2563EB] hover:underline"
-                >
-                  Forgot password?
-                </button>
-              </div>
-
-              {help ? (
-                <p
-                  id="signin-help"
-                  className="mt-3 rounded-lg border border-[#DBEAFE] bg-[#EFF6FF] px-3.5 py-2.5 text-[12.5px] leading-snug text-[#1E3A8A]"
-                >
-                  {isLive()
-                    ? "ANUMATI does not reset passwords. Accounts come from MAITRI 2.0 — ask your department's MAITRI administrator."
-                    : "This is a demonstration build. Credentials are issued separately, not published on this screen."}
-                </p>
-              ) : null}
-
-              {error ? (
-                <p
-                  id="login-error"
-                  role="alert"
-                  className="mt-4 rounded-lg border border-[#FCA5A5] bg-[#FEF2F2] px-3.5 py-2.5 text-[13px] leading-snug text-[#B91C1C]"
-                >
-                  {error}
-                </p>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={busy}
-                className="mt-6 flex h-[56px] items-center justify-center gap-2.5 rounded-[10px] bg-[#15365B] text-[15.5px] font-semibold text-white transition-colors hover:bg-[#0F2A48] disabled:opacity-60"
+            {error ? (
+              <p
+                role="alert"
+                className="mt-4 rounded-lg border border-[#FCA5A5] bg-[#FEF2F2] px-3.5 py-2.5 text-[13px] leading-snug text-[#B91C1C]"
               >
-                {busy ? "Signing in…" : "Login"}
-                <ArrowRight className="h-4 w-4" strokeWidth={2} />
-              </button>
-            </form>
+                {error}
+              </p>
+            ) : null}
 
-            <div className="my-6 flex items-center gap-4">
-              <span className="h-px flex-1 bg-[#E8EDF3]" />
-              <span className="text-[12.5px] text-[#66758A]">OR</span>
-              <span className="h-px flex-1 bg-[#E8EDF3]" />
+            <div className="mt-6 flex flex-col gap-2.5">
+              {entries.map(({ role, Icon, title, line }) => (
+                <button
+                  key={role}
+                  type="button"
+                  disabled={busy !== null}
+                  onClick={() => enter(role)}
+                  className="group flex items-center gap-3.5 rounded-[12px] border border-[#E2E8F0] px-4 py-3.5 text-left transition-colors hover:border-[#15365B] hover:bg-[#F8FAFC] disabled:opacity-60"
+                >
+                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-[10px] bg-[#EEF3F8] text-[#15365B]">
+                    {busy === role ? (
+                      <Loader2 className="h-[18px] w-[18px] animate-spin" strokeWidth={1.8} />
+                    ) : (
+                      <Icon className="h-[18px] w-[18px]" strokeWidth={1.7} />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[14.5px] font-semibold text-[#15365B]">{title}</span>
+                    <span className="mt-0.5 block text-[12.5px] leading-snug text-[#556478]">{line}</span>
+                  </span>
+                  <ArrowRight
+                    className="h-4 w-4 flex-none text-[#94A3B8] transition-colors group-hover:text-[#15365B]"
+                    strokeWidth={1.8}
+                  />
+                </button>
+              ))}
             </div>
 
-            <button
-              type="button"
-              onClick={async () => {
-                const r = await signInAsApplicant();
-                if (r.ok) router.replace("/roadmap/new");
-                else setError(r.message);
-              }}
-              className="flex h-[52px] items-center justify-center gap-2.5 rounded-[10px] border border-[#E2E8F0] text-[14.5px] font-medium text-[#1F2937] transition-colors hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
-            >
-              <Landmark className="h-[18px] w-[18px] text-[#15365B]" strokeWidth={1.6} />
-              Continue as the demo applicant
-            </button>
-            <p className="mt-2 text-center text-[11.5px] leading-snug text-[#66758A]">
-              In deployment this is MAITRI 2.0 sign-in — investors keep the account they already have.
+            <p className="mt-4 text-[11.5px] leading-snug text-[#66758A]">
+              {live
+                ? "In deployment this screen is MAITRI 2.0 sign-in — an applicant or an officer keeps the account they already have, and the server decides what each one may do."
+                : "The Empowered Committee and rule review desks write to the server, so they appear once one is running. In deployment this screen is MAITRI 2.0 sign-in."}
             </p>
 
             <div className="mt-5 flex items-center justify-center">

@@ -19,7 +19,7 @@ What every button, link, tab and control does: what opens, where it opens, how b
 |---|---|---|
 | Switched by | `NEXT_PUBLIC_ANUMATI_API` not set | `NEXT_PUBLIC_ANUMATI_API=http://…:4000` |
 | Badge on every screen | **DEMO · OFFLINE** (grey) | **LIVE · v1.3** plus **· DEMO** and/or **· RECORDED** (amber), or green when neither applies |
-| Accounts | 2 local accounts: `officer/admin`, `applicant/demo` | Server accounts, checked by the server |
+| Accounts | Two entry cards, no password | Four entry cards; the server issues the token and checks every request |
 | Files, clocks, decisions | Simulated in the browser; lost on reload | Stored in PostgreSQL; every change is a server command |
 | Pages that need the server | Show a "needs the ANUMATI server" notice | Work |
 
@@ -140,24 +140,28 @@ Shortcuts are ignored while typing in a field or while Cmd/Ctrl/Alt is held.
 
 ## 2. Sign-in — `/login`
 
-**Layout.** Full screen, background `#F1F5F9`, content centred up to 1440 px. A masthead, one large rounded card, a footer. At `lg`+ the card splits 52 : 48 — brand panel on the left (at least 560 px tall), the form in its own white card on the right. Below `lg` the halves stack.
+**Layout.** Full screen, background `#F1F5F9`, content centred up to 1440 px. A masthead, one large rounded card, a footer. At `lg`+ the card splits 52 : 48 — brand panel on the left (at least 560 px tall), the entry card on the right. Below `lg` the halves stack.
+
+**There is no password on this screen, and no field to type one into.** Nobody arriving at this
+build has been given a credential, so none is asked for and none is printed. Each card signs in and
+opens that role's own product. In live mode the server still issues the token and still decides what
+the role may do; the seeded account each card uses is named in the code, never on the page.
 
 | Control | Where | On click → opens | Size / placement | What you see |
 |---|---|---|---|---|
-| **Username / Email ID** | Form | Text input | 52 px tall, full width | "Enter your username or email" |
-| **Password** | Form | Password input | 52 px tall | "Enter your password" |
-| Eye icon | End of password field | Shows / hides the password | 16 px | — |
-| **Remember me** (ticked by default) | Under password | Ticked: the session survives closing the browser. Unticked: kept for this tab only | 17 px box | — |
-| **Forgot password?** | Right of Remember me | Opens a help note in place, under the row | Full form width | Demo: the two fixed accounts. Live: "ANUMATI does not reset passwords — ask your department's MAITRI administrator" |
-| **Login →** | Full width | Signs in; page is replaced with your role's home. Enter also submits. | 56 px tall | "Signing in…" while waiting; red error box above the button on failure |
-| **Continue as the demo applicant** | Under "OR" | Signs in as applicant → `/roadmap/new` | 52 px tall, full width | Note: "In deployment this is MAITRI 2.0 sign-in…" |
-| Mode badge | Under the note | Opens the "What is real here" card | 24 px pill | See 1.4 |
-| **Demo accounts on this server** | Under badge — **live only, when the server is in demo mode** | Expands in place | Full card width | 5 rows of user / password and who they are |
-| A `user / pass` inside that list | Expanded list | Fills both fields; **does not submit** | Mono text | — |
+| **I am setting up a unit** | First card | Applicant → `/roadmap/new` | Full width, 10 px icon tile | "Your approval roadmap, what to file when, and a check before you file" |
+| **I am a facilitation officer** | Second card | Officer → `/matrix` | Same | "The clearance console — dispatch, conflicts, SLA clocks, the data matrix" |
+| **I am on the Empowered Committee** | Third card — **live mode only** | Committee → `/committee` | Same | "Files transferred under s. 5 and grievances raised under s. 8" |
+| **I review the rule base** | Fourth card — **live mode only** | Reviewer → `/rules` | Same | "Drafts waiting for a named sign-off before they go live" |
+| Mode badge | Under the cards | Opens the "What is real here" card | 24 px pill | See 1.4 |
 | "Need help?" note | Card foot | Not clickable | — | "Sign-in problems go to your department's MAITRI 2.0 administrator." |
 | **Open standard (OAGS)** | Page footer | Page → `/standard` | Text link | — |
 
-**Messages:** "Enter both a user id and a password." · "That user id and password do not match a demo account." (demo) · the server's message, or "Sign-in failed. Try again." (live) · "Could not reach the ANUMATI server. Check that it is running."
+While a card is signing in, that card alone shows a spinner in place of its icon and every card is
+disabled. The last two are absent offline rather than shown and then refused: both write to the
+server, so without one there is nothing for them to read.
+
+**Messages:** the server's message, or "Sign-in failed. Try again." (live) · "Could not reach the ANUMATI server. Check that it is running."
 
 ---
 
@@ -696,7 +700,7 @@ A rule card shows: ID + version, name, confidence (amber under 80 %), Department
 | 1 | Wizard ignored Sector, Location, Stage | **Fixed.** Every answer travels to the roadmap. Options the rule base does not cover are listed but greyed out, so the roadmap can never be the food-processing one under another label. |
 | 2 | Two grievance systems | **Fixed in live mode.** The Pre-Check points to My applications; the console Redress tab reads the server. The browser-only dialog remains in the offline demo and says so. |
 | 3 | Report a rejection was browser-only | **Disclosed.** Button reads "Save report" and the confirmation says it stays in this browser. A server endpoint does not exist yet. |
-| 4 | Dead controls on sign-in | **Fixed.** English ▾ removed; Remember me works; Forgot password? opens a help note; support and footer links replaced by real text and a real link. The wizard's "View the schema →" is a link. |
+| 4 | Dead controls on sign-in | **Fixed, then superseded.** The username, password, Remember me and Forgot password controls are gone with the credential form; sign-in is now four entry cards. Support and footer links are real text and a real link. The wizard's "View the schema →" is a link. |
 | 5 | Change answers reset the wizard | **Fixed.** The wizard reopens with the earlier answers. |
 | 6 | Inconsistent dialog closing | **Fixed.** One rule for every dialog (§4.10). |
 | 7 | Visits used the default roadmap | **Fixed.** Bound to the file's approvals. |

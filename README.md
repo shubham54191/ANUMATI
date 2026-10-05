@@ -130,7 +130,9 @@ An automated audit measuring the administrative burden across government counter
 ---
 
 ### 7. Sign-in: Officer and Applicant are now two separate products
-The console is reached through a real sign-in. `OFFICER` / `ADMIN` opens the Matrix 2.0 clearance console; **Continue as an applicant** (or `APPLICANT` / `DEMO`) opens the roadmap. The gate is enforced both ways — an officer who opens the applicant roadmap is redirected to their console, so the approval catalogue, the sequential-vs-parallel arithmetic and the reform simulator never appear on the screen of the person actually processing the file.
+Nobody arriving at this build has been given a password, so nobody is asked for one. The screen offers the ways in — **setting up a unit**, **facilitation officer**, and with a server running, **Empowered Committee** and **rule review** — and one tap opens that role's own product. No credential is printed on a page anyone can open.
+
+The gate is enforced both ways. An officer who opens the applicant roadmap is redirected to their console, so the approval catalogue, the sequential-versus-parallel arithmetic and the reform simulator never appear on the screen of the person actually processing the file. In live mode this is a convenience only: the server re-checks the role and the department on every single request, and a page that slipped past the browser gate would get nothing back.
 
 ![Officer sign-in](screenshots/07-officer-login.png)
 
@@ -297,7 +299,7 @@ Three screens exist only when the API is running, because each one writes someth
 | `/committee` | the Empowered Committee account | Files transferred under s. 5 and grievances raised under s. 8 |
 | `/rules` | the rule reviewer account | The extraction pipeline's drafts, waiting for a named sign-off |
 
-In the offline demo these are not reachable — there is no committee or reviewer account to sign in as, and nothing for them to read. Start the server (below) and sign in as `committee` / `demo` or `reviewer` / `demo`.
+In the offline demo their cards are not shown — there is nothing for them to read and nowhere to write. Start the server (below) and both appear on the sign-in screen.
 
 ---
 
@@ -695,14 +697,17 @@ npm install
 npm run dev                  # http://localhost:3000
 ```
 
-Sign in with either demo account — credentials are case-insensitive and trimmed:
+No sign-in to work out. The screen offers the ways in and one tap opens that role's product:
 
-| User id | Password | Opens |
-|---|---|---|
-| `OFFICER` | `ADMIN` | Matrix 2.0 clearance console — dispatch, conflict resolution, SLA escalation, the shared data matrix |
-| `APPLICANT` | `DEMO` | Applicant roadmap — dependency graph, critical path, document ledger, pre-check |
+| Card | Opens |
+|---|---|
+| **I am setting up a unit** | Applicant roadmap — dependency graph, critical path, document ledger, pre-check |
+| **I am a facilitation officer** | Matrix 2.0 clearance console — dispatch, conflict resolution, SLA escalation, the shared data matrix |
 
-**Continue as the demo applicant** on the sign-in screen skips the credentials for the applicant side.
+Two more cards — **Empowered Committee** and **rule review** — appear once the API is running,
+because both write to the server. They are left off the offline screen rather than offered and
+then refused.
+
 The chrome reads `DEMO · OFFLINE` throughout, and the **Explain** switch in the top bar turns on the
 notes about how each screen works — off by default, so a working screen stays short.
 
@@ -716,15 +721,19 @@ docker compose up --build     # web :3000 · API :4000
 
 This adds the accounts, files, decision ledger and the three live-mode desks.
 
-**Twelve demo accounts**, each landing on its own product:
+With the API running, the sign-in screen offers all four roles, still without a password:
 
-| Sign in as | Password | Opens |
+| Card | Opens | Backed by |
 |---|---|---|
-| `applicant`, `deccan` | `demo` | Roadmap, then their own filed applications — and only their own |
-| `officer` | `admin` | Clearance console with the single-window powers: dispatch, revise, finalise |
-| `mpcb` `midc` `fire` `dish` `msedcl` `ceig` `labour` | `demo` | The same console, but each acts on its own desks and no others |
-| `committee` | `demo` | Empowered Committee desk — transfers under s. 5, grievances under s. 8 |
-| `reviewer` | `demo` | Rule review queue — nothing goes live without a name against it |
+| I am setting up a unit | Roadmap, then their own filed applications — and only their own | `applicant` |
+| I am a facilitation officer | Clearance console with the single-window powers: dispatch, revise, finalise | `officer` |
+| I am on the Empowered Committee | Transfers under s. 5, grievances under s. 8 | `committee` |
+| I review the rule base | Rule review queue — nothing goes live without a name against it | `reviewer` |
+
+The server also carries a seeded account per department — `mpcb`, `midc`, `fire`, `dish`, `msedcl`,
+`ceig`, `labour` — each able to act on its own desks and no others. They are reachable through the
+API for testing that boundary; the sign-in screen does not publish them, because **no credential
+belongs on a page anyone can open**.
 
 The badge on every screen says what is live and what is recorded: government systems answer from
 recordings, and signatures use a labelled demo key, until real credentials and DSCs are configured.
